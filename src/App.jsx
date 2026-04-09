@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react'
 import './App.css'
 import { Line } from 'react-chartjs-2'
@@ -15,10 +14,6 @@ function App() {
   const [startingBalance, setStartingBalance] = useState(0)
   const [plan, setPlan] = useState('free')
   const [isLightMode, setIsLightMode] = useState(false)
-  // Commented out since checklist is hidden
-  /*
-  const [checks, setChecks] = useState({ chk1: false, chk2: false, chk3: false })
-  */
   const [showOnboarding, setShowOnboarding] = useState(false)
   const [showPricingModal, setShowPricingModal] = useState(false)
   const [toasts, setToasts] = useState([])
@@ -40,14 +35,12 @@ function App() {
   const SUB_LIMITS = { freeTrades: 25, freeJournals: 10 }
   const today = new Date()
 
-  // Toast notifications
   const toast = (msg, type = 'success', duration = 3000) => {
     const id = Date.now()
     setToasts(prev => [...prev, { id, msg, type }])
     setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), duration)
   }
 
-  // Storage helper
   const storage = {
     async set(key, value) {
       try {
@@ -77,11 +70,9 @@ function App() {
     }
   }
 
-  // Date helpers
   const pad2 = n => String(n).padStart(2, '0')
   const todayStr = () => `${today.getFullYear()}-${pad2(today.getMonth() + 1)}-${pad2(today.getDate())}`
 
-  // Load initial data
   useEffect(() => {
     const init = async () => {
       loadTheme()
@@ -90,10 +81,9 @@ function App() {
     init()
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Fetch live price
   useEffect(() => {
     fetchLivePrice()
-    const interval = setInterval(fetchLivePrice, 60000) // Update every minute
+    const interval = setInterval(fetchLivePrice, 60000)
     return () => clearInterval(interval)
   }, [])
 
@@ -107,8 +97,6 @@ function App() {
 
   async function loadAllData() {
     try {
-      // Removed undefined setBillingEmail call causing potential issues
-      // and wrapped logic correctly
       const e = await storage.get('xau-billing-email');
       if (e) {
         const email = String(JSON.parse(e.value) || '');
@@ -119,8 +107,7 @@ function App() {
         }
       }
     // eslint-disable-next-line no-empty
-    } catch { ; // empty }
-    }
+    } catch { ; }
     await loadTrades()
     await loadJournals()
     await loadWallet()
@@ -177,18 +164,6 @@ function App() {
     localStorage.setItem('xau-theme', newMode ? 'light' : 'dark')
   }
 
-  // Commented out since checklist is hidden
-  /*
-  const toggleCheck = (id) => {
-    setChecks(prev => {
-      const updated = { ...prev, [id]: !prev[id] }
-      return updated
-    })
-  }
-
-  const allChecked = () => checks.chk1 && checks.chk2 && checks.chk3
-  */
-
   const calcPnl = (entry, exit, lots, amount, sl, tp) => {
     if (!entry || !exit || !direction || (!lots && !amount)) {
       return { pnl: null, rr: null, risk: null, reward: null }
@@ -197,9 +172,7 @@ function App() {
     const diff = direction === 'BUY' ? exit - entry : entry - exit
     const pnl = amount > 0 ? (diff / entry) * amount : diff * lots * 100
 
-    let rr = null,
-      risk = null,
-      reward = null
+    let rr = null, risk = null, reward = null
     if (sl && tp && sl !== '' && tp !== '') {
       risk = Math.abs(direction === 'BUY' ? entry - sl : sl - entry)
       reward = Math.abs(direction === 'BUY' ? tp - entry : entry - tp)
@@ -238,23 +211,6 @@ function App() {
       return
     }
 
-    // Checklist check commented out since checklist is hidden
-    /*
-    if (!allChecked()) {
-      toast('Complete the checklist before saving.', 'warn')
-      return
-    }
-    */
-
-    // Commented out since checklist is hidden
-    /*
-    if (plan === 'free' && trades.length >= SUB_LIMITS.freeTrades) {
-      setShowPricingModal(true)
-      toast(`Free plan limit (${SUB_LIMITS.freeTrades} trades). Upgrade to Pro.`, 'warn')
-      return
-    }
-    */
-
     const diff = direction === 'BUY' ? exit - entry : entry - exit
     const pnl = amount > 0 ? (diff / entry) * amount : diff * lots * 100
     const outcome = pnl > 0.01 ? 'WIN' : pnl < -0.01 ? 'LOSS' : 'BE'
@@ -292,7 +248,6 @@ function App() {
     e.target.reset()
     e.target.date.value = todayStr()
     setDirection(null)
-    // resetChecklist() // commented out since checklist is hidden
 
     const icon = outcome === 'WIN' ? '🟢' : outcome === 'LOSS' ? '🔴' : '🟡'
     toast(
@@ -309,18 +264,15 @@ function App() {
     toast('Trade deleted.', 'warn')
   }
 
-  // Navigation helper: switch the active tab and prepare any tab-specific data
   const showTab = (tab) => {
     setActiveTab(tab)
     if (tab === 'journal') {
-      // When navigating to the journal tab, prefill the editor with the current date entry
       const entry = journals[journalDate]
       setJournalText(entry ? entry.text : '')
       setSelectedMood(entry ? entry.mood : null)
     }
   }
 
-  // Keep the journal editor in sync when the selected date or saved journal entries change
   useEffect(() => {
     const entry = journals[journalDate]
     setJournalText(entry ? entry.text : '')
@@ -437,19 +389,8 @@ function App() {
     }
     const headers = ['Date', 'Direction', 'Session', 'Setup', 'Entry', 'Exit', 'Lots', 'SL', 'TP', 'RR', 'Amount', 'PnL', 'Outcome', 'Notes']
     const rows = trades.map(t => [
-      t.date,
-      t.direction,
-      t.session || '',
-      t.setup || '',
-      t.entry,
-      t.exit,
-      t.lots,
-      t.sl || '',
-      t.tp || '',
-      t.rr || '',
-      t.amount,
-      t.pnl,
-      t.outcome,
+      t.date, t.direction, t.session || '', t.setup || '', t.entry, t.exit,
+      t.lots, t.sl || '', t.tp || '', t.rr || '', t.amount, t.pnl, t.outcome,
       `"${(t.note || '').replace(/"/g, '""')}"`
     ])
     const csv = [headers, ...rows].map(r => r.join(',')).join('\n')
@@ -497,20 +438,9 @@ function App() {
       if (risk > 0) rr = parseFloat((rew / risk).toFixed(2))
     }
     const updatedTrade = {
-      ...editingTrade,
-      date,
-      entry,
-      exit,
-      lots: isNaN(lots) ? 0 : lots,
-      amount,
-      sl,
-      tp,
-      rr,
-      session,
-      setup,
-      pnl: parseFloat(pnl.toFixed(2)),
-      outcome,
-      note
+      ...editingTrade, date, entry, exit,
+      lots: isNaN(lots) ? 0 : lots, amount, sl, tp, rr, session, setup,
+      pnl: parseFloat(pnl.toFixed(2)), outcome, note
     }
     const newTrades = trades.map(t => t.id === editingTrade.id ? updatedTrade : t)
     setTrades(newTrades)
@@ -524,12 +454,10 @@ function App() {
   async function fetchLivePrice() {
     try {
       const response = await fetch('https://www.goldapi.io/api/XAU/USD', {
-        headers: {
-          'x-access-token': 'goldapi-bjmx9w17mnrj1i13-io'
-        }
+        headers: { 'x-access-token': 'goldapi-bjmx9w17mnrj1i13-io' }
       });
       const data = await response.json();
-      setLivePrice(data.price); 
+      setLivePrice(data.price);
     } catch (error) {
       console.error('Error fetching live price:', error);
       setLivePrice('No Live Price');
@@ -574,32 +502,21 @@ function App() {
         titleColor: isLightMode ? '#1a2236' : '#e5e7eb',
         bodyColor: equityData.values[equityData.values.length - 1] >= startingBalance ? '#20c997' : '#ff6b6b',
         padding: 10,
-        callbacks: {
-          label: ctx => ` $${ctx.parsed.y.toFixed(2)}`
-        }
+        callbacks: { label: ctx => ` $${ctx.parsed.y.toFixed(2)}` }
       }
     },
     scales: {
       x: {
         grid: { color: isLightMode ? 'rgba(0,0,0,.06)' : 'rgba(255,255,255,.05)' },
-        ticks: {
-          color: isLightMode ? '#8896aa' : '#6f7d8c',
-          font: { size: 10, family: 'Consolas,monospace' },
-          maxTicksLimit: 8
-        }
+        ticks: { color: isLightMode ? '#8896aa' : '#6f7d8c', font: { size: 10, family: 'Consolas,monospace' }, maxTicksLimit: 8 }
       },
       y: {
         grid: { color: isLightMode ? 'rgba(0,0,0,.06)' : 'rgba(255,255,255,.05)' },
-        ticks: {
-          color: isLightMode ? '#8896aa' : '#6f7d8c',
-          font: { size: 10, family: 'Consolas,monospace' },
-          callback: v => '$' + v.toFixed(0)
-        }
+        ticks: { color: isLightMode ? '#8896aa' : '#6f7d8c', font: { size: 10, family: 'Consolas,monospace' }, callback: v => '$' + v.toFixed(0) }
       }
     }
   }
 
-  // ── Update stats cards ──
   function updateStats() {
     const total = trades.reduce((s, t) => s + t.pnl, 0)
     const wallet = startingBalance + total
@@ -611,9 +528,7 @@ function App() {
     const grossLoss = Math.abs(losses.reduce((s, t) => s + t.pnl, 0))
     const pf = grossLoss > 0 ? grossWin / grossLoss : null
 
-    let peak = startingBalance
-    let maxDD = 0
-    let running = startingBalance
+    let peak = startingBalance, maxDD = 0, running = startingBalance
     ;[...trades].reverse().forEach(t => {
       running += t.pnl
       if (running > peak) peak = running
@@ -621,52 +536,29 @@ function App() {
       if (dd > maxDD) maxDD = dd
     })
 
-    let streak = 0
-    let streakType = null
+    let streak = 0, streakType = null
     for (const t of trades) {
       if (t.outcome === 'BE') continue
-      if (!streakType) {
-        streakType = t.outcome
-        streak = 1
-      } else if (t.outcome === streakType) streak++
+      if (!streakType) { streakType = t.outcome; streak = 1 }
+      else if (t.outcome === streakType) streak++
       else break
     }
 
-    // Update DOM elements if they exist
-    const sStart = document.getElementById('s-start')
-    if (sStart) sStart.textContent = '$' + startingBalance.toFixed(2)
+    const set = (id, text, cls) => { const el = document.getElementById(id); if (el) { el.textContent = text; if (cls) el.className = cls } }
+    set('s-start', '$' + startingBalance.toFixed(2))
     const sWallet = document.getElementById('s-wallet')
-    if (sWallet) {
-      sWallet.textContent = '$' + wallet.toFixed(2)
-      sWallet.className = 'stat-val ' + (wallet > startingBalance ? 'pos' : wallet < startingBalance ? 'neg' : 'gold')
-    }
+    if (sWallet) { sWallet.textContent = '$' + wallet.toFixed(2); sWallet.className = 'stat-val ' + (wallet > startingBalance ? 'pos' : wallet < startingBalance ? 'neg' : 'gold') }
     const sPnl = document.getElementById('s-pnl')
-    if (sPnl) {
-      sPnl.textContent = (total >= 0 ? '+' : '') + '$' + Math.abs(total).toFixed(2)
-      sPnl.className = 'stat-val ' + (total > 0 ? 'pos' : total < 0 ? 'neg' : 'gold')
-    }
+    if (sPnl) { sPnl.textContent = (total >= 0 ? '+' : '') + '$' + Math.abs(total).toFixed(2); sPnl.className = 'stat-val ' + (total > 0 ? 'pos' : total < 0 ? 'neg' : 'gold') }
     const sWr = document.getElementById('s-wr')
-    if (sWr) {
-      sWr.textContent = wr !== null ? Math.round(wr * 100) + '%' : '—'
-      sWr.className = 'stat-val ' + (wr >= 0.5 ? 'pos' : wr !== null ? 'neg' : '')
-    }
-    const sTrades = document.getElementById('s-trades')
-    if (sTrades) sTrades.textContent = trades.length
+    if (sWr) { sWr.textContent = wr !== null ? Math.round(wr * 100) + '%' : '—'; sWr.className = 'stat-val ' + (wr >= 0.5 ? 'pos' : wr !== null ? 'neg' : '') }
+    set('s-trades', trades.length)
     const sStreak = document.getElementById('s-streak')
-    if (sStreak) {
-      sStreak.innerHTML = streak > 1 && streakType
-        ? `<span class="streak-badge ${streakType === 'WIN' ? 'win' : 'loss'}-streak">${streak} ${streakType === 'WIN' ? 'W' : 'L'} streak</span>`
-        : ''
-    }
-    const sBest = document.getElementById('s-best')
-    if (sBest) sBest.textContent = best !== null ? '+$' + best.toFixed(2) : '—'
+    if (sStreak) sStreak.innerHTML = streak > 1 && streakType ? `<span class="streak-badge ${streakType === 'WIN' ? 'win' : 'loss'}-streak">${streak} ${streakType === 'WIN' ? 'W' : 'L'} streak</span>` : ''
+    set('s-best', best !== null ? '+$' + best.toFixed(2) : '—')
     const sPf = document.getElementById('s-pf')
-    if (sPf) {
-      sPf.textContent = pf !== null ? pf.toFixed(2) : '—'
-      sPf.className = 'stat-val ' + (pf !== null ? (pf >= 1.5 ? 'pos' : pf < 1 ? 'neg' : '') : '')
-    }
-    const sDd = document.getElementById('s-dd')
-    if (sDd) sDd.textContent = maxDD > 0 ? '-$' + maxDD.toFixed(2) : '—'
+    if (sPf) { sPf.textContent = pf !== null ? pf.toFixed(2) : '—'; sPf.className = 'stat-val ' + (pf !== null ? (pf >= 1.5 ? 'pos' : pf < 1 ? 'neg' : '') : '') }
+    set('s-dd', maxDD > 0 ? '-$' + maxDD.toFixed(2) : '—')
   }
 
   return (
@@ -674,9 +566,7 @@ function App() {
       {/* Toast Notifications */}
       <div className="toast-wrap" id="toast-wrap">
         {toasts.map(t => (
-          <div key={t.id} className={`toast ${t.type}`}>
-            {t.msg}
-          </div>
+          <div key={t.id} className={`toast ${t.type}`}>{t.msg}</div>
         ))}
       </div>
 
@@ -689,41 +579,28 @@ function App() {
             <div className="onboard-sub">
               Your personal XAUUSD trading journal. Simple, elegant, built to help you become a better trader.
             </div>
-
             <div className="onboard-steps">
               <div className="onboard-step">
                 <div className="onboard-num">1</div>
-                <div className="onboard-step-text">
-                  <strong>Set your starting balance</strong> so your wallet tracks your real progress
-                </div>
+                <div className="onboard-step-text"><strong>Set your starting balance</strong> so your wallet tracks your real progress</div>
               </div>
               <div className="onboard-step">
                 <div className="onboard-num">2</div>
-                <div className="onboard-step-text">
-                  <strong>Log every trade</strong> — wins, losses, and everything in between
-                </div>
+                <div className="onboard-step-text"><strong>Log every trade</strong> — wins, losses, and everything in between</div>
               </div>
               <div className="onboard-step">
                 <div className="onboard-num">3</div>
-                <div className="onboard-step-text">
-                  <strong>Write in your journal</strong> — emotions and mindset matter as much as charts
-                </div>
+                <div className="onboard-step-text"><strong>Write in your journal</strong> — emotions and mindset matter as much as charts</div>
               </div>
             </div>
-
             <div className="onboard-wallet-row">
               <div className="field">
                 <label>Your starting balance ($)</label>
                 <input type="number" id="onboard-wallet" placeholder="e.g. 1000.00" step="0.01" />
               </div>
             </div>
-
-            <button className="onboard-btn" onClick={completeOnboarding}>
-              Start journaling ✦
-            </button>
-            <div className="onboard-skip" onClick={dismissOnboarding}>
-              Skip for now
-            </div>
+            <button className="onboard-btn" onClick={completeOnboarding}>Start journaling ✦</button>
+            <div className="onboard-skip" onClick={dismissOnboarding}>Skip for now</div>
           </div>
         </div>
       )}
@@ -743,83 +620,27 @@ function App() {
           </div>
           <div className="hdr-actions">
             <span className="hdr-date">
-              {today.toLocaleDateString('en-US', {
-                weekday: 'short',
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric'
-              })}
+              {today.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
             </span>
-            <button
-              className="theme-btn"
-              onClick={toggleTheme}
-              title="Toggle light/dark mode"
-            >
+            <button className="theme-btn" onClick={toggleTheme} title="Toggle light/dark mode">
               {isLightMode ? '🌙' : '☀️'}
             </button>
-            <button
-              className="upgrade-btn"
-              onClick={() => setShowPricingModal(true)}
-            >
-              Upgrade
-            </button>
+            <button className="upgrade-btn" onClick={() => setShowPricingModal(true)}>Upgrade</button>
           </div>
         </div>
 
         {/* Navigation tabs */}
         <nav className="nav">
-          {/* Log Trade: open the trade logging form to add a new XAUUSD trade */}
-          <button
-            className={`nav-btn ${activeTab === 'log' ? 'active' : ''}`}
-            onClick={() => showTab('log')}
-          >
-            Log Trade
-          </button>
-          {/* History: review past trades, filter results, and export CSV */}
-          <button
-            className={`nav-btn ${activeTab === 'history' ? 'active' : ''}`}
-            onClick={() => showTab('history')}
-          >
-            History
-          </button>
-          {/* Calendar: visualize trades on a calendar view by date */}
-          <button
-            className={`nav-btn ${activeTab === 'calendar' ? 'active' : ''}`}
-            onClick={() => showTab('calendar')}
-          >
-            Calendar
-          </button>
-          {/* Analytics: view equity curve, performance stats, and summaries */}
-          <button
-            className={`nav-btn ${activeTab === 'analytics' ? 'active' : ''}`}
-            onClick={() => showTab('analytics')}
-          >
-            Analytics
-          </button>
-          {/* Journal: write and manage daily trader journal entries */}
-          <button
-            className={`nav-btn ${activeTab === 'journal' ? 'active' : ''}`}
-            onClick={() => showTab('journal')}
-          >
-            Journal
-          </button>
+          <button className={`nav-btn ${activeTab === 'log' ? 'active' : ''}`} onClick={() => showTab('log')}>Log Trade</button>
+          <button className={`nav-btn ${activeTab === 'history' ? 'active' : ''}`} onClick={() => showTab('history')}>History</button>
+          <button className={`nav-btn ${activeTab === 'calendar' ? 'active' : ''}`} onClick={() => showTab('calendar')}>Calendar</button>
+          <button className={`nav-btn ${activeTab === 'analytics' ? 'active' : ''}`} onClick={() => showTab('analytics')}>Analytics</button>
+          <button className={`nav-btn ${activeTab === 'journal' ? 'active' : ''}`} onClick={() => showTab('journal')}>Journal</button>
         </nav>
 
         {/* Tab content */}
         {activeTab === 'log' && (
           <div id="tab-log" className="section active">
-            <div className="sub-banner">
-              <div>
-                <div className="sub-title">Trade like a pro with deeper insights</div>
-                <div className="sub-text">
-                  Unlimited trades, equity curve, advanced analytics — all in Pro.
-                </div>
-              </div>
-              <button className="sub-cta" onClick={() => setShowPricingModal(true)}>
-                View plans
-              </button>
-            </div>
-
             <div className="card">
               <div className="card-title">Live XAUUSD Price</div>
               <div style={{ fontSize: '24px', fontWeight: 'bold', color: 'var(--gold)' }}>
@@ -859,30 +680,12 @@ function App() {
             })()}
 
             <div className="stats-row">
-              <div className="stat">
-                <div className="stat-lbl">Starting Wallet</div>
-                <div className="stat-val">${startingBalance.toFixed(2)}</div>
-              </div>
-              <div className="stat">
-                <div className="stat-lbl">Wallet Balance</div>
-                <div className="stat-val gold">${(startingBalance + trades.reduce((s, t) => s + t.pnl, 0)).toFixed(2)}</div>
-              </div>
-              <div className="stat">
-                <div className="stat-lbl">Total P&L</div>
-                <div className="stat-val gold">${trades.reduce((s, t) => s + t.pnl, 0).toFixed(2)}</div>
-              </div>
-              <div className="stat">
-                <div className="stat-lbl">Win Rate</div>
-                <div className="stat-val">{trades.length ? Math.round(trades.filter(t => t.outcome === 'WIN').length / trades.length * 100) : 0}%</div>
-              </div>
-              <div className="stat">
-                <div className="stat-lbl">Trades</div>
-                <div className="stat-val">{trades.length}</div>
-              </div>
-              <div className="stat">
-                <div className="stat-lbl">Best Trade</div>
-                <div className="stat-val pos">{trades.length ? '+' + Math.max(...trades.map(t => t.pnl)).toFixed(2) : '—'}</div>
-              </div>
+              <div className="stat"><div className="stat-lbl">Starting Wallet</div><div className="stat-val">${startingBalance.toFixed(2)}</div></div>
+              <div className="stat"><div className="stat-lbl">Wallet Balance</div><div className="stat-val gold">${(startingBalance + trades.reduce((s, t) => s + t.pnl, 0)).toFixed(2)}</div></div>
+              <div className="stat"><div className="stat-lbl">Total P&L</div><div className="stat-val gold">${trades.reduce((s, t) => s + t.pnl, 0).toFixed(2)}</div></div>
+              <div className="stat"><div className="stat-lbl">Win Rate</div><div className="stat-val">{trades.length ? Math.round(trades.filter(t => t.outcome === 'WIN').length / trades.length * 100) : 0}%</div></div>
+              <div className="stat"><div className="stat-lbl">Trades</div><div className="stat-val">{trades.length}</div></div>
+              <div className="stat"><div className="stat-lbl">Best Trade</div><div className="stat-val pos">{trades.length ? '+' + Math.max(...trades.map(t => t.pnl)).toFixed(2) : '—'}</div></div>
               <div className="stat">
                 <div className="stat-lbl">Profit Factor</div>
                 <div className="stat-val">{(() => {
@@ -894,9 +697,7 @@ function App() {
               <div className="stat">
                 <div className="stat-lbl">Max Drawdown</div>
                 <div className="stat-val neg">{(() => {
-                  let peak = startingBalance
-                  let maxDD = 0
-                  let running = startingBalance
+                  let peak = startingBalance, maxDD = 0, running = startingBalance
                   ;[...trades].reverse().forEach(t => {
                     running += t.pnl
                     if (running > peak) peak = running
@@ -908,6 +709,7 @@ function App() {
               </div>
             </div>
 
+            {/*
             <div className="card">
               <div className="card-title">Wallet setup</div>
               <div className="field-row r2">
@@ -924,12 +726,11 @@ function App() {
                 </div>
               </div>
             </div>
+            */}
 
             <LogTradeTab
               direction={direction}
               setDirection={setDirection}
-              // checks={checks} // commented out
-              // toggleCheck={toggleCheck} // commented out
               onSaveTrade={saveTrade}
               calcPnl={calcPnl}
               onUpgrade={() => setShowPricingModal(true)}
@@ -950,24 +751,10 @@ function App() {
               </div>
               {trades.length ? (
                 <div className="equity-summary">
-                  <div className="equity-sum-item">
-                    <div className="equity-sum-lbl">Total return</div>
-                    <div className={`equity-sum-val ${totalPnl >= 0 ? 'pos' : 'neg'}`}>
-                      {totalPnl >= 0 ? '+' : ''}${Math.abs(totalPnl).toFixed(2)}
-                    </div>
-                  </div>
-                  <div className="equity-sum-item">
-                    <div className="equity-sum-lbl">Peak balance</div>
-                    <div className="equity-sum-val pos">${peakVal.toFixed(2)}</div>
-                  </div>
-                  <div className="equity-sum-item">
-                    <div className="equity-sum-lbl">Lowest point</div>
-                    <div className="equity-sum-val">${troughVal.toFixed(2)}</div>
-                  </div>
-                  <div className="equity-sum-item">
-                    <div className="equity-sum-lbl">Trades shown</div>
-                    <div className="equity-sum-val">{equityData.labels.length - 1}</div>
-                  </div>
+                  <div className="equity-sum-item"><div className="equity-sum-lbl">Total return</div><div className={`equity-sum-val ${totalPnl >= 0 ? 'pos' : 'neg'}`}>{totalPnl >= 0 ? '+' : ''}${Math.abs(totalPnl).toFixed(2)}</div></div>
+                  <div className="equity-sum-item"><div className="equity-sum-lbl">Peak balance</div><div className="equity-sum-val pos">${peakVal.toFixed(2)}</div></div>
+                  <div className="equity-sum-item"><div className="equity-sum-lbl">Lowest point</div><div className="equity-sum-val">${troughVal.toFixed(2)}</div></div>
+                  <div className="equity-sum-item"><div className="equity-sum-lbl">Trades shown</div><div className="equity-sum-val">{equityData.labels.length - 1}</div></div>
                 </div>
               ) : null}
             </div>
@@ -978,38 +765,25 @@ function App() {
           <HistoryTab
             trades={trades}
             onDeleteTrade={deleteTrade}
-            filterSearch={filterSearch}
-            setFilterSearch={setFilterSearch}
-            filterDir={filterDir}
-            setFilterDir={setFilterDir}
-            filterOutcome={filterOutcome}
-            setFilterOutcome={setFilterOutcome}
-            filterSession={filterSession}
-            setFilterSession={setFilterSession}
-            filterSetup={filterSetup}
-            setFilterSetup={setFilterSetup}
-            filterSort={filterSort}
-            setFilterSort={setFilterSort}
+            filterSearch={filterSearch} setFilterSearch={setFilterSearch}
+            filterDir={filterDir} setFilterDir={setFilterDir}
+            filterOutcome={filterOutcome} setFilterOutcome={setFilterOutcome}
+            filterSession={filterSession} setFilterSession={setFilterSession}
+            filterSetup={filterSetup} setFilterSetup={setFilterSetup}
+            filterSort={filterSort} setFilterSort={setFilterSort}
             onExportCSV={exportCSV}
             onOpenEditModal={openEditModal}
           />
         )}
 
         {activeTab === 'calendar' && <CalendarTab trades={trades} />}
-
-        {activeTab === 'analytics' && (
-          <AnalyticsTab trades={trades} startingBalance={startingBalance} />
-        )}
-
+        {activeTab === 'analytics' && <AnalyticsTab trades={trades} startingBalance={startingBalance} />}
         {activeTab === 'journal' && (
           <JournalTab
             journals={journals}
-            journalDate={journalDate}
-            setJournalDate={setJournalDate}
-            journalText={journalText}
-            setJournalText={setJournalText}
-            selectedMood={selectedMood}
-            setSelectedMood={setSelectedMood}
+            journalDate={journalDate} setJournalDate={setJournalDate}
+            journalText={journalText} setJournalText={setJournalText}
+            selectedMood={selectedMood} setSelectedMood={setSelectedMood}
             saveJournal={saveJournal}
             deleteJournalEntry={deleteJournalEntry}
             journalSaved={journalSaved}
@@ -1017,25 +791,18 @@ function App() {
         )}
       </div>
 
-      {/* Pricing model */}
+      {/* Pricing Modal */}
       {showPricingModal && (
         <div className="modal-wrap">
           <div className="modal-card wide">
             <div className="modal-head">
               <h3>Choose your plan</h3>
-              <button
-                className="modal-close"
-                onClick={() => setShowPricingModal(false)}
-              >
-                &#215;
-              </button>
+              <button className="modal-close" onClick={() => setShowPricingModal(false)}>&#215;</button>
             </div>
             <div className="pricing-grid">
               <div className="price-card">
                 <div className="price-name">Free</div>
-                <div className="price-cost">
-                  $0<span>/mo</span>
-                </div>
+                <div className="price-cost">$0<span>/mo</span></div>
                 <ul className="price-list">
                   <li>Up to 25 trades</li>
                   <li>Up to 10 journal entries</li>
@@ -1045,9 +812,7 @@ function App() {
               <div className="price-card featured">
                 <div className="price-badge">Most Popular</div>
                 <div className="price-name">Pro</div>
-                <div className="price-cost">
-                  $9<span>/mo</span>
-                </div>
+                <div className="price-cost">$9<span>/mo</span></div>
                 <ul className="price-list">
                   <li>Unlimited trades & journals</li>
                   <li>Full analytics + equity curve</li>
@@ -1058,9 +823,7 @@ function App() {
               </div>
               <div className="price-card">
                 <div className="price-name">Pro Yearly</div>
-                <div className="price-cost">
-                  $79<span>/yr</span>
-                </div>
+                <div className="price-cost">$79<span>/yr</span></div>
                 <ul className="price-list">
                   <li>All Pro features</li>
                   <li>Save ~27% vs monthly</li>
@@ -1083,10 +846,7 @@ function App() {
             </div>
             <form id="edit-form" onSubmit={(e) => { e.preventDefault(); saveEdit() }}>
               <div className="field-row r2">
-                <div className="field">
-                  <label>Date</label>
-                  <input type="date" name="date" defaultValue={editingTrade.date} />
-                </div>
+                <div className="field"><label>Date</label><input type="date" name="date" defaultValue={editingTrade.date} /></div>
                 <div className="field">
                   <label>Session</label>
                   <select name="session" defaultValue={editingTrade.session || ''}>
@@ -1101,9 +861,7 @@ function App() {
               <div className="field-row r2">
                 <div className="field">
                   <label>Direction</label>
-                  <div className="dir-group">
-                    <div className={`dir-opt ${editingTrade.direction === 'BUY' ? 'sel-buy' : ''}`}>{editingTrade.direction}</div>
-                  </div>
+                  <div className="dir-group"><div className={`dir-opt ${editingTrade.direction === 'BUY' ? 'sel-buy' : ''}`}>{editingTrade.direction}</div></div>
                 </div>
                 <div className="field">
                   <label>Setup tag</label>
@@ -1120,37 +878,16 @@ function App() {
                 </div>
               </div>
               <div className="field-row r3">
-                <div className="field">
-                  <label>Entry price</label>
-                  <input type="number" name="entry" defaultValue={editingTrade.entry} step="0.01" />
-                </div>
-                <div className="field">
-                  <label>Exit price</label>
-                  <input type="number" name="exit" defaultValue={editingTrade.exit} step="0.01" />
-                </div>
-                <div className="field">
-                  <label>Lot size</label>
-                  <input type="number" name="lots" defaultValue={editingTrade.lots} step="0.01" />
-                </div>
+                <div className="field"><label>Entry price</label><input type="number" name="entry" defaultValue={editingTrade.entry} step="0.01" /></div>
+                <div className="field"><label>Exit price</label><input type="number" name="exit" defaultValue={editingTrade.exit} step="0.01" /></div>
+                <div className="field"><label>Lot size</label><input type="number" name="lots" defaultValue={editingTrade.lots} step="0.01" /></div>
               </div>
               <div className="field-row r3">
-                <div className="field">
-                  <label>Stop Loss (SL)</label>
-                  <input type="number" name="sl" defaultValue={editingTrade.sl || ''} step="0.01" />
-                </div>
-                <div className="field">
-                  <label>Take Profit (TP)</label>
-                  <input type="number" name="tp" defaultValue={editingTrade.tp || ''} step="0.01" />
-                </div>
-                <div className="field">
-                  <label>Amount invested ($)</label>
-                  <input type="number" name="amount" defaultValue={editingTrade.amount || ''} step="0.01" />
-                </div>
+                <div className="field"><label>Stop Loss (SL)</label><input type="number" name="sl" defaultValue={editingTrade.sl || ''} step="0.01" /></div>
+                <div className="field"><label>Take Profit (TP)</label><input type="number" name="tp" defaultValue={editingTrade.tp || ''} step="0.01" /></div>
+                <div className="field"><label>Amount invested ($)</label><input type="number" name="amount" defaultValue={editingTrade.amount || ''} step="0.01" /></div>
               </div>
-              <div className="field mb-10">
-                <label>Trade notes</label>
-                <textarea name="note" defaultValue={editingTrade.note || ''}></textarea>
-              </div>
+              <div className="field mb-10"><label>Trade notes</label><textarea name="note" defaultValue={editingTrade.note || ''}></textarea></div>
               <button type="submit" className="submit-btn">Save changes</button>
             </form>
           </div>
@@ -1161,15 +898,7 @@ function App() {
 }
 
 // Subcomponents
-function LogTradeTab({
-  direction,
-  setDirection,
-  // checks, // commented out
-  // toggleCheck, // commented out
-  onSaveTrade,
-  calcPnl,
-  onUpgrade
-}) {
+function LogTradeTab({ direction, setDirection, onSaveTrade, calcPnl, onUpgrade }) {
   const [entry, setEntry] = useState('')
   const [exit, setExit] = useState('')
   const [lots, setLots] = useState('0.10')
@@ -1179,12 +908,9 @@ function LogTradeTab({
   const [note, setNote] = useState('')
 
   const pnlData = calcPnl(
-    parseFloat(entry) || 0,
-    parseFloat(exit) || 0,
-    parseFloat(lots) || 0,
-    parseFloat(amount) || 0,
-    parseFloat(sl) || 0,
-    parseFloat(tp) || 0
+    parseFloat(entry) || 0, parseFloat(exit) || 0,
+    parseFloat(lots) || 0, parseFloat(amount) || 0,
+    parseFloat(sl) || 0, parseFloat(tp) || 0
   )
 
   return (
@@ -1192,28 +918,16 @@ function LogTradeTab({
       <div className="sub-banner">
         <div>
           <div className="sub-title">Trade like a pro with deeper insights</div>
-          <div className="sub-text">
-            Unlimited trades, equity curve, advanced analytics — all in Pro.
-          </div>
+          <div className="sub-text">Unlimited trades, equity curve, advanced analytics — all in Pro.</div>
         </div>
-        <button className="sub-cta" onClick={onUpgrade}>
-          View plans
-        </button>
+        <button className="sub-cta" onClick={onUpgrade}>View plans</button>
       </div>
 
       <div className="card">
         <div className="card-title">New trade</div>
-
         <form onSubmit={onSaveTrade}>
           <div className="field-row r2">
-            <div className="field">
-              <label>Date</label>
-              <input
-                type="date"
-                name="date"
-                defaultValue={new Date().toISOString().split('T')[0]}
-              />
-            </div>
+            <div className="field"><label>Date</label><input type="date" name="date" defaultValue={new Date().toISOString().split('T')[0]} /></div>
             <div className="field">
               <label>Session</label>
               <select name="session">
@@ -1225,23 +939,12 @@ function LogTradeTab({
               </select>
             </div>
           </div>
-
           <div className="field-row r2">
             <div className="field">
               <label>Direction</label>
               <div className="dir-group">
-                <div
-                  className={`dir-opt ${direction === 'BUY' ? 'sel-buy' : ''}`}
-                  onClick={() => setDirection('BUY')}
-                >
-                  BUY
-                </div>
-                <div
-                  className={`dir-opt ${direction === 'SELL' ? 'sel-sell' : ''}`}
-                  onClick={() => setDirection('SELL')}
-                >
-                  SELL
-                </div>
+                <div className={`dir-opt ${direction === 'BUY' ? 'sel-buy' : ''}`} onClick={() => setDirection('BUY')}>BUY</div>
+                <div className={`dir-opt ${direction === 'SELL' ? 'sel-sell' : ''}`} onClick={() => setDirection('SELL')}>SELL</div>
               </div>
             </div>
             <div className="field">
@@ -1258,77 +961,15 @@ function LogTradeTab({
               </select>
             </div>
           </div>
-
           <div className="field-row r3">
-            <div className="field">
-              <label>Entry price</label>
-              <input
-                type="number"
-                name="entry"
-                placeholder="2645.00"
-                step="0.01"
-                value={entry}
-                onChange={e => setEntry(e.target.value)}
-              />
-            </div>
-            <div className="field">
-              <label>Exit price</label>
-              <input
-                type="number"
-                name="exit"
-                placeholder="2658.50"
-                step="0.01"
-                value={exit}
-                onChange={e => setExit(e.target.value)}
-              />
-            </div>
-            <div className="field">
-              <label>Lot size</label>
-              <input
-                type="number"
-                name="lots"
-                placeholder="0.10"
-                step="0.01"
-                value={lots}
-                onChange={e => setLots(e.target.value)}
-              />
-            </div>
+            <div className="field"><label>Entry price</label><input type="number" name="entry" placeholder="2645.00" step="0.01" value={entry} onChange={e => setEntry(e.target.value)} /></div>
+            <div className="field"><label>Exit price</label><input type="number" name="exit" placeholder="2658.50" step="0.01" value={exit} onChange={e => setExit(e.target.value)} /></div>
+            <div className="field"><label>Lot size</label><input type="number" name="lots" placeholder="0.10" step="0.01" value={lots} onChange={e => setLots(e.target.value)} /></div>
           </div>
-
           <div className="field-row r3">
-            <div className="field">
-              <label>Stop Loss (SL)</label>
-              <input
-                type="number"
-                name="sl"
-                placeholder="2638.00"
-                step="0.01"
-                value={sl}
-                onChange={e => setSl(e.target.value)}
-              />
-            </div>
-            <div className="field">
-              <label>Take Profit (TP)</label>
-              <input
-                type="number"
-                name="tp"
-                placeholder="2668.00"
-                step="0.01"
-                value={tp}
-                onChange={e => setTp(e.target.value)}
-              />
-            </div>
-            <div className="field">
-              <label>Amount invested ($)</label>
-              <input
-                type="number"
-                name="amount"
-                placeholder="500.00"
-                step="0.01"
-                value={amount}
-                onChange={e => setAmount(e.target.value)}
-              />
-            </div>
+            <div className="field"><label>Stop Loss (SL)</label><input type="number" name="sl" placeholder="2638.00" step="0.01" value={sl} onChange={e => setSl(e.target.value)} /></div>
+            <div className="field"><label>Take Profit (TP)</label><input type="number" name="tp" placeholder="2668.00" step="0.01" value={tp} onChange={e => setTp(e.target.value)} /></div>
+            <div className="field"><label>Amount invested ($)</label><input type="number" name="amount" placeholder="500.00" step="0.01" value={amount} onChange={e => setAmount(e.target.value)} /></div>
           </div>
 
           {pnlData.pnl !== null && (
@@ -1340,79 +981,24 @@ function LogTradeTab({
                     {pnlData.pnl >= 0 ? '+' : ''}${Math.abs(pnlData.pnl).toFixed(2)}
                   </strong>
                   {pnlData.rr && (
-                    <span className={`rr-chip ${pnlData.rr >= 1.5 ? 'good' : pnlData.rr < 1 ? 'bad' : ''}`}>
-                      R:R {pnlData.rr}
-                    </span>
+                    <span className={`rr-chip ${pnlData.rr >= 1.5 ? 'good' : pnlData.rr < 1 ? 'bad' : ''}`}>R:R {pnlData.rr}</span>
                   )}
                 </div>
               </div>
             </div>
           )}
 
-          <div className="field mb-10">
-            <label>Trade notes</label>
-            <textarea
-              name="note"
-              placeholder="Setup, entry reason, what went right or wrong..."
-              value={note}
-              onChange={e => setNote(e.target.value)}
-            ></textarea>
-          </div>
+          <div className="field mb-10"><label>Trade notes</label><textarea name="note" placeholder="Setup, entry reason, what went right or wrong..." value={note} onChange={e => setNote(e.target.value)}></textarea></div>
+          <div className="field mb-10"><label>Screenshots</label><input type="file" multiple accept="image/*" name="screenshots" /></div>
 
-          <div className="field mb-10">
-            <label>Screenshots</label>
-            <input type="file" multiple accept="image/*" name="screenshots" />
-          </div>
-
-          {/* PRE-trade checklist - commented out for later editing/removal */}
-          {/*
-          <div className="checklist-card">
-            <div className="checklist-title">Pre-trade checklist</div>
-
-            {['chk1', 'chk2', 'chk3'].map((checkId, idx) => (
-              <div
-                key={checkId}
-                className={`checklist-item ${checks[checkId] ? 'checked' : ''}`}
-                onClick={() => toggleCheck(checkId)}
-              >
-                <div className="check-box">{checks[checkId] ? '✓' : ''}</div>
-                <span className="check-label">
-                  {idx === 0 && 'I followed my trading plan'}
-                  {idx === 1 && 'I identified the session and key levels'}
-                  {idx === 2 && 'My Stop Loss is set and I accept the risk'}
-                </span>
-              </div>
-            ))}
-          </div>
-          */}
-
-          <button type="submit" className="submit-btn">
-            Save trade
-          </button>
+          <button type="submit" className="submit-btn">Save trade</button>
         </form>
       </div>
     </div>
   )
 }
 
-function HistoryTab({
-  trades,
-  onDeleteTrade,
-  filterSearch,
-  setFilterSearch,
-  filterDir,
-  setFilterDir,
-  filterOutcome,
-  setFilterOutcome,
-  filterSession,
-  setFilterSession,
-  filterSetup,
-  setFilterSetup,
-  filterSort,
-  setFilterSort,
-  onExportCSV,
-  onOpenEditModal
-}) {
+function HistoryTab({ trades, onDeleteTrade, filterSearch, setFilterSearch, filterDir, setFilterDir, filterOutcome, setFilterOutcome, filterSession, setFilterSession, filterSetup, setFilterSetup, filterSort, setFilterSort, onExportCSV, onOpenEditModal }) {
   const [expandedNotes, setExpandedNotes] = useState({})
 
   let filtered = trades.filter(t => {
@@ -1431,12 +1017,7 @@ function HistoryTab({
   return (
     <div id="tab-history" className="section active">
       <div className="filter-bar">
-        <input
-          type="text"
-          placeholder="Search notes..."
-          value={filterSearch}
-          onChange={e => setFilterSearch(e.target.value)}
-        />
+        <input type="text" placeholder="Search notes..." value={filterSearch} onChange={e => setFilterSearch(e.target.value)} />
         <select value={filterDir} onChange={e => setFilterDir(e.target.value)}>
           <option value="">All directions</option>
           <option value="BUY">BUY</option>
@@ -1486,31 +1067,15 @@ function HistoryTab({
               <span className="td-price">
                 {t.entry} → {t.exit}
                 <br />
-                <span className="small-muted">
-                  {t.amount > 0 ? `$${t.amount.toFixed(2)} invested` : `${t.lots} lot`}
-                </span>
+                <span className="small-muted">{t.amount > 0 ? `$${t.amount.toFixed(2)} invested` : `${t.lots} lot`}</span>
               </span>
               <span className="td-meta">
                 {t.session && <span className="tag-session">{t.session}</span>}
                 {t.setup && <span className="tag-setup">{t.setup}</span>}
-                {t.rr && (
-                  <span className={`td-rr ${t.rr >= 1.5 ? 'good' : t.rr < 1 ? 'bad' : ''}`}>
-                    R:R {t.rr}
-                  </span>
-                )}
+                {t.rr && <span className={`td-rr ${t.rr >= 1.5 ? 'good' : t.rr < 1 ? 'bad' : ''}`}>R:R {t.rr}</span>}
               </span>
-              <span className={`td-pnl ${t.pnl >= 0 ? 'pos' : 'neg'}`}>
-                {t.pnl >= 0 ? '+' : ''}${Math.abs(t.pnl).toFixed(2)}
-              </span>
-              <button
-                className="del-btn"
-                onClick={e => {
-                  e.stopPropagation()
-                  onDeleteTrade(t.id)
-                }}
-              >
-                ×
-              </button>
+              <span className={`td-pnl ${t.pnl >= 0 ? 'pos' : 'neg'}`}>{t.pnl >= 0 ? '+' : ''}${Math.abs(t.pnl).toFixed(2)}</span>
+              <button className="del-btn" onClick={e => { e.stopPropagation(); onDeleteTrade(t.id) }}>×</button>
               {expandedNotes[t.id] && (
                 <div className="trade-details">
                   {t.note && <p>{t.note}</p>}
@@ -1546,42 +1111,34 @@ function CalendarTab({ trades }) {
     const days = new Date(calYear, calMonth + 1, 0).getDate()
     const cells = []
 
-    for (let i = 0; i < first; i += 1) {
-      cells.push(<div key={`empty-${i}`} className="cal-day empty"></div>)
-    }
+    for (let i = 0; i < first; i++) cells.push(<div key={`empty-${i}`} className="cal-day empty"></div>)
 
-    for (let d = 1; d <= days; d += 1) {
+    for (let d = 1; d <= days; d++) {
       const ts = dayTrades(calYear, calMonth, d)
-      const pnl = ts.reduce((sum, trade) => sum + trade.pnl, 0)
+      const pnl = ts.reduce((sum, t) => sum + t.pnl, 0)
       const cls = ts.length ? (pnl > 0.01 ? 'win' : pnl < -0.01 ? 'loss' : 'be') : ''
       const today = new Date()
       const isToday = d === today.getDate() && calMonth === today.getMonth() && calYear === today.getFullYear()
       const selected = d === selectedCalDay
       cells.push(
-        <div
-          key={`day-${d}`}
-          className={`cal-day ${cls}${isToday ? ' today' : ''}${selected ? ' selected' : ''}`}
-          onClick={() => setSelectedCalDay(d)}
-        >
+        <div key={`day-${d}`} className={`cal-day ${cls}${isToday ? ' today' : ''}${selected ? ' selected' : ''}`} onClick={() => setSelectedCalDay(d)}>
           <div className="cal-day-num">{d}</div>
           {ts.length > 0 && <div className="cal-pnl">{pnl >= 0 ? '+' : ''}${Math.abs(pnl).toFixed(0)}</div>}
           {ts.length > 0 && <div className="cal-trade-count">{ts.length}t</div>}
         </div>
       )
     }
-
     return cells
   }
 
   const selectedTrades = selectedCalDay ? dayTrades(calYear, calMonth, selectedCalDay) : []
   const selectedDate = selectedCalDay ? formatDate(calYear, calMonth, selectedCalDay) : ''
-  const selectedTotal = selectedTrades.reduce((sum, trade) => sum + trade.pnl, 0)
+  const selectedTotal = selectedTrades.reduce((sum, t) => sum + t.pnl, 0)
 
   const changeMonth = (delta) => {
-    let nextMonth = calMonth + delta
-    let nextYear = calYear
-    if (nextMonth < 0) { nextMonth = 11; nextYear -= 1 }
-    if (nextMonth > 11) { nextMonth = 0; nextYear += 1 }
+    let nextMonth = calMonth + delta, nextYear = calYear
+    if (nextMonth < 0) { nextMonth = 11; nextYear-- }
+    if (nextMonth > 11) { nextMonth = 0; nextYear++ }
     setCalMonth(nextMonth)
     setCalYear(nextYear)
     setSelectedCalDay(null)
@@ -1596,17 +1153,9 @@ function CalendarTab({ trades }) {
           <button type="button" onClick={() => changeMonth(1)}>&#8250;</button>
         </div>
         <div className="cal-grid">
-          <div className="cal-dow">Sun</div>
-          <div className="cal-dow">Mon</div>
-          <div className="cal-dow">Tue</div>
-          <div className="cal-dow">Wed</div>
-          <div className="cal-dow">Thu</div>
-          <div className="cal-dow">Fri</div>
-          <div className="cal-dow">Sat</div>
+          {['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d => <div key={d} className="cal-dow">{d}</div>)}
         </div>
-        <div className="cal-grid" id="cal-cells" style={{ marginTop: '4px' }}>
-          {renderCells()}
-        </div>
+        <div className="cal-grid" id="cal-cells" style={{ marginTop: '4px' }}>{renderCells()}</div>
       </div>
       <div className="legend-row">
         <span className="legend-item win">■ Win day</span>
@@ -1617,8 +1166,7 @@ function CalendarTab({ trades }) {
         {selectedCalDay ? (
           <>
             <div className="cal-detail-title">
-              {fmtDate(selectedDate)} — {selectedTrades.length} trade{selectedTrades.length !== 1 ? 's' : ''}
-              {' '}
+              {fmtDate(selectedDate)} — {selectedTrades.length} trade{selectedTrades.length !== 1 ? 's' : ''}{' '}
               <span style={{ color: selectedTotal >= 0 ? 'var(--win)' : 'var(--loss)' }}>
                 {selectedTotal >= 0 ? '+' : ''}${Math.abs(selectedTotal).toFixed(2)}
               </span>
@@ -1626,9 +1174,7 @@ function CalendarTab({ trades }) {
             {selectedTrades.map(trade => (
               <div key={trade.id} className="cal-detail-trade">
                 <span className={`tag tag-${trade.direction.toLowerCase()}`}>{trade.direction}</span>
-                <span style={{ fontFamily: 'Consolas,monospace', color: 'var(--text-soft)' }}>
-                  {trade.entry} → {trade.exit}
-                </span>
+                <span style={{ fontFamily: 'Consolas,monospace', color: 'var(--text-soft)' }}>{trade.entry} → {trade.exit}</span>
                 {trade.session && <span className="tag-session">{trade.session}</span>}
                 {trade.setup && <span className="tag-setup">{trade.setup}</span>}
                 <span className={`td-pnl ${trade.pnl >= 0 ? 'pos' : 'neg'}`} style={{ marginLeft: 'auto' }}>
@@ -1638,9 +1184,7 @@ function CalendarTab({ trades }) {
             ))}
           </>
         ) : (
-          <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-            Select a day to see trade details.
-          </div>
+          <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Select a day to see trade details.</div>
         )}
       </div>
     </div>
@@ -1650,20 +1194,18 @@ function CalendarTab({ trades }) {
 function AnalyticsTab({ trades, startingBalance }) {
   const wins = trades.filter(t => t.outcome === 'WIN')
   const losses = trades.filter(t => t.outcome === 'LOSS')
-  const avgWin = wins.length ? wins.reduce((sum, t) => sum + t.pnl, 0) / wins.length : 0
-  const avgLoss = losses.length ? losses.reduce((sum, t) => sum + t.pnl, 0) / losses.length : 0
+  const avgWin = wins.length ? wins.reduce((s, t) => s + t.pnl, 0) / wins.length : 0
+  const avgLoss = losses.length ? losses.reduce((s, t) => s + t.pnl, 0) / losses.length : 0
   const wr = trades.length ? wins.length / trades.length : 0
   const expectancy = (wr * avgWin) + ((1 - wr) * avgLoss)
-  const grossWin = wins.reduce((sum, t) => sum + t.pnl, 0)
-  const grossLoss = Math.abs(losses.reduce((sum, t) => sum + t.pnl, 0))
+  const grossWin = wins.reduce((s, t) => s + t.pnl, 0)
+  const grossLoss = Math.abs(losses.reduce((s, t) => s + t.pnl, 0))
   const pf = grossLoss > 0 ? grossWin / grossLoss : null
   const rrTrades = trades.filter(t => t.rr)
-  const avgRR = rrTrades.length ? rrTrades.reduce((sum, t) => sum + t.rr, 0) / rrTrades.length : null
+  const avgRR = rrTrades.length ? rrTrades.reduce((s, t) => s + t.rr, 0) / rrTrades.length : null
 
-  let peak = startingBalance
-  let maxDD = 0
-  let running = startingBalance;
-  [...trades].reverse().forEach(t => {
+  let peak = startingBalance, maxDD = 0, running = startingBalance
+  ;[...trades].reverse().forEach(t => {
     running += t.pnl
     if (running > peak) peak = running
     const dd = peak - running
@@ -1673,56 +1215,26 @@ function AnalyticsTab({ trades, startingBalance }) {
   const breakdownRows = (items, key) => items.map(label => {
     const list = trades.filter(t => t[key] === label)
     const winsCount = list.filter(t => t.outcome === 'WIN').length
-    return {
-      label,
-      total: list.length,
-      wr: list.length ? Math.round(winsCount / list.length * 100) : 0
-    }
+    return { label, total: list.length, wr: list.length ? Math.round(winsCount / list.length * 100) : 0 }
   }).filter(row => row.total > 0)
 
   const sessions = breakdownRows(['Asian', 'London', 'NY', 'LN-NY'], 'session')
   const setups = breakdownRows(['A+ Setup', 'Breakout', 'Reversal', 'News', 'FOMO', 'Revenge', 'Other'], 'setup')
 
   const monthMap = {}
-  trades.forEach(t => {
-    const key = t.date.substring(0, 7)
-    monthMap[key] = (monthMap[key] || 0) + t.pnl
-  })
+  trades.forEach(t => { const key = t.date.substring(0, 7); monthMap[key] = (monthMap[key] || 0) + t.pnl })
   const months = Object.keys(monthMap).sort().reverse()
   const maxAbs = months.length ? Math.max(...months.map(m => Math.abs(monthMap[m]))) : 1
 
   return (
     <div id="tab-analytics" className="section active">
       <div className="stats-row">
-        <div className="stat">
-          <div className="stat-lbl">Expectancy</div>
-          <div className={`stat-val ${expectancy > 0 ? 'pos' : expectancy < 0 ? 'neg' : ''}`}>
-            {trades.length ? `${expectancy >= 0 ? '+' : ''}$${expectancy.toFixed(2)}` : '—'}
-          </div>
-          <div className="stat-sub">per trade avg</div>
-        </div>
-        <div className="stat">
-          <div className="stat-lbl">Avg Win</div>
-          <div className="stat-val pos">{wins.length ? `+$${avgWin.toFixed(2)}` : '—'}</div>
-        </div>
-        <div className="stat">
-          <div className="stat-lbl">Avg Loss</div>
-          <div className="stat-val neg">{losses.length ? `-$${Math.abs(avgLoss).toFixed(2)}` : '—'}</div>
-        </div>
-        <div className="stat">
-          <div className="stat-lbl">Profit Factor</div>
-          <div className={`stat-val ${pf !== null ? (pf >= 1.5 ? 'pos' : pf < 1 ? 'neg' : '') : ''}`}>
-            {pf !== null ? pf.toFixed(2) : '—'}
-          </div>
-        </div>
-        <div className="stat">
-          <div className="stat-lbl">Avg R:R</div>
-          <div className="stat-val gold">{avgRR !== null ? avgRR.toFixed(2) : '—'}</div>
-        </div>
-        <div className="stat">
-          <div className="stat-lbl">Max Drawdown</div>
-          <div className="stat-val neg">{maxDD > 0 ? `-$${maxDD.toFixed(2)}` : '—'}</div>
-        </div>
+        <div className="stat"><div className="stat-lbl">Expectancy</div><div className={`stat-val ${expectancy > 0 ? 'pos' : expectancy < 0 ? 'neg' : ''}`}>{trades.length ? `${expectancy >= 0 ? '+' : ''}$${expectancy.toFixed(2)}` : '—'}</div><div className="stat-sub">per trade avg</div></div>
+        <div className="stat"><div className="stat-lbl">Avg Win</div><div className="stat-val pos">{wins.length ? `+$${avgWin.toFixed(2)}` : '—'}</div></div>
+        <div className="stat"><div className="stat-lbl">Avg Loss</div><div className="stat-val neg">{losses.length ? `-$${Math.abs(avgLoss).toFixed(2)}` : '—'}</div></div>
+        <div className="stat"><div className="stat-lbl">Profit Factor</div><div className={`stat-val ${pf !== null ? (pf >= 1.5 ? 'pos' : pf < 1 ? 'neg' : '') : ''}`}>{pf !== null ? pf.toFixed(2) : '—'}</div></div>
+        <div className="stat"><div className="stat-lbl">Avg R:R</div><div className="stat-val gold">{avgRR !== null ? avgRR.toFixed(2) : '—'}</div></div>
+        <div className="stat"><div className="stat-lbl">Max Drawdown</div><div className="stat-val neg">{maxDD > 0 ? `-$${maxDD.toFixed(2)}` : '—'}</div></div>
       </div>
 
       <div className="card">
@@ -1739,11 +1251,7 @@ function AnalyticsTab({ trades, startingBalance }) {
               </div>
             ))}
           </div>
-        ) : (
-          <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-            Log trades with a session to see this.
-          </div>
-        )}
+        ) : <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Log trades with a session to see this.</div>}
       </div>
 
       <div className="card">
@@ -1760,11 +1268,7 @@ function AnalyticsTab({ trades, startingBalance }) {
               </div>
             ))}
           </div>
-        ) : (
-          <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-            Log trades with a setup tag to see this.
-          </div>
-        )}
+        ) : <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Log trades with a setup tag to see this.</div>}
       </div>
 
       <div className="card">
@@ -1778,16 +1282,10 @@ function AnalyticsTab({ trades, startingBalance }) {
               <div key={month} className="monthly-bar-row">
                 <div className="monthly-bar-label">{label}</div>
                 <div className="monthly-bar-track"><div className={`monthly-bar-fill ${value >= 0 ? 'pos' : 'neg'}`} style={{ width: `${percent.toFixed(1)}%` }}></div></div>
-                <div className={`monthly-bar-val ${value >= 0 ? 'pos' : 'neg'}`}>
-                  {value >= 0 ? '+' : ''}${value.toFixed(0)}
-                </div>
+                <div className={`monthly-bar-val ${value >= 0 ? 'pos' : 'neg'}`}>{value >= 0 ? '+' : ''}${value.toFixed(0)}</div>
               </div>
             )
-          }) : (
-            <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-              No trades yet.
-            </div>
-          )}
+          }) : <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>No trades yet.</div>}
         </div>
       </div>
     </div>
@@ -1795,8 +1293,8 @@ function AnalyticsTab({ trades, startingBalance }) {
 }
 
 function JournalTab({ journals, journalDate, setJournalDate, journalText, setJournalText, selectedMood, setSelectedMood, saveJournal, deleteJournalEntry, journalSaved }) {
-  const moods = ['','😤','😕','😐','🙂','😎']
-  const entries = Object.entries(journals).sort((a,b) => b[0].localeCompare(a[0]))
+  const moods = ['', '😤', '😕', '😐', '🙂', '😎']
+  const entries = Object.entries(journals).sort((a, b) => b[0].localeCompare(a[0]))
   const moodLabels = ['Terrible', 'Bad', 'Neutral', 'Good', 'Excellent']
 
   return (
@@ -1813,12 +1311,7 @@ function JournalTab({ journals, journalDate, setJournalDate, journalText, setJou
           <span className="mood-label">Mindset today</span>
           <div className="mood-btns">
             {moods.slice(1).map((emoji, index) => (
-              <div
-                key={index + 1}
-                className={`mood-btn ${selectedMood === index + 1 ? 'sel' : ''}`}
-                title={moodLabels[index]}
-                onClick={() => setSelectedMood(index + 1)}
-              >
+              <div key={index + 1} className={`mood-btn ${selectedMood === index + 1 ? 'sel' : ''}`} title={moodLabels[index]} onClick={() => setSelectedMood(index + 1)}>
                 {emoji}
               </div>
             ))}
@@ -1826,12 +1319,7 @@ function JournalTab({ journals, journalDate, setJournalDate, journalText, setJou
         </div>
         <div className="field">
           <label>Your thoughts</label>
-          <textarea
-            className="jnl-area"
-            value={journalText}
-            onChange={e => setJournalText(e.target.value)}
-            placeholder="How did you feel today? What was the market doing?\nWhat did you learn? What mistakes did you make?\n\nThere are no rules here — write freely."
-          />
+          <textarea className="jnl-area" value={journalText} onChange={e => setJournalText(e.target.value)} placeholder="How did you feel today? What was the market doing?&#10;What did you learn? What mistakes did you make?&#10;&#10;There are no rules here — write freely." />
         </div>
         <div className="journal-actions">
           <button className="save-btn" onClick={saveJournal}>Save entry</button>
