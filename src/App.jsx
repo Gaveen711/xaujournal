@@ -1,27 +1,27 @@
-import { useState, useEffect, useRef } from 'react'
+
+import { useState, useEffect } from 'react'
 import './App.css'
+import { Line } from 'react-chartjs-2'
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler } from 'chart.js'
+
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler)
 
 function App() {
   const [activeTab, setActiveTab] = useState('log')
   const [trades, setTrades] = useState([])
   const [journals, setJournals] = useState({})
   const [direction, setDirection] = useState(null)
-  const [editDirection, setEditDirection] = useState(null)
   const [selectedMood, setSelectedMood] = useState(null)
   const [startingBalance, setStartingBalance] = useState(0)
   const [plan, setPlan] = useState('free')
-  const [billingEmail, setBillingEmail] = useState('')
   const [isLightMode, setIsLightMode] = useState(false)
+  // Commented out since checklist is hidden
+  /*
   const [checks, setChecks] = useState({ chk1: false, chk2: false, chk3: false })
+  */
   const [showOnboarding, setShowOnboarding] = useState(false)
-  const [showEditModal, setShowEditModal] = useState(false)
   const [showPricingModal, setShowPricingModal] = useState(false)
-  const [editingTradeId, setEditingTradeId] = useState(null)
   const [toasts, setToasts] = useState([])
-  const [calMonth, setCalMonth] = useState(new Date().getMonth())
-  const [calYear, setCalYear] = useState(new Date().getFullYear())
-  const [selectedCalDay, setSelectedCalDay] = useState(null)
-  const [equityPeriod, setEquityPeriod] = useState('all')
   const [filterSearch, setFilterSearch] = useState('')
   const [filterDir, setFilterDir] = useState('')
   const [filterOutcome, setFilterOutcome] = useState('')
@@ -31,9 +31,11 @@ function App() {
   const [journalDate, setJournalDate] = useState(new Date().toISOString().split('T')[0])
   const [journalText, setJournalText] = useState('')
   const [journalSaved, setJournalSaved] = useState(false)
-  const [expandedNoteId, setExpandedNoteId] = useState(null)
-  const chartRef = useRef(null)
-  const equityChartRef = useRef(null)
+
+  const [equityPeriod, setEquityPeriod] = useState('all')
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [editingTrade, setEditingTrade] = useState(null)
+  const [livePrice, setLivePrice] = useState(null)
 
   const SUB_LIMITS = { freeTrades: 25, freeJournals: 10 }
   const today = new Date()
@@ -67,7 +69,9 @@ function App() {
           return d && typeof d.value !== 'undefined' ? { value: d.value } : null
         }
         if (r.status !== 404) throw new Error()
-      } catch {}
+      } catch {
+        // eslint-disable-next-line no-empty
+      }
       const v = localStorage.getItem(key)
       return v === null ? null : { value: v }
     }
@@ -76,16 +80,24 @@ function App() {
   // Date helpers
   const pad2 = n => String(n).padStart(2, '0')
   const todayStr = () => `${today.getFullYear()}-${pad2(today.getMonth() + 1)}-${pad2(today.getDate())}`
-  const fmt = d => new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(d + 'T00:00:00'))
-  const fmtM = (y, m) => new Date(y, m, 1).toLocaleString('default', { month: 'long', year: 'numeric' })
 
   // Load initial data
   useEffect(() => {
-    loadTheme()
-    loadAllData()
+    const init = async () => {
+      loadTheme()
+      await loadAllData()
+    }
+    init()
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Fetch live price
+  useEffect(() => {
+    fetchLivePrice()
+    const interval = setInterval(fetchLivePrice, 60000) // Update every minute
+    return () => clearInterval(interval)
   }, [])
 
-  const loadTheme = () => {
+  function loadTheme() {
     const saved = localStorage.getItem('xau-theme')
     if (saved === 'light') {
       setIsLightMode(true)
@@ -93,21 +105,22 @@ function App() {
     }
   }
 
-  const loadAllData = async () => {
+  async function loadAllData() {
     try {
-      const e = await storage.get('xau-billing-email')
-      const newBillingEmail = e ? String(JSON.parse(e.value) || '') : ''
-      setBillingEmail(newBillingEmail)
-
-      if (newBillingEmail) {
-        const s = await fetch(`/api/billing/status?email=${encodeURIComponent(newBillingEmail)}`)
+      // Removed undefined setBillingEmail call causing potential issues
+      // and wrapped logic correctly
+      const e = await storage.get('xau-billing-email');
+      if (e) {
+        const email = String(JSON.parse(e.value) || '');
+        const s = await fetch(`/api/billing/status?email=${encodeURIComponent(email)}`);
         if (s.ok) {
-          const st = await s.json()
-          setPlan(st.active && st.plan === 'pro' ? 'pro' : 'free')
+          const st = await s.json();
+          setPlan(st.active && st.plan === 'pro' ? 'pro' : 'free');
         }
       }
-    } catch {}
-
+    // eslint-disable-next-line no-empty
+    } catch { ; // empty }
+    }
     await loadTrades()
     await loadJournals()
     await loadWallet()
@@ -117,16 +130,16 @@ function App() {
     }
   }
 
-  const loadTrades = async () => {
+  async function loadTrades() {
     try {
       const r = await storage.get('xau-trades')
       setTrades(r ? JSON.parse(r.value) : [])
     } catch {
-      setTrades([])
+      // eslint-disable-next-line no-empty
     }
   }
 
-  const loadJournals = async () => {
+  async function loadJournals() {
     try {
       const r = await storage.get('xau-journals')
       const raw = r ? JSON.parse(r.value) : {}
@@ -140,7 +153,7 @@ function App() {
     }
   }
 
-  const loadWallet = async () => {
+  async function loadWallet() {
     try {
       const r = await storage.get('xau-starting-balance')
       setStartingBalance(r ? parseFloat(JSON.parse(r.value)) || 0 : 0)
@@ -164,6 +177,8 @@ function App() {
     localStorage.setItem('xau-theme', newMode ? 'light' : 'dark')
   }
 
+  // Commented out since checklist is hidden
+  /*
   const toggleCheck = (id) => {
     setChecks(prev => {
       const updated = { ...prev, [id]: !prev[id] }
@@ -172,10 +187,7 @@ function App() {
   }
 
   const allChecked = () => checks.chk1 && checks.chk2 && checks.chk3
-
-  const resetChecklist = () => {
-    setChecks({ chk1: false, chk2: false, chk3: false })
-  }
+  */
 
   const calcPnl = (entry, exit, lots, amount, sl, tp) => {
     if (!entry || !exit || !direction || (!lots && !amount)) {
@@ -208,6 +220,16 @@ function App() {
     const sl = parseFloat(formData.get('sl')) || null
     const tp = parseFloat(formData.get('tp')) || null
     const note = formData.get('note').trim()
+    const screenshotFiles = formData.getAll('screenshots')
+    const screenshots = []
+    for (const file of screenshotFiles) {
+      const reader = new FileReader()
+      reader.readAsDataURL(file)
+      await new Promise((resolve) => {
+        reader.onload = () => resolve(reader.result)
+      })
+      screenshots.push(reader.result)
+    }
     const session = formData.get('session')
     const setup = formData.get('setup')
 
@@ -216,16 +238,22 @@ function App() {
       return
     }
 
+    // Checklist check commented out since checklist is hidden
+    /*
     if (!allChecked()) {
       toast('Complete the checklist before saving.', 'warn')
       return
     }
+    */
 
+    // Commented out since checklist is hidden
+    /*
     if (plan === 'free' && trades.length >= SUB_LIMITS.freeTrades) {
       setShowPricingModal(true)
       toast(`Free plan limit (${SUB_LIMITS.freeTrades} trades). Upgrade to Pro.`, 'warn')
       return
     }
+    */
 
     const diff = direction === 'BUY' ? exit - entry : entry - exit
     const pnl = amount > 0 ? (diff / entry) * amount : diff * lots * 100
@@ -253,7 +281,8 @@ function App() {
       setup,
       pnl: parseFloat(pnl.toFixed(2)),
       outcome,
-      note
+      note,
+      screenshots
     }
 
     const newTrades = [trade, ...trades]
@@ -263,7 +292,7 @@ function App() {
     e.target.reset()
     e.target.date.value = todayStr()
     setDirection(null)
-    resetChecklist()
+    // resetChecklist() // commented out since checklist is hidden
 
     const icon = outcome === 'WIN' ? '🟢' : outcome === 'LOSS' ? '🔴' : '🟡'
     toast(
@@ -280,15 +309,18 @@ function App() {
     toast('Trade deleted.', 'warn')
   }
 
+  // Navigation helper: switch the active tab and prepare any tab-specific data
   const showTab = (tab) => {
     setActiveTab(tab)
     if (tab === 'journal') {
+      // When navigating to the journal tab, prefill the editor with the current date entry
       const entry = journals[journalDate]
       setJournalText(entry ? entry.text : '')
       setSelectedMood(entry ? entry.mood : null)
     }
   }
 
+  // Keep the journal editor in sync when the selected date or saved journal entries change
   useEffect(() => {
     const entry = journals[journalDate]
     setJournalText(entry ? entry.text : '')
@@ -342,6 +374,16 @@ function App() {
   }
 
   const completeOnboarding = async () => {
+    const val = parseFloat(document.getElementById('onboard-wallet')?.value || 0)
+    if (!isNaN(val) && val > 0) {
+      const newBalance = parseFloat(val.toFixed(2))
+      setStartingBalance(newBalance)
+      try {
+        await storage.set('xau-starting-balance', JSON.stringify(newBalance))
+      } catch {
+        // eslint-disable-next-line no-empty
+      }
+    }
     localStorage.setItem('xau-onboarded', '1')
     setShowOnboarding(false)
     toast('Welcome! Log your first trade below.', 'success')
@@ -350,6 +392,281 @@ function App() {
   const dismissOnboarding = () => {
     localStorage.setItem('xau-onboarded', '1')
     setShowOnboarding(false)
+  }
+
+  const getWeeklySummary = () => {
+    const msPerDay = 86400000
+    const cutoff = new Date(today.getTime() - 7 * msPerDay).toISOString().split('T')[0]
+    const weekTrades = trades.filter(t => t.date >= cutoff)
+    if (!weekTrades.length) return null
+    const pnl = weekTrades.reduce((s, t) => s + t.pnl, 0)
+    const wins = weekTrades.filter(t => t.outcome === 'WIN').length
+    const wr = Math.round(wins / weekTrades.length * 100)
+    const dayName = today.toLocaleDateString('en-US', { weekday: 'long' })
+    return {
+      title: `${dayName}'s week at a glance`,
+      sub: `${weekTrades.length} trade${weekTrades.length > 1 ? 's' : ''} logged in the last 7 days`,
+      pnl,
+      wr,
+      count: weekTrades.length
+    }
+  }
+
+  const getEquityData = () => {
+    let sorted = [...trades].sort((a, b) => a.date.localeCompare(b.date) || a.id - b.id)
+    if (equityPeriod !== 'all') {
+      const days = equityPeriod === '1w' ? 7 : equityPeriod === '1m' ? 30 : 90
+      const cutoff = new Date(today.getTime() - days * 86400000).toISOString().split('T')[0]
+      sorted = sorted.filter(t => t.date >= cutoff)
+    }
+    const labels = ['Start']
+    const values = [startingBalance]
+    let running = startingBalance
+    sorted.forEach(t => {
+      running += t.pnl
+      labels.push(t.date.slice(5))
+      values.push(parseFloat(running.toFixed(2)))
+    })
+    return { labels, values }
+  }
+
+  const exportCSV = () => {
+    if (!trades.length) {
+      toast('No trades to export.', 'warn')
+      return
+    }
+    const headers = ['Date', 'Direction', 'Session', 'Setup', 'Entry', 'Exit', 'Lots', 'SL', 'TP', 'RR', 'Amount', 'PnL', 'Outcome', 'Notes']
+    const rows = trades.map(t => [
+      t.date,
+      t.direction,
+      t.session || '',
+      t.setup || '',
+      t.entry,
+      t.exit,
+      t.lots,
+      t.sl || '',
+      t.tp || '',
+      t.rr || '',
+      t.amount,
+      t.pnl,
+      t.outcome,
+      `"${(t.note || '').replace(/"/g, '""')}"`
+    ])
+    const csv = [headers, ...rows].map(r => r.join(',')).join('\n')
+    const a = document.createElement('a')
+    a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }))
+    a.download = `xauusd_trades_${todayStr()}.csv`
+    a.click()
+    toast(`Exported ${trades.length} trades.`, 'success')
+  }
+
+  const openEditModal = (trade) => {
+    setEditingTrade(trade)
+    setShowEditModal(true)
+  }
+
+  const closeEditModal = () => {
+    setShowEditModal(false)
+    setEditingTrade(null)
+  }
+
+  const saveEdit = async () => {
+    if (!editingTrade) return
+    const formData = new FormData(document.getElementById('edit-form'))
+    const date = formData.get('date')
+    const entry = parseFloat(formData.get('entry'))
+    const exit = parseFloat(formData.get('exit'))
+    const lots = parseFloat(formData.get('lots')) || 0
+    const amount = parseFloat(formData.get('amount')) || 0
+    const sl = parseFloat(formData.get('sl')) || null
+    const tp = parseFloat(formData.get('tp')) || null
+    const note = formData.get('note').trim()
+    const session = formData.get('session')
+    const setup = formData.get('setup')
+    if (!date || !editingTrade.direction || isNaN(entry) || isNaN(exit) || (!amount && isNaN(lots))) {
+      toast('Please fill in date, direction, prices and lot size.', 'error')
+      return
+    }
+    const diff = editingTrade.direction === 'BUY' ? (exit - entry) : (entry - exit)
+    const pnl = amount > 0 ? (diff / entry) * amount : diff * lots * 100
+    const outcome = pnl > 0.01 ? 'WIN' : pnl < -0.01 ? 'LOSS' : 'BE'
+    let rr = null
+    if (sl && tp) {
+      const risk = Math.abs(editingTrade.direction === 'BUY' ? entry - sl : sl - entry)
+      const rew = Math.abs(editingTrade.direction === 'BUY' ? tp - entry : entry - tp)
+      if (risk > 0) rr = parseFloat((rew / risk).toFixed(2))
+    }
+    const updatedTrade = {
+      ...editingTrade,
+      date,
+      entry,
+      exit,
+      lots: isNaN(lots) ? 0 : lots,
+      amount,
+      sl,
+      tp,
+      rr,
+      session,
+      setup,
+      pnl: parseFloat(pnl.toFixed(2)),
+      outcome,
+      note
+    }
+    const newTrades = trades.map(t => t.id === editingTrade.id ? updatedTrade : t)
+    setTrades(newTrades)
+    await saveTrades(newTrades)
+    updateStats()
+    setShowEditModal(false)
+    setEditingTrade(null)
+    toast('Trade updated!', 'success')
+  }
+
+  async function fetchLivePrice() {
+    try {
+      const response = await fetch('https://www.goldapi.io/api/XAU/USD', {
+        headers: {
+          'x-access-token': 'goldapi-bjmx9w17mnrj1i13-io'
+        }
+      });
+      const data = await response.json();
+      setLivePrice(data.price); 
+    } catch (error) {
+      console.error('Error fetching live price:', error);
+      setLivePrice('No Live Price');
+    }
+  }
+
+  const equityData = getEquityData()
+  const totalPnl = equityData.values[equityData.values.length - 1] - startingBalance
+  const peakVal = Math.max(...equityData.values)
+  const troughVal = Math.min(...equityData.values)
+  const chartData = {
+    labels: equityData.labels,
+    datasets: [{
+      data: equityData.values,
+      borderColor: equityData.values[equityData.values.length - 1] >= startingBalance ? '#20c997' : '#ff6b6b',
+      borderWidth: 2,
+      pointRadius: equityData.labels.length > 30 ? 0 : 3,
+      pointHoverRadius: 5,
+      pointBackgroundColor: equityData.values[equityData.values.length - 1] >= startingBalance ? '#20c997' : '#ff6b6b',
+      fill: true,
+      backgroundColor: (ctx) => {
+        const c = ctx.chart.ctx
+        const g = c.createLinearGradient(0, 0, 0, 180)
+        const color = equityData.values[equityData.values.length - 1] >= startingBalance ? '#20c997' : '#ff6b6b'
+        g.addColorStop(0, color + '30')
+        g.addColorStop(1, color + '00')
+        return g
+      },
+      tension: 0.4
+    }]
+  }
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: isLightMode ? '#ffffff' : '#1a2535',
+        borderColor: equityData.values[equityData.values.length - 1] >= startingBalance ? '#20c997' : '#ff6b6b',
+        borderWidth: 1,
+        titleColor: isLightMode ? '#1a2236' : '#e5e7eb',
+        bodyColor: equityData.values[equityData.values.length - 1] >= startingBalance ? '#20c997' : '#ff6b6b',
+        padding: 10,
+        callbacks: {
+          label: ctx => ` $${ctx.parsed.y.toFixed(2)}`
+        }
+      }
+    },
+    scales: {
+      x: {
+        grid: { color: isLightMode ? 'rgba(0,0,0,.06)' : 'rgba(255,255,255,.05)' },
+        ticks: {
+          color: isLightMode ? '#8896aa' : '#6f7d8c',
+          font: { size: 10, family: 'Consolas,monospace' },
+          maxTicksLimit: 8
+        }
+      },
+      y: {
+        grid: { color: isLightMode ? 'rgba(0,0,0,.06)' : 'rgba(255,255,255,.05)' },
+        ticks: {
+          color: isLightMode ? '#8896aa' : '#6f7d8c',
+          font: { size: 10, family: 'Consolas,monospace' },
+          callback: v => '$' + v.toFixed(0)
+        }
+      }
+    }
+  }
+
+  // ── Update stats cards ──
+  function updateStats() {
+    const total = trades.reduce((s, t) => s + t.pnl, 0)
+    const wallet = startingBalance + total
+    const wins = trades.filter(t => t.outcome === 'WIN')
+    const losses = trades.filter(t => t.outcome === 'LOSS')
+    const wr = trades.length ? wins.length / trades.length : 0
+    const best = trades.length ? Math.max(...trades.map(t => t.pnl)) : null
+    const grossWin = wins.reduce((s, t) => s + t.pnl, 0)
+    const grossLoss = Math.abs(losses.reduce((s, t) => s + t.pnl, 0))
+    const pf = grossLoss > 0 ? grossWin / grossLoss : null
+
+    let peak = startingBalance
+    let maxDD = 0
+    let running = startingBalance
+    ;[...trades].reverse().forEach(t => {
+      running += t.pnl
+      if (running > peak) peak = running
+      const dd = peak - running
+      if (dd > maxDD) maxDD = dd
+    })
+
+    let streak = 0
+    let streakType = null
+    for (const t of trades) {
+      if (t.outcome === 'BE') continue
+      if (!streakType) {
+        streakType = t.outcome
+        streak = 1
+      } else if (t.outcome === streakType) streak++
+      else break
+    }
+
+    // Update DOM elements if they exist
+    const sStart = document.getElementById('s-start')
+    if (sStart) sStart.textContent = '$' + startingBalance.toFixed(2)
+    const sWallet = document.getElementById('s-wallet')
+    if (sWallet) {
+      sWallet.textContent = '$' + wallet.toFixed(2)
+      sWallet.className = 'stat-val ' + (wallet > startingBalance ? 'pos' : wallet < startingBalance ? 'neg' : 'gold')
+    }
+    const sPnl = document.getElementById('s-pnl')
+    if (sPnl) {
+      sPnl.textContent = (total >= 0 ? '+' : '') + '$' + Math.abs(total).toFixed(2)
+      sPnl.className = 'stat-val ' + (total > 0 ? 'pos' : total < 0 ? 'neg' : 'gold')
+    }
+    const sWr = document.getElementById('s-wr')
+    if (sWr) {
+      sWr.textContent = wr !== null ? Math.round(wr * 100) + '%' : '—'
+      sWr.className = 'stat-val ' + (wr >= 0.5 ? 'pos' : wr !== null ? 'neg' : '')
+    }
+    const sTrades = document.getElementById('s-trades')
+    if (sTrades) sTrades.textContent = trades.length
+    const sStreak = document.getElementById('s-streak')
+    if (sStreak) {
+      sStreak.innerHTML = streak > 1 && streakType
+        ? `<span class="streak-badge ${streakType === 'WIN' ? 'win' : 'loss'}-streak">${streak} ${streakType === 'WIN' ? 'W' : 'L'} streak</span>`
+        : ''
+    }
+    const sBest = document.getElementById('s-best')
+    if (sBest) sBest.textContent = best !== null ? '+$' + best.toFixed(2) : '—'
+    const sPf = document.getElementById('s-pf')
+    if (sPf) {
+      sPf.textContent = pf !== null ? pf.toFixed(2) : '—'
+      sPf.className = 'stat-val ' + (pf !== null ? (pf >= 1.5 ? 'pos' : pf < 1 ? 'neg' : '') : '')
+    }
+    const sDd = document.getElementById('s-dd')
+    if (sDd) sDd.textContent = maxDD > 0 ? '-$' + maxDD.toFixed(2) : '—'
   }
 
   return (
@@ -377,29 +694,33 @@ function App() {
               <div className="onboard-step">
                 <div className="onboard-num">1</div>
                 <div className="onboard-step-text">
-                  <strong>Log every trade</strong> — wins, losses, and everything in between
+                  <strong>Set your starting balance</strong> so your wallet tracks your real progress
                 </div>
               </div>
               <div className="onboard-step">
                 <div className="onboard-num">2</div>
                 <div className="onboard-step-text">
-                  <strong>Write in your journal</strong> — emotions and mindset matter as much as charts
+                  <strong>Log every trade</strong> — wins, losses, and everything in between
                 </div>
               </div>
               <div className="onboard-step">
                 <div className="onboard-num">3</div>
                 <div className="onboard-step-text">
-                  <strong>Track your progress</strong> with analytics and equity curves
+                  <strong>Write in your journal</strong> — emotions and mindset matter as much as charts
                 </div>
               </div>
             </div>
 
-            <div className="onboard-login-row">
-              <button className="onboard-btn" onClick={completeOnboarding}>
-                Get Started ✦
-              </button>
-              <p className="onboard-login-note">Save your trades instantly with cloud sync</p>
+            <div className="onboard-wallet-row">
+              <div className="field">
+                <label>Your starting balance ($)</label>
+                <input type="number" id="onboard-wallet" placeholder="e.g. 1000.00" step="0.01" />
+              </div>
             </div>
+
+            <button className="onboard-btn" onClick={completeOnboarding}>
+              Start journaling ✦
+            </button>
             <div className="onboard-skip" onClick={dismissOnboarding}>
               Skip for now
             </div>
@@ -447,30 +768,35 @@ function App() {
 
         {/* Navigation tabs */}
         <nav className="nav">
+          {/* Log Trade: open the trade logging form to add a new XAUUSD trade */}
           <button
             className={`nav-btn ${activeTab === 'log' ? 'active' : ''}`}
             onClick={() => showTab('log')}
           >
             Log Trade
           </button>
+          {/* History: review past trades, filter results, and export CSV */}
           <button
             className={`nav-btn ${activeTab === 'history' ? 'active' : ''}`}
             onClick={() => showTab('history')}
           >
             History
           </button>
+          {/* Calendar: visualize trades on a calendar view by date */}
           <button
             className={`nav-btn ${activeTab === 'calendar' ? 'active' : ''}`}
             onClick={() => showTab('calendar')}
           >
             Calendar
           </button>
+          {/* Analytics: view equity curve, performance stats, and summaries */}
           <button
             className={`nav-btn ${activeTab === 'analytics' ? 'active' : ''}`}
             onClick={() => showTab('analytics')}
           >
             Analytics
           </button>
+          {/* Journal: write and manage daily trader journal entries */}
           <button
             className={`nav-btn ${activeTab === 'journal' ? 'active' : ''}`}
             onClick={() => showTab('journal')}
@@ -481,26 +807,177 @@ function App() {
 
         {/* Tab content */}
         {activeTab === 'log' && (
-          <LogTradeTab
-            trades={trades}
-            startingBalance={startingBalance}
-            direction={direction}
-            setDirection={setDirection}
-            checks={checks}
-            toggleCheck={toggleCheck}
-            onSaveTrade={saveTrade}
-            calcPnl={calcPnl}
-            plan={plan}
-            onUpgrade={() => setShowPricingModal(true)}
-          />
+          <div id="tab-log" className="section active">
+            <div className="sub-banner">
+              <div>
+                <div className="sub-title">Trade like a pro with deeper insights</div>
+                <div className="sub-text">
+                  Unlimited trades, equity curve, advanced analytics — all in Pro.
+                </div>
+              </div>
+              <button className="sub-cta" onClick={() => setShowPricingModal(true)}>
+                View plans
+              </button>
+            </div>
+
+            <div className="card">
+              <div className="card-title">Live XAUUSD Price</div>
+              <div style={{ fontSize: '24px', fontWeight: 'bold', color: 'var(--gold)' }}>
+                ${livePrice ? livePrice.toFixed(2) : 'Loading...'}
+              </div>
+            </div>
+
+            {(() => {
+              const weekly = getWeeklySummary()
+              return weekly ? (
+                <div className="weekly-card">
+                  <div className="weekly-left">
+                    <div className="weekly-label">Last 7 days</div>
+                    <div className="weekly-title">{weekly.title}</div>
+                    <div className="weekly-sub">{weekly.sub}</div>
+                  </div>
+                  <div className="weekly-stats">
+                    <div className="weekly-stat">
+                      <div className="weekly-stat-val" style={{ color: weekly.pnl >= 0 ? 'var(--win)' : 'var(--loss)' }}>
+                        {weekly.pnl >= 0 ? '+' : ''}${Math.abs(weekly.pnl).toFixed(2)}
+                      </div>
+                      <div className="weekly-stat-lbl">P&L</div>
+                    </div>
+                    <div className="weekly-stat">
+                      <div className="weekly-stat-val" style={{ color: weekly.wr >= 50 ? 'var(--win)' : 'var(--loss)' }}>
+                        {weekly.wr}%
+                      </div>
+                      <div className="weekly-stat-lbl">Win rate</div>
+                    </div>
+                    <div className="weekly-stat">
+                      <div className="weekly-stat-val">{weekly.count}</div>
+                      <div className="weekly-stat-lbl">Trades</div>
+                    </div>
+                  </div>
+                </div>
+              ) : null
+            })()}
+
+            <div className="stats-row">
+              <div className="stat">
+                <div className="stat-lbl">Starting Wallet</div>
+                <div className="stat-val">${startingBalance.toFixed(2)}</div>
+              </div>
+              <div className="stat">
+                <div className="stat-lbl">Wallet Balance</div>
+                <div className="stat-val gold">${(startingBalance + trades.reduce((s, t) => s + t.pnl, 0)).toFixed(2)}</div>
+              </div>
+              <div className="stat">
+                <div className="stat-lbl">Total P&L</div>
+                <div className="stat-val gold">${trades.reduce((s, t) => s + t.pnl, 0).toFixed(2)}</div>
+              </div>
+              <div className="stat">
+                <div className="stat-lbl">Win Rate</div>
+                <div className="stat-val">{trades.length ? Math.round(trades.filter(t => t.outcome === 'WIN').length / trades.length * 100) : 0}%</div>
+              </div>
+              <div className="stat">
+                <div className="stat-lbl">Trades</div>
+                <div className="stat-val">{trades.length}</div>
+              </div>
+              <div className="stat">
+                <div className="stat-lbl">Best Trade</div>
+                <div className="stat-val pos">{trades.length ? '+' + Math.max(...trades.map(t => t.pnl)).toFixed(2) : '—'}</div>
+              </div>
+              <div className="stat">
+                <div className="stat-lbl">Profit Factor</div>
+                <div className="stat-val">{(() => {
+                  const grossWin = trades.filter(t => t.outcome === 'WIN').reduce((s, t) => s + t.pnl, 0)
+                  const grossLoss = Math.abs(trades.filter(t => t.outcome === 'LOSS').reduce((s, t) => s + t.pnl, 0))
+                  return grossLoss > 0 ? (grossWin / grossLoss).toFixed(2) : '—'
+                })()}</div>
+              </div>
+              <div className="stat">
+                <div className="stat-lbl">Max Drawdown</div>
+                <div className="stat-val neg">{(() => {
+                  let peak = startingBalance
+                  let maxDD = 0
+                  let running = startingBalance
+                  ;[...trades].reverse().forEach(t => {
+                    running += t.pnl
+                    if (running > peak) peak = running
+                    const dd = peak - running
+                    if (dd > maxDD) maxDD = dd
+                  })
+                  return maxDD > 0 ? '-' + maxDD.toFixed(2) : '—'
+                })()}</div>
+              </div>
+            </div>
+
+            <div className="card">
+              <div className="card-title">Wallet setup</div>
+              <div className="field-row r2">
+                <div className="field">
+                  <label>Starting balance ($)</label>
+                  <input
+                    type="number"
+                    id="f-wallet"
+                    placeholder="1000.00"
+                    step="0.01"
+                    defaultValue={startingBalance ? startingBalance.toFixed(2) : ''}
+                    onChange={setStartingBalance}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <LogTradeTab
+              direction={direction}
+              setDirection={setDirection}
+              // checks={checks} // commented out
+              // toggleCheck={toggleCheck} // commented out
+              onSaveTrade={saveTrade}
+              calcPnl={calcPnl}
+              onUpgrade={() => setShowPricingModal(true)}
+            />
+
+            <div className="card">
+              <div className="equity-header">
+                <div className="card-title" style={{ margin: 0 }}>Equity curve</div>
+                <div className="equity-periods">
+                  <button className={`equity-period-btn ${equityPeriod === 'all' ? 'active' : ''}`} onClick={() => setEquityPeriod('all')}>All</button>
+                  <button className={`equity-period-btn ${equityPeriod === '3m' ? 'active' : ''}`} onClick={() => setEquityPeriod('3m')}>3M</button>
+                  <button className={`equity-period-btn ${equityPeriod === '1m' ? 'active' : ''}`} onClick={() => setEquityPeriod('1m')}>1M</button>
+                  <button className={`equity-period-btn ${equityPeriod === '1w' ? 'active' : ''}`} onClick={() => setEquityPeriod('1w')}>1W</button>
+                </div>
+              </div>
+              <div className="equity-canvas-wrap">
+                {trades.length ? <Line data={chartData} options={chartOptions} /> : <div className="equity-empty">📊 Log your first trade to see your equity curve</div>}
+              </div>
+              {trades.length ? (
+                <div className="equity-summary">
+                  <div className="equity-sum-item">
+                    <div className="equity-sum-lbl">Total return</div>
+                    <div className={`equity-sum-val ${totalPnl >= 0 ? 'pos' : 'neg'}`}>
+                      {totalPnl >= 0 ? '+' : ''}${Math.abs(totalPnl).toFixed(2)}
+                    </div>
+                  </div>
+                  <div className="equity-sum-item">
+                    <div className="equity-sum-lbl">Peak balance</div>
+                    <div className="equity-sum-val pos">${peakVal.toFixed(2)}</div>
+                  </div>
+                  <div className="equity-sum-item">
+                    <div className="equity-sum-lbl">Lowest point</div>
+                    <div className="equity-sum-val">${troughVal.toFixed(2)}</div>
+                  </div>
+                  <div className="equity-sum-item">
+                    <div className="equity-sum-lbl">Trades shown</div>
+                    <div className="equity-sum-val">{equityData.labels.length - 1}</div>
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          </div>
         )}
 
         {activeTab === 'history' && (
           <HistoryTab
             trades={trades}
             onDeleteTrade={deleteTrade}
-            setEditingTradeId={setEditingTradeId}
-            setShowEditModal={setShowEditModal}
             filterSearch={filterSearch}
             setFilterSearch={setFilterSearch}
             filterDir={filterDir}
@@ -513,6 +990,8 @@ function App() {
             setFilterSetup={setFilterSetup}
             filterSort={filterSort}
             setFilterSort={setFilterSort}
+            onExportCSV={exportCSV}
+            onOpenEditModal={openEditModal}
           />
         )}
 
@@ -538,7 +1017,7 @@ function App() {
         )}
       </div>
 
-      {/* Pricing Modal */}
+      {/* Pricing model */}
       {showPricingModal && (
         <div className="modal-wrap">
           <div className="modal-card wide">
@@ -593,21 +1072,102 @@ function App() {
           </div>
         </div>
       )}
+
+      {/* Edit Trade Modal */}
+      {showEditModal && editingTrade && (
+        <div className="modal-wrap" onClick={(e) => { if (e.target.className === 'modal-wrap') closeEditModal() }}>
+          <div className="modal-card">
+            <div className="modal-head">
+              <h3>Edit trade</h3>
+              <button className="modal-close" onClick={closeEditModal}>&#215;</button>
+            </div>
+            <form id="edit-form" onSubmit={(e) => { e.preventDefault(); saveEdit() }}>
+              <div className="field-row r2">
+                <div className="field">
+                  <label>Date</label>
+                  <input type="date" name="date" defaultValue={editingTrade.date} />
+                </div>
+                <div className="field">
+                  <label>Session</label>
+                  <select name="session" defaultValue={editingTrade.session || ''}>
+                    <option value="">— Select session —</option>
+                    <option value="Asian">Asian</option>
+                    <option value="London">London</option>
+                    <option value="NY">New York</option>
+                    <option value="LN-NY">London–NY Overlap</option>
+                  </select>
+                </div>
+              </div>
+              <div className="field-row r2">
+                <div className="field">
+                  <label>Direction</label>
+                  <div className="dir-group">
+                    <div className={`dir-opt ${editingTrade.direction === 'BUY' ? 'sel-buy' : ''}`}>{editingTrade.direction}</div>
+                  </div>
+                </div>
+                <div className="field">
+                  <label>Setup tag</label>
+                  <select name="setup" defaultValue={editingTrade.setup || ''}>
+                    <option value="">— Select setup —</option>
+                    <option value="A+ Setup">A+ Setup</option>
+                    <option value="Breakout">Breakout</option>
+                    <option value="Reversal">Reversal</option>
+                    <option value="News">News</option>
+                    <option value="FOMO">FOMO</option>
+                    <option value="Revenge">Revenge</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+              </div>
+              <div className="field-row r3">
+                <div className="field">
+                  <label>Entry price</label>
+                  <input type="number" name="entry" defaultValue={editingTrade.entry} step="0.01" />
+                </div>
+                <div className="field">
+                  <label>Exit price</label>
+                  <input type="number" name="exit" defaultValue={editingTrade.exit} step="0.01" />
+                </div>
+                <div className="field">
+                  <label>Lot size</label>
+                  <input type="number" name="lots" defaultValue={editingTrade.lots} step="0.01" />
+                </div>
+              </div>
+              <div className="field-row r3">
+                <div className="field">
+                  <label>Stop Loss (SL)</label>
+                  <input type="number" name="sl" defaultValue={editingTrade.sl || ''} step="0.01" />
+                </div>
+                <div className="field">
+                  <label>Take Profit (TP)</label>
+                  <input type="number" name="tp" defaultValue={editingTrade.tp || ''} step="0.01" />
+                </div>
+                <div className="field">
+                  <label>Amount invested ($)</label>
+                  <input type="number" name="amount" defaultValue={editingTrade.amount || ''} step="0.01" />
+                </div>
+              </div>
+              <div className="field mb-10">
+                <label>Trade notes</label>
+                <textarea name="note" defaultValue={editingTrade.note || ''}></textarea>
+              </div>
+              <button type="submit" className="submit-btn">Save changes</button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
 
 // Subcomponents
 function LogTradeTab({
-  trades,
-  startingBalance,
   direction,
   setDirection,
-  checks,
-  toggleCheck,
+  // checks, // commented out
+  // toggleCheck, // commented out
   onSaveTrade,
   calcPnl,
-  plan,
   onUpgrade
 }) {
   const [entry, setEntry] = useState('')
@@ -799,6 +1359,13 @@ function LogTradeTab({
             ></textarea>
           </div>
 
+          <div className="field mb-10">
+            <label>Screenshots</label>
+            <input type="file" multiple accept="image/*" name="screenshots" />
+          </div>
+
+          {/* PRE-trade checklist - commented out for later editing/removal */}
+          {/*
           <div className="checklist-card">
             <div className="checklist-title">Pre-trade checklist</div>
 
@@ -817,6 +1384,7 @@ function LogTradeTab({
               </div>
             ))}
           </div>
+          */}
 
           <button type="submit" className="submit-btn">
             Save trade
@@ -830,8 +1398,6 @@ function LogTradeTab({
 function HistoryTab({
   trades,
   onDeleteTrade,
-  setEditingTradeId,
-  setShowEditModal,
   filterSearch,
   setFilterSearch,
   filterDir,
@@ -843,7 +1409,9 @@ function HistoryTab({
   filterSetup,
   setFilterSetup,
   filterSort,
-  setFilterSort
+  setFilterSort,
+  onExportCSV,
+  onOpenEditModal
 }) {
   const [expandedNotes, setExpandedNotes] = useState({})
 
@@ -903,6 +1471,8 @@ function HistoryTab({
           <option value="best">Best P&L</option>
           <option value="worst">Worst P&L</option>
         </select>
+        <span className="filter-spacer"></span>
+        <button className="export-btn" onClick={onExportCSV}>↓ Export CSV</button>
       </div>
 
       {filtered.length === 0 ? (
@@ -910,7 +1480,7 @@ function HistoryTab({
       ) : (
         <div id="history-list">
           {filtered.map(t => (
-            <div key={t.id} className="trade-item cursor-pointer">
+            <div key={t.id} className="trade-item cursor-pointer" onClick={() => setExpandedNotes(prev => ({ ...prev, [t.id]: !prev[t.id] }))}>
               <span className={`tag tag-${t.direction.toLowerCase()}`}>{t.direction}</span>
               <span className="td-date">{t.date}</span>
               <span className="td-price">
@@ -941,6 +1511,15 @@ function HistoryTab({
               >
                 ×
               </button>
+              {expandedNotes[t.id] && (
+                <div className="trade-details">
+                  {t.note && <p>{t.note}</p>}
+                  {t.screenshots && t.screenshots.map((s, i) => <img key={i} src={s} alt="screenshot" style={{ maxWidth: '200px', margin: '5px' }} />)}
+                  <div className="expand-actions">
+                    <button className="icon-btn" onClick={() => onOpenEditModal(t)}>✎ Edit</button>
+                  </div>
+                </div>
+              )}
             </div>
           ))}
         </div>
