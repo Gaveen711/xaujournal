@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { doc, onSnapshot, updateDoc, setDoc, getDoc } from 'firebase/firestore';
-import { httpsCallable } from 'firebase/functions';
-import { db, functions } from '../firebase';
+
+import { db } from '../firebase';
 import { useToast } from '../components/ToastContext';
+
 
 export function useSubscription(user) {
   const [subscription, setSubscription] = useState({ plan: 'free', expiry: null, isLoading: true });
@@ -44,17 +45,28 @@ export function useSubscription(user) {
 
   const startCheckout = async () => {
     try {
-      const createSession = httpsCallable(functions, 'createCheckoutSession');
-      const result = await createSession({ origin: window.location.origin });
-      const { url } = result.data;
-      if (url) {
-        window.location.href = url; // Redirect to Stripe
+      const resp = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          origin: window.location.origin,
+          email: user.email,
+          userId: user.uid
+        })
+      });
+      
+      const data = await resp.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error(data.error || 'Failed to create session');
       }
     } catch (error) {
       console.error("Checkout Error:", error);
-      toast("Could not initiate checkout. Check if your Firebase project is on the Blaze plan.", "error");
+      toast("Could not initiate checkout. Check your Vercel logs.", "error");
     }
   };
+
 
   return { ...subscription, startCheckout };
 }
