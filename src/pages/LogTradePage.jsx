@@ -28,16 +28,18 @@ export function LogTradePage() {
   const [exit, setExit] = useState('');
   const [lots, setLots] = useState('0.10');
   const [amount, setAmount] = useState('');
+  const [swap, setSwap] = useState('');
   const [sl, setSl] = useState('');
   const [tp, setTp] = useState('');
   const [note, setNote] = useState('');
   const [leverage, setLeverage] = useState('');
+  const [market, setMarket] = useState('GOLD');
 
   const pnlData = calcPnl(
     parseFloat(entry) || 0, parseFloat(exit) || 0,
     parseFloat(lots) || 0, parseFloat(amount) || 0,
     parseFloat(sl) || 0, parseFloat(tp) || 0,
-    direction
+    direction, market, parseFloat(swap) || 0
   );
 
   const saveTradeForm = async (e) => {
@@ -56,12 +58,13 @@ export function LogTradePage() {
     const exitVal = parseFloat(formData.get('exit'));
     const lotsVal = parseFloat(formData.get('lots')) || 0;
     const amountVal = parseFloat(formData.get('amount')) || 0;
+    const swapVal = parseFloat(formData.get('swap')) || 0;
     const slVal = parseFloat(formData.get('sl')) || null;
     const tpVal = parseFloat(formData.get('tp')) || null;
     const noteVal = formData.get('note').trim();
     const session = formData.get('session');
     const setup = formData.get('setup');
-    const market = formData.get('market');
+    const marketVal = formData.get('market');
     const leverageVal = formData.get('leverage');
 
     if (!date || !direction || isNaN(entryVal) || isNaN(exitVal) || (!amountVal && isNaN(lotsVal))) {
@@ -70,19 +73,12 @@ export function LogTradePage() {
       return;
     }
 
-    const diff = direction === 'BUY' ? exitVal - entryVal : entryVal - exitVal;
-    const pnl = amountVal > 0 ? (diff / entryVal) * amountVal : diff * lotsVal * 100;
+    const tradeRes = calcPnl(entryVal, exitVal, lotsVal, amountVal, slVal, tpVal, direction, marketVal, swapVal);
+    const { pnl, pips, rr } = tradeRes;
     const outcome = pnl > 0.01 ? 'WIN' : pnl < -0.01 ? 'LOSS' : 'BE';
-    
-    let rr = null;
-    if (slVal && tpVal) {
-      const risk = Math.abs(direction === 'BUY' ? entryVal - slVal : slVal - entryVal);
-      const rew = Math.abs(direction === 'BUY' ? tpVal - entryVal : entryVal - tpVal);
-      if (risk > 0) rr = parseFloat((rew / risk).toFixed(2));
-    }
 
     const tradeData = {
-      date, direction, entry: entryVal, exit: exitVal, lots: isNaN(lotsVal) ? 0 : lotsVal, amount: amountVal, sl: slVal, tp: tpVal, rr, session, setup, market, leverage: leverageVal,
+      date, direction, entry: entryVal, exit: exitVal, lots: isNaN(lotsVal) ? 0 : lotsVal, amount: amountVal, swap: swapVal, sl: slVal, tp: tpVal, rr, pips, session, setup, market: marketVal, leverage: leverageVal,
       pnl: parseFloat(pnl.toFixed(2)), outcome, note: noteVal, timestamp: new Date()
     };
 
@@ -91,7 +87,7 @@ export function LogTradePage() {
       e.target.reset();
       setDirection(null);
       setDate(todayStr());
-      setEntry(''); setExit(''); setLots('0.10'); setAmount(''); setSl(''); setTp(''); setNote(''); setLeverage('');
+      setEntry(''); setExit(''); setLots('0.10'); setAmount(''); setSwap(''); setSl(''); setTp(''); setNote(''); setLeverage('');
       const icon = outcome === 'WIN' ? '🟢' : outcome === 'LOSS' ? '🔴' : '🟡';
       toast(`${icon} Trade saved — ${outcome} ${pnl >= 0 ? '+' : ''}$${Math.abs(pnl).toFixed(2)}`, outcome === 'WIN' ? 'success' : outcome === 'LOSS' ? 'error' : 'warn');
     } catch (error) {
@@ -219,7 +215,7 @@ export function LogTradePage() {
                 </div>
                 <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase tracking-widest text-foreground/90 ml-1">Market</label>
-                  <select name="market" className="select-premium h-12">
+                  <select name="market" value={market} onChange={e => setMarket(e.target.value)} className="select-premium h-12">
                     <option value="GOLD">Gold (XAU/USD)</option>
                     <option value="FOREX">Forex</option>
                     <option value="CRYPTO">Crypto</option>
@@ -296,6 +292,10 @@ export function LogTradePage() {
                   <input type="number" name="tp" step="0.00001" value={tp} onChange={e => setTp(e.target.value)} className="input-premium h-12 text-sm font-bold" placeholder="0.00" />
                 </div>
                 <div className="space-y-1.5">
+                  <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/90 ml-1">Swap / Fees ($)</label>
+                  <input type="number" name="swap" step="0.01" value={swap} onChange={e => setSwap(e.target.value)} className="input-premium h-12 text-sm font-bold" placeholder="0.00" />
+                </div>
+                <div className="space-y-1.5">
                   <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/90 ml-1">Risk Amt ($)</label>
                   <input type="number" name="amount" step="0.01" value={amount} onChange={e => setAmount(e.target.value)} className="input-premium h-12 text-sm font-bold" placeholder="0.00" />
                 </div>
@@ -304,7 +304,9 @@ export function LogTradePage() {
               {pnlData.pnl !== null && (
                 <div className="p-4 rounded-2xl bg-muted/50 border border-border shadow-inner flex justify-between items-center animate-in slide-in-from-top-2">
                   <div className="flex flex-col">
-                    <span className="text-[9px] font-black uppercase text-muted-foreground tracking-widest">Forecasted Result</span>
+                    <span className="text-[9px] font-black uppercase text-muted-foreground tracking-widest">
+                      Forecasted Impact ({pnlData.pips} Pips)
+                    </span>
                     <span className={`text-xl font-black ${pnlData.pnl >= 0 ? 'text-green-500' : 'text-red-500'}`}>
                       {pnlData.pnl >= 0 ? '+' : ''}${Math.abs(pnlData.pnl).toFixed(2)}
                     </span>

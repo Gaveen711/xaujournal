@@ -48,9 +48,9 @@ export function HistoryPage() {
 
   const onExportCSV = () => {
     if (!trades.length) return toast('No trades to export.', 'warn');
-    const headers = ['Date', 'Direction', 'Entry', 'Exit', 'P&L', 'Session', 'Setup', 'Outcome', 'Note'];
+    const headers = ['Date', 'Market', 'Direction', 'Entry', 'Exit', 'P&L', 'Swap', 'Pips', 'Session', 'Setup', 'Outcome', 'Note'];
     const rows = trades.map(t => [
-      t.date, t.direction, t.entry, t.exit, t.pnl, t.session, t.setup, t.outcome, `"${(t.note || '').replace(/"/g, '""')}"`
+      t.date, t.market, t.direction, t.entry, t.exit, t.pnl, t.swap || 0, t.pips || 0, t.session, t.setup, t.outcome, `"${(t.note || '').replace(/"/g, '""')}"`
     ]);
     const csvContent = "data:text/csv;charset=utf-8," + headers.join(",") + "\n" + rows.map(r => r.join(",")).join("\n");
     const encodedUri = encodeURI(csvContent);
@@ -149,7 +149,7 @@ export function HistoryPage() {
                     
                     <div className="flex flex-col">
                       <span className="text-xs font-black tracking-tight">{t.date}</span>
-                      <span className="text-[10px] text-foreground/85 font-bold uppercase tracking-tighter">{t.session} · {t.setup}</span>
+                      <span className="text-[10px] text-foreground/85 font-bold uppercase tracking-tighter">{t.market} · {t.session} · {t.setup}</span>
                     </div>
                     
                     <button 
@@ -163,7 +163,7 @@ export function HistoryPage() {
                   <div className="flex items-center justify-between sm:justify-start gap-8 flex-1">
                     <div className="flex flex-col">
                       <span className="text-xs font-bold font-mono text-foreground/95">{t.entry} → {t.exit}</span>
-                      <span className="text-[10px] text-foreground/85 font-black uppercase tracking-widest">{t.lots} Lots · ${t.amount || 0}</span>
+                      <span className="text-[10px] text-foreground/85 font-black uppercase tracking-widest">{t.lots} Lots · {t.pips || 0} Pips</span>
                     </div>
 
                     <div className="sm:ml-auto flex items-center gap-6">
@@ -171,7 +171,9 @@ export function HistoryPage() {
                         <span className={`text-lg sm:text-base font-black tracking-tighter ${t.pnl >= 0 ? 'text-green-500' : 'text-red-500'}`}>
                           {t.pnl >= 0 ? '+' : '-'}${Math.abs(t.pnl).toFixed(2)}
                         </span>
-                        {t.rr && <span className="text-[10px] font-black text-foreground/75 tracking-widest uppercase">R:R {t.rr}</span>}
+                        <span className="text-[10px] font-black text-foreground/75 tracking-widest uppercase">
+                          Swap: ${t.swap || 0} {t.rr ? `· R:R ${t.rr}` : ''}
+                        </span>
                       </div>
                       
                       <button 
