@@ -173,15 +173,15 @@ export function LogTradePage() {
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 w-full sm:w-auto">
           <div className="card-premium p-4 flex flex-col gap-1 min-w-[120px] bg-muted/30">
-            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/80">Wallet Balance</span>
+            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Wallet Balance</span>
             <span className="text-xl font-black">${currentWalletBalance.toFixed(2)}</span>
           </div>
           <div className="card-premium p-4 flex flex-col gap-1 min-w-[120px] bg-muted/30">
-            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/80">Win Rate</span>
+            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Win Rate</span>
             <span className="text-xl font-black">{winRate}%</span>
           </div>
           <div className="card-premium p-4 flex flex-col gap-1 min-w-[120px] bg-muted/30">
-            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/80">Absolute P&L</span>
+            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Absolute P&L</span>
             <span className={`text-xl font-black ${totalPnl >= 0 ? 'text-green-500' : 'text-red-500'}`}>
               {totalPnl >= 0 ? '+' : ''}${Math.abs(totalPnl).toFixed(0)}
             </span>
@@ -195,7 +195,7 @@ export function LogTradePage() {
             <div className="bg-primary/10 border border-primary/20 rounded-2xl p-6 flex justify-between items-center group animate-in zoom-in-95 duration-500 delay-150">
               <div className="space-y-1">
                 <h3 className="font-bold text-primary">Unlock Pro Access</h3>
-                <p className="text-xs text-primary/70">Advanced intelligence & unlimited logs.</p>
+                <p className="text-xs text-primary/90">Advanced intelligence & unlimited logs.</p>
               </div>
               <button 
                 onClick={() => setShowPricingModal(true)}
@@ -214,12 +214,12 @@ export function LogTradePage() {
             <form onSubmit={saveTradeForm} className="space-y-5">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 ml-1">Date</label>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-foreground/90 ml-1">Date</label>
                   <DatePicker name="date" value={date} onChange={setDate} />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 ml-1">Market</label>
-                  <select name="market" className="input-premium h-12">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-foreground/90 ml-1">Market</label>
+                  <select name="market" className="select-premium h-12">
                     <option value="GOLD">Gold (XAU/USD)</option>
                     <option value="FOREX">Forex</option>
                     <option value="CRYPTO">Crypto</option>
@@ -227,8 +227,8 @@ export function LogTradePage() {
                   </select>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 ml-1">Session</label>
-                  <select name="session" className="input-premium h-12">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-foreground/90 ml-1">Session</label>
+                  <select name="session" className="select-premium h-12">
                     <option value="">Select...</option>
                     <option value="Asian">Asian</option>
                     <option value="London">London</option>
@@ -240,7 +240,7 @@ export function LogTradePage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 ml-1">Direction</label>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-foreground/90 ml-1">Direction</label>
                   <div className="flex bg-muted rounded-xl p-1 gap-1 border border-border/50 h-11">
                     <button 
                       type="button"
@@ -255,8 +255,8 @@ export function LogTradePage() {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 ml-1">Setup</label>
-                  <select name="setup" className="input-premium h-12">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-foreground/90 ml-1">Setup</label>
+                  <select name="setup" className="select-premium h-12">
                     <option value="">Select...</option>
                     <option value="A+ Setup">A+ Setup</option>
                     <option value="Breakout">Breakout</option>
@@ -266,37 +266,37 @@ export function LogTradePage() {
                   </select>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 ml-1">Leverage</label>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-foreground/90 ml-1">Leverage</label>
                   <input type="text" name="leverage" value={leverage} onChange={e => setLeverage(e.target.value)} className="input-premium h-12 text-sm font-bold" placeholder="e.g. 1:Unlimited" />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/60 ml-1">Entry Price</label>
+                  <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/90 ml-1">Entry Price</label>
                   <input type="number" name="entry" step="0.00001" value={entry} onChange={e => setEntry(e.target.value)} className="input-premium h-12 text-sm font-bold" placeholder="0.00" />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/60 ml-1">Exit Price</label>
+                  <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/90 ml-1">Exit Price</label>
                   <input type="number" name="exit" step="0.00001" value={exit} onChange={e => setExit(e.target.value)} className="input-premium h-12 text-sm font-bold" placeholder="0.00" />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/60 ml-1">Lot Size</label>
+                  <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/90 ml-1">Lot Size</label>
                   <input type="number" name="lots" step="0.01" value={lots} onChange={e => setLots(e.target.value)} className="input-premium h-12 text-sm font-bold" placeholder="0.10" />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/60 ml-1">Stop Loss</label>
+                  <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/90 ml-1">Stop Loss</label>
                   <input type="number" name="sl" step="0.00001" value={sl} onChange={e => setSl(e.target.value)} className="input-premium h-12 text-sm font-bold" placeholder="0.00" />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/60 ml-1">Take Profit</label>
+                  <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/90 ml-1">Take Profit</label>
                   <input type="number" name="tp" step="0.00001" value={tp} onChange={e => setTp(e.target.value)} className="input-premium h-12 text-sm font-bold" placeholder="0.00" />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/60 ml-1">Risk Amt ($)</label>
+                  <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/90 ml-1">Risk Amt ($)</label>
                   <input type="number" name="amount" step="0.01" value={amount} onChange={e => setAmount(e.target.value)} className="input-premium h-12 text-sm font-bold" placeholder="0.00" />
                 </div>
               </div>
@@ -304,7 +304,7 @@ export function LogTradePage() {
               {pnlData.pnl !== null && (
                 <div className="p-4 rounded-2xl bg-muted/50 border border-border shadow-inner flex justify-between items-center animate-in slide-in-from-top-2">
                   <div className="flex flex-col">
-                    <span className="text-[9px] font-black uppercase text-muted-foreground/70 tracking-widest">Forecasted Result</span>
+                    <span className="text-[9px] font-black uppercase text-muted-foreground tracking-widest">Forecasted Result</span>
                     <span className={`text-xl font-black ${pnlData.pnl >= 0 ? 'text-green-500' : 'text-red-500'}`}>
                       {pnlData.pnl >= 0 ? '+' : ''}${Math.abs(pnlData.pnl).toFixed(2)}
                     </span>
@@ -318,13 +318,13 @@ export function LogTradePage() {
               )}
 
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 ml-1">Intelligence Brief</label>
+                <label className="text-[10px] font-black uppercase tracking-widest text-foreground/90 ml-1">Intelligence Brief</label>
                 <textarea name="note" value={note} onChange={e => setNote(e.target.value)} className="input-premium h-24 resize-none text-xs leading-relaxed p-4" placeholder="Market conditions, emotional state, pattern recognized..."></textarea>
               </div>
 
               {plan === 'free' && (
                 <div className="space-y-2 pt-2">
-                  <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 ml-1">
+                  <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
                     <span>Operation Limit</span>
                     <span>{usedTrades} / {TRADE_LIMIT} Logs</span>
                   </div>
@@ -356,12 +356,12 @@ export function LogTradePage() {
                 Equity Intelligence
               </h3>
               <select 
-                className="bg-muted px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest text-muted-foreground outline-none border border-border/50 hover:text-foreground hover:border-primary/30 transition-all cursor-pointer appearance-none min-w-[120px] text-center" 
+                className="select-premium min-w-[140px] text-[10px] font-black uppercase tracking-widest h-9" 
                 value={equityPeriod} 
                 onChange={e => setEquityPeriod(e.target.value)}
               >
-                <option value="all" className="bg-background text-foreground">Full Profile</option>
-                <option value="30" className="bg-background text-foreground">30D Snapshot</option>
+                <option value="all">Full Profile</option>
+                <option value="30">30D Snapshot</option>
               </select>
             </div>
             <div className="flex-1 w-full min-h-0 relative z-10">
@@ -386,7 +386,7 @@ export function LogTradePage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
             <div className="card-premium p-6 flex items-center justify-between group hover:border-green-500/30 transition-all duration-500">
               <div className="space-y-1.5">
-                <span className="text-[10px] font-black text-muted-foreground/60 uppercase tracking-widest">Avg Growth</span>
+                <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Avg Growth</span>
                 <p className="text-2xl font-black text-green-500 tracking-tighter">
                   +{avgProfit === 0 ? '$0.00' : `$${avgProfit.toFixed(2)}`}
                 </p>
@@ -397,7 +397,7 @@ export function LogTradePage() {
             </div>
             <div className="card-premium p-6 flex items-center justify-between group hover:border-red-500/30 transition-all duration-500">
               <div className="space-y-1.5">
-                <span className="text-[10px] font-black text-muted-foreground/60 uppercase tracking-widest">Avg Drawdown</span>
+                <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Avg Drawdown</span>
                 <p className="text-2xl font-black text-red-500 tracking-tighter">
                   {avgLoss === 0 ? '$0.00' : `-$${Math.abs(avgLoss).toFixed(2)}`}
                 </p>

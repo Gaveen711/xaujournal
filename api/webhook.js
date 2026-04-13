@@ -1,18 +1,9 @@
-const stripe = require('stripe')(process.env.STRIPE_SECRET);
-const admin = require('firebase-admin');
-
-// Initialize Firebase Admin
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT))
-  });
-}
-
-const db = admin.firestore();
+import Stripe from 'stripe';
+import admin from 'firebase-admin';
 
 export const config = {
   api: {
-    bodyParser: false, // Stripe webhooks need raw body
+    bodyParser: false,
   },
 };
 
@@ -29,19 +20,37 @@ export default async function handler(req, res) {
     return res.status(405).send('Method Not Allowed');
   }
 
+  const STRIPE_SECRET = process.env.STRIPE_SECRET;
+  const WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
+  const SERVICE_ACCOUNT = process.env.FIREBASE_SERVICE_ACCOUNT;
+
+  if (!STRIPE_SECRET || !WEBHOOK_SECRET || !SERVICE_ACCOUNT) {
+    return res.status(500).json({ error: "Webhook Error: Missing environment variables on Vercel." });
+  }
+
+  const stripe = new Stripe(STRIPE_SECRET);
+
+  if (!admin.apps.length) {
+    try {
+      admin.initializeApp({
+        credential: admin.credential.cert(JSON.parse(SERVICE_ACCOUNT))
+      });
+    } catch (e) {
+      console.error("FIREBASE ADMIN INIT ERROR:", e);
+      return res.status(500).json({ error: "Firebase Admin failed to initialize." });
+    }
+  }
+
+  const db = admin.firestore();
   const sig = req.headers['stripe-signature'];
   const rawBody = await getRawBody(req);
 
   let event;
 
   try {
-    event = stripe.webhooks.constructEvent(
-      rawBody,
-      sig,
-      process.env.STRIPE_WEBHOOK_SECRET
-    );
+    event = stripe.webhooks.constructEvent(rawBody, sig, WEBHOOK_SECRET);
   } catch (err) {
-    console.error('Webhook Error:', err.message);
+    console.error('Webhook Verification Failed:', err.message);
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
@@ -59,10 +68,7 @@ export default async function handler(req, res) {
         stripeCustomerId: session.customer,
         updatedAt: admin.firestore.FieldValue.serverTimestamp(),
       }, { merge: true });
-      
-      console.log(`User ${userId} upgraded via Vercel Webhook`);
     } catch (dbError) {
-      console.error('Firestore Error:', dbError);
       return res.status(500).send('Database Update Failed');
     }
   }

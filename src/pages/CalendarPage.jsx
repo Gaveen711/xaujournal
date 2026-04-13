@@ -50,7 +50,7 @@ export function CalendarPage() {
             {d}
           </span>
           {hasTrades && (
-            <div className={`text-[10px] sm:text-[12px] font-black tracking-tighter transition-all duration-300 ${isWin ? 'text-green-500' : isLoss ? 'text-red-500' : 'text-muted-foreground/80'}`}>
+            <div className={`text-[10px] sm:text-[12px] font-black tracking-tighter transition-all duration-300 ${isWin ? 'text-green-500' : isLoss ? 'text-red-500' : 'text-muted-foreground'}`}>
               {pnl >= 0 ? '+' : '-'}${Math.abs(pnl).toFixed(0)}
             </div>
           )}
@@ -92,7 +92,7 @@ export function CalendarPage() {
           <button onClick={() => changeMonth(-1)} className="p-2.5 hover:bg-background rounded-full transition-all active:scale-90 flex items-center justify-center">
             <ChevronLeft className="w-3 h-3" />
           </button>
-          <span className="px-4 py-2 text-[10px] font-black min-w-[140px] text-center uppercase tracking-[0.2em] self-center text-foreground/70">
+          <span className="px-4 py-2 text-[10px] font-black min-w-[140px] text-center uppercase tracking-[0.2em] self-center text-foreground/90">
             {new Date(calYear, calMonth, 1).toLocaleString('default', { month: 'long', year: 'numeric' })}
           </span>
           <button onClick={() => changeMonth(1)} className="p-2.5 hover:bg-background rounded-full transition-all active:scale-90 flex items-center justify-center">
@@ -105,7 +105,7 @@ export function CalendarPage() {
         <div className="lg:col-span-2 card-premium p-6 sm:p-12 animate-in slide-in-from-left-4 duration-700">
           <div className="grid grid-cols-7 gap-2 sm:gap-6 mb-8">
             {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
-              <div key={d} className="text-center text-[10px] font-black uppercase tracking-[0.2em] text-foreground/40">{d}</div>
+              <div key={d} className="text-center text-[10px] font-black uppercase tracking-[0.2em] text-foreground/70">{d}</div>
             ))}
           </div>
           <div className="grid grid-cols-7 gap-2 sm:gap-6">
@@ -120,7 +120,7 @@ export function CalendarPage() {
             ))}
           </div>
           
-          <div className="mt-8 pt-8 border-t border-border/30 flex flex-wrap gap-x-6 gap-y-3 text-[10px] uppercase font-black tracking-widest text-muted-foreground/50">
+          <div className="mt-8 pt-8 border-t border-border/30 flex flex-wrap gap-x-6 gap-y-3 text-[10px] uppercase font-black tracking-widest text-muted-foreground/80">
             <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-md bg-green-500/10 border border-green-500/30"></div> Profit Day</div>
             <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-md bg-red-500/10 border border-red-500/30"></div> Loss Day</div>
             <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-md bg-muted/50 border border-border/50"></div> No Operations</div>
@@ -136,13 +136,13 @@ export function CalendarPage() {
             <div className="space-y-6">
               <div className="p-5 rounded-[2rem] bg-muted/40 border border-border/50 shadow-inner space-y-3 animate-in fade-in zoom-in-95 duration-700">
                 <div className="flex justify-between items-start">
-                  <span className="text-[10px] font-black text-foreground uppercase tracking-[0.2em] opacity-60">{fmtDate(selectedDate)}</span>
+                  <span className="text-[10px] font-black text-foreground/90 uppercase tracking-[0.2em]">{fmtDate(selectedDate)}</span>
                   <div className={`w-2 h-2 rounded-full ${selectedTotal >= 0 ? 'bg-green-500 animate-pulse' : 'bg-red-500 animate-pulse'}`} />
                 </div>
                 <div className="flex justify-between items-end text-foreground/90">
                   <div className="flex flex-col">
                     <span className="text-2xl font-black tracking-tighter text-foreground">${Math.abs(selectedTotal).toFixed(2)}</span>
-                    <span className="text-[9px] font-black uppercase tracking-widest text-foreground/60">{selectedTotal >= 0 ? 'Net Profit' : 'Net Loss'}</span>
+                    <span className="text-[9px] font-black uppercase tracking-widest text-foreground/85">{selectedTotal >= 0 ? 'Net Profit' : 'Net Loss'}</span>
                   </div>
                   <span className="text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full bg-background/50 border border-border/50">
                     {selectedTrades.length} Signals
@@ -162,15 +162,15 @@ export function CalendarPage() {
                         {trade.direction[0]}
                       </div>
                       <div className="flex flex-col">
-                        <span className="text-sm font-black text-foreground/80 tracking-tight">{trade.market || 'GOLD'}</span>
-                        <span className="text-[9px] font-black text-muted-foreground/50 uppercase tracking-[0.1em]">{trade.setup || 'Direct Execution'}</span>
+                        <span className="text-sm font-black text-foreground tracking-tight">{trade.market || 'GOLD'}</span>
+                        <span className="text-[9px] font-black text-muted-foreground/85 uppercase tracking-[0.1em]">{trade.setup || 'Direct Execution'}</span>
                       </div>
                     </div>
                     <div className="flex flex-col items-end">
                       <span className={`text-sm font-black ${trade.pnl >= 0 ? 'text-green-500' : 'text-red-500'}`}>
                         {trade.pnl >= 0 ? '+' : '-'}${Math.abs(trade.pnl).toFixed(2)}
                       </span>
-                      <span className="text-[8px] font-black text-muted-foreground/30 uppercase">{trade.session}</span>
+                      <span className="text-[8px] font-black text-muted-foreground/60 uppercase">{trade.session}</span>
                     </div>
                   </div>
                 ))}

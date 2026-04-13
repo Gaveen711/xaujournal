@@ -12,6 +12,7 @@ import { CalendarPage } from './pages/CalendarPage';
 import { AnalyticsPage } from './pages/AnalyticsPage';
 import { JournalPage } from './pages/JournalPage';
 import { useSubscription } from './hooks/useSubscription';
+import { useAppTheme } from './hooks/useAppTheme';
 import { CheckoutSuccess } from './pages/CheckoutSuccess';
 import { CheckoutCancel } from './pages/CheckoutCancel';
 
@@ -67,6 +68,7 @@ function AuthenticatedApp({ user }) {
 }
 
 function App() {
+  const { isLightMode } = useAppTheme(); // Apply theme side-effects immediately
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
 

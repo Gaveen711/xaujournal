@@ -79,10 +79,10 @@ export function AnalyticsPage() {
             className="card-premium p-4 sm:p-5 flex flex-col justify-between h-28 sm:h-32 group hover:scale-[1.03] active:scale-95 transition-all duration-500 ease-[var(--spring-bounce)] animate-in zoom-in-90 fill-both"
             style={{ animationDelay: `${i * 75}ms` }}
           >
-            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-foreground/50 group-hover:text-primary transition-colors">{stat.label}</span>
+            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-foreground/85 group-hover:text-primary transition-colors">{stat.label}</span>
             <div className="space-y-1">
               <div className={`text-xl sm:text-2xl font-black tracking-tighter ${stat.color}`}>{stat.value}</div>
-              <div className="text-[10px] text-foreground/60 font-black uppercase tracking-tighter truncate">{stat.sub}</div>
+              <div className="text-[10px] text-foreground/90 font-black uppercase tracking-tighter truncate">{stat.sub}</div>
             </div>
           </div>
         ))}
@@ -101,7 +101,7 @@ export function AnalyticsPage() {
             return (
               <div key={month} className="group animate-in slide-in-from-right-4 duration-700" style={{ animationDelay: `${700 + (idx * 100)}ms` }}>
                 <div className="flex justify-between items-center mb-2 px-1">
-                  <span className="text-xs font-black uppercase tracking-[0.15em] text-foreground/90">{label}</span>
+                  <span className="text-xs font-black uppercase tracking-[0.15em] text-foreground">{label}</span>
                   <span className={`text-sm font-black tracking-tight ${value >= 0 ? 'text-green-500 shadow-green-500/20' : 'text-red-500 shadow-red-500/20'}`}>
                     {value >= 0 ? '+' : ''}${Math.abs(value).toFixed(0)}
                   </span>
@@ -120,8 +120,8 @@ export function AnalyticsPage() {
                 <BarChartLine className="w-8 h-8 text-muted-foreground/40" />
               </div>
               <div className="text-center space-y-1">
-                <span className="text-sm font-bold text-foreground opacity-80 uppercase tracking-tight">No Monthly Logs Identified</span>
-                <p className="text-[10px] uppercase tracking-widest opacity-40 leading-relaxed px-8">Initialize operations to begin synthesizing monthly performance curves.</p>
+                <span className="text-sm font-bold text-foreground uppercase tracking-tight">No Monthly Logs Identified</span>
+                <p className="text-[10px] uppercase tracking-widest text-muted-foreground/75 leading-relaxed px-8">Initialize operations to begin synthesizing monthly performance curves.</p>
               </div>
             </div>
           )}

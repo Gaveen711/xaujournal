@@ -91,25 +91,25 @@ export function HistoryPage() {
             onChange={e => setFilterSearch(e.target.value)} 
             className="input-premium lg:col-span-1"
           />
-          <select value={filterDir} onChange={e => setFilterDir(e.target.value)} className="input-premium">
+          <select value={filterDir} onChange={e => setFilterDir(e.target.value)} className="select-premium">
             <option value="">All directions</option>
             <option value="BUY">BUY</option>
             <option value="SELL">SELL</option>
           </select>
-          <select value={filterOutcome} onChange={e => setFilterOutcome(e.target.value)} className="input-premium">
+          <select value={filterOutcome} onChange={e => setFilterOutcome(e.target.value)} className="select-premium">
             <option value="">All outcomes</option>
             <option value="WIN">WIN</option>
             <option value="LOSS">LOSS</option>
             <option value="BE">Breakeven</option>
           </select>
-          <select value={filterSession} onChange={e => setFilterSession(e.target.value)} className="input-premium">
+          <select value={filterSession} onChange={e => setFilterSession(e.target.value)} className="select-premium">
             <option value="">All sessions</option>
             <option value="Asian">Asian</option>
             <option value="London">London</option>
             <option value="NY">New York</option>
             <option value="LN-NY">London–NY</option>
           </select>
-          <select value={filterSetup} onChange={e => setFilterSetup(e.target.value)} className="input-premium">
+          <select value={filterSetup} onChange={e => setFilterSetup(e.target.value)} className="select-premium">
             <option value="">All setups</option>
             <option value="A+ Setup">A+ Setup</option>
             <option value="Breakout">Breakout</option>
@@ -117,7 +117,7 @@ export function HistoryPage() {
             <option value="News">News</option>
             <option value="Trend">Trend</option>
           </select>
-          <select value={filterSort} onChange={e => setFilterSort(e.target.value)} className="input-premium">
+          <select value={filterSort} onChange={e => setFilterSort(e.target.value)} className="select-premium">
             <option value="newest">Newest first</option>
             <option value="oldest">Oldest first</option>
             <option value="best">Best P&L</option>
@@ -149,7 +149,7 @@ export function HistoryPage() {
                     
                     <div className="flex flex-col">
                       <span className="text-xs font-black tracking-tight">{t.date}</span>
-                      <span className="text-[10px] text-foreground/50 font-bold uppercase tracking-tighter">{t.session} · {t.setup}</span>
+                      <span className="text-[10px] text-foreground/85 font-bold uppercase tracking-tighter">{t.session} · {t.setup}</span>
                     </div>
                     
                     <button 
@@ -162,8 +162,8 @@ export function HistoryPage() {
 
                   <div className="flex items-center justify-between sm:justify-start gap-8 flex-1">
                     <div className="flex flex-col">
-                      <span className="text-xs font-bold font-mono text-foreground/80">{t.entry} → {t.exit}</span>
-                      <span className="text-[10px] text-foreground/50 font-black uppercase tracking-widest">{t.lots} Lots · ${t.amount || 0}</span>
+                      <span className="text-xs font-bold font-mono text-foreground/95">{t.entry} → {t.exit}</span>
+                      <span className="text-[10px] text-foreground/85 font-black uppercase tracking-widest">{t.lots} Lots · ${t.amount || 0}</span>
                     </div>
 
                     <div className="sm:ml-auto flex items-center gap-6">
@@ -171,7 +171,7 @@ export function HistoryPage() {
                         <span className={`text-lg sm:text-base font-black tracking-tighter ${t.pnl >= 0 ? 'text-green-500' : 'text-red-500'}`}>
                           {t.pnl >= 0 ? '+' : '-'}${Math.abs(t.pnl).toFixed(2)}
                         </span>
-                        {t.rr && <span className="text-[10px] font-black text-foreground/40 tracking-widest uppercase">R:R {t.rr}</span>}
+                        {t.rr && <span className="text-[10px] font-black text-foreground/75 tracking-widest uppercase">R:R {t.rr}</span>}
                       </div>
                       
                       <button 
@@ -186,8 +186,8 @@ export function HistoryPage() {
                 
                 {expandedNotes[t.id] && (
                   <div className="mt-4 pt-4 border-t border-border/40 animate-in slide-in-from-top-2 duration-500 ease-[var(--apple-ease)]">
-                    <div className="text-sm font-medium text-foreground/70 leading-relaxed whitespace-pre-wrap px-1">
-                      {t.note || <span className="text-muted-foreground/50 italic font-normal">No intelligence brief provided for this operation.</span>}
+                    <div className="text-sm font-medium text-foreground/90 leading-relaxed whitespace-pre-wrap px-1">
+                      {t.note || <span className="text-muted-foreground italic font-normal">No intelligence brief provided for this operation.</span>}
                     </div>
                     {t.screenshots && t.screenshots.length > 0 && (
                       <div className="mt-4 flex flex-wrap gap-3">
