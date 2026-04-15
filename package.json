@@ -52,6 +52,10 @@
     "vite": "^8.0.4"
   },
   "overrides": {
-    "follow-redirects": ">=1.16.0"
+    "follow-redirects": ">=1.16.0",
+    "@tootallnate/once": ">=3.0.1",
+    "http-proxy-agent": ">=7.0.0",
+    "teeny-request": ">=10.2.0",
+    "retry-request": ">=7.0.3"
   }
 }
