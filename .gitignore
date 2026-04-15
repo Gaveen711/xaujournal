@@ -38,3 +38,6 @@ credentials.json
 /cypress/videos
 /cypress/screenshots
 .nyc_output
+
+# Explicitly keep shared API utilities
+!api/_firebase.js
