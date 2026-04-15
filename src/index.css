@@ -70,6 +70,8 @@
     font-family: 'Satoshi', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     font-weight: 400; /* Increased from 350 for better readability */
     font-feature-settings: "rlig" 1, "calt" 1;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
   }
 
   /* Global Font Weight Adjustments */
@@ -132,7 +134,8 @@
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -140,7 +143,7 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-muted-foreground/20 rounded-full hover:bg-muted-foreground/30;
+  @apply bg-muted-foreground/10 rounded-full hover:bg-muted-foreground/30 transition-all;
 }
 
 /* Typography Enhancements */

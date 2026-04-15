@@ -17,7 +17,7 @@ export function PrivacyPolicyPage() {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
           <div className="space-y-1">
             <h1 className="text-3xl font-black text-gradient uppercase tracking-tight">Privacy & Policy</h1>
-            <p className="text-muted-foreground text-sm font-medium uppercase tracking-widest">Effective Date: April 14, 2026</p>
+            <p className="text-muted-foreground text-sm font-medium uppercase tracking-widest">Effective Date: April 15, 2026</p>
           </div>
           <button 
             onClick={() => navigate(-1)}
@@ -54,7 +54,17 @@ export function PrivacyPolicyPage() {
           <section className="space-y-4">
             <h2 className="text-xl font-black text-foreground uppercase tracking-tight flex items-center gap-3">
               <div className="w-1.5 h-6 bg-primary rounded-full" />
-              3. Terminal Interaction Data
+              3. MetaTrader 5 (MT5) Synchronization
+            </h2>
+            <p>
+              XAU Journal offers automated synchronization via a custom MetaTrader 5 Expert Advisor (EA). When activated, the EA transmits specific operational data—including entry/exit prices, volume, direction, and P&L—directly to your secure terminal. This data is linked via a unique, user-specific API Token. We do not have access to your MT5 account credentials, balance, or trading permissions. You maintain full control over the EA's activation and can revoke synchronization at any time by removing the EA or rotating your API Token.
+            </p>
+          </section>
+
+          <section className="space-y-4">
+            <h2 className="text-xl font-black text-foreground uppercase tracking-tight flex items-center gap-3">
+              <div className="w-1.5 h-6 bg-primary rounded-full" />
+              4. Terminal Interaction Data
             </h2>
             <p>
               We collect minimal telemetry to ensure the stability of the terminal. This includes basic usage statistics (such as trade counts and login frequency) required to enforce subscription limits and prevent unauthorized access. We do not sell, trade, or share your proprietary trading strategies or notes with third-party entities.
@@ -64,10 +74,10 @@ export function PrivacyPolicyPage() {
           <section className="space-y-4">
             <h2 className="text-xl font-black text-foreground uppercase tracking-tight flex items-center gap-3">
               <div className="w-1.5 h-6 bg-primary rounded-full" />
-              4. User Control & Data Deletion
+              5. User Control & Data Deletion
             </h2>
             <p>
-              Pro users maintain absolute control over their operational data through the "Reset Terminal" function. Manual deletion of trade logs or journal entries permanently scrubs the data from our real-time database. If you choose to delete your account entirely, all associated metadata and performance logs will be purged from our primary systems.
+              Users maintain absolute control over their operational data through the "Reset Terminal" function. Manual deletion of trade logs or journal entries permanently scrubs the data from our real-time database. If you choose to delete your account entirely, all associated metadata and performance logs will be purged from our primary systems.
             </p>
           </section>
 

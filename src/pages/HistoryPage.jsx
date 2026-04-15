@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { useToast } from '../components/ToastContext';
 import { Download, Search, XLg } from 'react-bootstrap-icons';
+import { CustomSelect } from '../components/ui/CustomSelect';
 
 const HistorySkeleton = () => (
   <div className="space-y-4 animate-pulse">
@@ -103,38 +104,62 @@ export function HistoryPage() {
             onChange={e => setFilterSearch(e.target.value)} 
             className="input-premium lg:col-span-1"
           />
-          <select value={filterDir} onChange={e => setFilterDir(e.target.value)} className="select-premium">
-            <option value="">All directions</option>
-            <option value="BUY">BUY</option>
-            <option value="SELL">SELL</option>
-          </select>
-          <select value={filterOutcome} onChange={e => setFilterOutcome(e.target.value)} className="select-premium">
-            <option value="">All outcomes</option>
-            <option value="WIN">WIN</option>
-            <option value="LOSS">LOSS</option>
-            <option value="BE">Breakeven</option>
-          </select>
-          <select value={filterSession} onChange={e => setFilterSession(e.target.value)} className="select-premium">
-            <option value="">All sessions</option>
-            <option value="Asian">Asian</option>
-            <option value="London">London</option>
-            <option value="NY">New York</option>
-            <option value="LN-NY">London–NY</option>
-          </select>
-          <select value={filterSetup} onChange={e => setFilterSetup(e.target.value)} className="select-premium">
-            <option value="">All setups</option>
-            <option value="A+ Setup">A+ Setup</option>
-            <option value="Breakout">Breakout</option>
-            <option value="Reversal">Reversal</option>
-            <option value="News">News</option>
-            <option value="Trend">Trend</option>
-          </select>
-          <select value={filterSort} onChange={e => setFilterSort(e.target.value)} className="select-premium">
-            <option value="newest">Newest first</option>
-            <option value="oldest">Oldest first</option>
-            <option value="best">Best P&L</option>
-            <option value="worst">Worst P&L</option>
-          </select>
+          <CustomSelect 
+            value={filterDir} 
+            onChange={setFilterDir}
+            placeholder="All directions"
+            options={[
+              { value: '', label: 'All directions' },
+              { value: 'BUY', label: 'BUY' },
+              { value: 'SELL', label: 'SELL' }
+            ]}
+          />
+          <CustomSelect 
+            value={filterOutcome} 
+            onChange={setFilterOutcome}
+            placeholder="All outcomes"
+            options={[
+              { value: '', label: 'All outcomes' },
+              { value: 'WIN', label: 'WIN' },
+              { value: 'LOSS', label: 'LOSS' },
+              { value: 'BE', label: 'Breakeven' }
+            ]}
+          />
+          <CustomSelect 
+            value={filterSession} 
+            onChange={setFilterSession}
+            placeholder="All sessions"
+            options={[
+              { value: '', label: 'All sessions' },
+              { value: 'Asian', label: 'Asian' },
+              { value: 'London', label: 'London' },
+              { value: 'NY', label: 'New York' },
+              { value: 'LN-NY', label: 'London–NY' }
+            ]}
+          />
+          <CustomSelect 
+            value={filterSetup} 
+            onChange={setFilterSetup}
+            placeholder="All setups"
+            options={[
+              { value: '', label: 'All setups' },
+              { value: 'A+ Setup', label: 'A+ Setup' },
+              { value: 'Breakout', label: 'Breakout' },
+              { value: 'Reversal', label: 'Reversal' },
+              { value: 'News', label: 'News' },
+              { value: 'Trend', label: 'Trend' }
+            ]}
+          />
+          <CustomSelect 
+            value={filterSort} 
+            onChange={setFilterSort}
+            options={[
+              { value: 'newest', label: 'Newest first' },
+              { value: 'oldest', label: 'Oldest first' },
+              { value: 'best', label: 'Best P&L' },
+              { value: 'worst', label: 'Worst P&L' }
+            ]}
+          />
         </div>
 
         {filtered.length === 0 ? (

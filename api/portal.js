@@ -1,5 +1,5 @@
 import Stripe from 'stripe';
-import { admin, db } from './_firebase.js';
+import { admin, db, initAdmin } from './_firebase.js';
 
 
 export default async function handler(req, res) {
@@ -26,6 +26,13 @@ export default async function handler(req, res) {
 
   const token = authHeader.split(' ')[1];
   let verifiedUid;
+
+  // Use the helper to ensure initialization
+  initAdmin();
+  if (!admin.apps.length) {
+    console.error('[checkout] Firebase not initialised — check FIREBASE_SERVICE_ACCOUNT env var');
+    return res.status(500).json({ error: 'Server configuration error: Firebase Admin not initialised.' });
+  }
 
   try {
     const decodedToken = await admin.auth().verifyIdToken(token);

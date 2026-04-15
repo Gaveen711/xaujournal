@@ -5,7 +5,12 @@ import { db } from '../firebase';
 import { useToast } from '../components/ToastContext';
 
 export function useSubscription(user) {
-  const [subscription, setSubscription] = useState({ plan: 'free', expiry: null, isLoading: true });
+  const [subscription, setSubscription] = useState({ 
+    plan: 'free', 
+    expiry: null, 
+    isLoading: true, 
+    agreedToTerms: false 
+  });
   const toast = useToast();
 
   useEffect(() => {
@@ -52,13 +57,14 @@ export function useSubscription(user) {
             expiry: data.planExpiry || null, 
             totalTrades: data.totalTradesLogged || 0,
             totalJournals: data.totalJournalsLogged || 0,
+            agreedToTerms: data.agreedToTerms || false,
             isLoading: false 
           });
         }
       } else {
         // Create profile if missing
-        setDoc(doc(db, "users", user.uid), { plan: 'free', totalTradesLogged: 0, totalJournalsLogged: 0 }, { merge: true });
-        setSubscription({ plan: 'free', expiry: null, totalTrades: 0, totalJournals: 0, isLoading: false });
+        setDoc(doc(db, "users", user.uid), { plan: 'free', totalTradesLogged: 0, totalJournalsLogged: 0, agreedToTerms: false }, { merge: true });
+        setSubscription({ plan: 'free', expiry: null, totalTrades: 0, totalJournals: 0, agreedToTerms: false, isLoading: false });
       }
     });
 
@@ -127,5 +133,17 @@ export function useSubscription(user) {
     }
   };
 
-  return { ...subscription, startCheckout, openPortal };
+  const agreeToTerms = async () => {
+    try {
+      await updateDoc(doc(db, "users", user.uid), { 
+        agreedToTerms: true,
+        agreedAt: new Date().toISOString() 
+      });
+    } catch (error) {
+      console.error("Agreement Error:", error);
+      toast("Failed to save agreement. Check connection.", "error");
+    }
+  };
+  
+  return { ...subscription, startCheckout, openPortal, agreeToTerms };
 }

@@ -12,37 +12,57 @@
 
 import admin from 'firebase-admin';
 
-let db;
+function initAdmin() {
+  if (admin.apps.length > 0) return admin;
 
-if (!admin.apps.length) {
   try {
     const raw = process.env.FIREBASE_SERVICE_ACCOUNT;
-    if (!raw) throw new Error('FIREBASE_SERVICE_ACCOUNT env var is missing');
+    let serviceAccount;
 
-    const serviceAccount = JSON.parse(raw);
-
-    // Fix escaped newlines in the private key (common Vercel env var issue)
-    if (serviceAccount.private_key) {
-      serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
+    if (raw) {
+      // Robust sanitisation for JSON string
+      const sanitized = raw.trim().replace(/^\uFEFF/, '').replace(/\\"/g, '"').replace(/^"(.*)"$/, '$1');
+      try {
+        serviceAccount = JSON.parse(sanitized);
+      } catch (parseErr) {
+        console.error('❌ JSON Parse Failed on sanitised string. Trying raw...');
+        serviceAccount = JSON.parse(raw);
+      }
+    } else if (process.env.FIREBASE_PRIVATE_KEY && process.env.FIREBASE_CLIENT_EMAIL) {
+      // Fallback to individual vars if the main JSON is missing
+      serviceAccount = {
+        projectId: process.env.VITE_FIREBASE_PROJECT_ID || 'myjournal-bfeca',
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+        privateKey: process.env.FIREBASE_PRIVATE_KEY
+      };
     }
 
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount),
-      databaseURL: 'https://myjournal-bfeca-default-rtdb.asia-southeast1.firebasedatabase.app',
-    });
+    if (serviceAccount) {
+      if (serviceAccount.privateKey) serviceAccount.privateKey = serviceAccount.privateKey.replace(/\\n/g, '\n');
+      if (serviceAccount.private_key) serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
 
-    console.log('✅ Firebase Admin initialised');
+      admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount),
+        databaseURL: 'https://myjournal-bfeca-default-rtdb.asia-southeast1.firebasedatabase.app',
+      });
+      console.log('✅ Firebase Admin initialised (Lazy)');
+    } else {
+      console.error('❌ Firebase Init Error: No credentials found in ENV.');
+    }
   } catch (e) {
-    console.error('🔥 Firebase Admin init failed:', e.message);
+    console.error('🔥 Firebase Lazy Init Failed:', e.message);
   }
+  return admin;
 }
 
-try {
-  db = admin.firestore();
-} catch (e) {
-  console.error('🔥 Firestore init failed:', e.message);
-}
+// Export a proxy for db to ensure it's always initialized when accessed
+export const db = new Proxy({}, {
+  get: (target, prop) => {
+    initAdmin();
+    return admin.firestore()[prop];
+  }
+});
 
-export { admin, db };
+export { admin, initAdmin };
 
 export const now = () => admin.firestore.FieldValue.serverTimestamp();

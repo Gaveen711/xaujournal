@@ -5,6 +5,7 @@ import { calcPnl, todayStr } from '../lib/tradeUtils';
 import { useToast } from '../components/ToastContext';
 import { ArrowUpRight, ArrowDownRight, BarChartLine } from 'react-bootstrap-icons';
 import { DatePicker } from '../components/ui/DatePicker';
+import { CustomSelect } from '../components/ui/CustomSelect';
 import {
   Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler
 } from 'chart.js';
@@ -34,6 +35,8 @@ export function LogTradePage() {
   const [tp, setTp] = useState('');
   const [note, setNote] = useState('');
   const [leverage, setLeverage] = useState('');
+  const [session, setSession] = useState('');
+  const [setup, setSetup] = useState('');
   const pnlData = calcPnl(
     parseFloat(entry) || 0, parseFloat(exit) || 0,
     parseFloat(lots) || 0, 0,
@@ -82,7 +85,7 @@ export function LogTradePage() {
       e.target.reset();
       setDirection(null);
       setDate(todayStr());
-      setEntry(''); setExit(''); setLots('0.10'); setSwap(''); setSl(''); setTp(''); setNote(''); setLeverage('');
+      setEntry(''); setExit(''); setLots('0.10'); setSwap(''); setSl(''); setTp(''); setNote(''); setLeverage(''); setSession(''); setSetup('');
       const icon = outcome === 'WIN' ? '🟢' : outcome === 'LOSS' ? '🔴' : '🟡';
       toast(`${icon} Trade saved — ${outcome} ${pnl >= 0 ? '+' : ''}$${Math.abs(pnl).toFixed(2)}`, outcome === 'WIN' ? 'success' : outcome === 'LOSS' ? 'error' : 'warn');
     } catch (error) {
@@ -289,20 +292,24 @@ export function LogTradePage() {
                 </div>
                 <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase tracking-widest text-foreground/90 ml-1">Market</label>
-                  <div className="h-12 rounded-lg border border-border/50 bg-muted/30 flex items-center px-4 gap-2">
-                    <span className="text-xs font-black text-primary">XAU/USD</span>
+                  <div className="h-12 rounded-xl border border-border/50 bg-muted/30 flex items-center px-4 gap-2 overflow-hidden whitespace-nowrap">
+                    <span className="text-[11px] font-black text-primary">XAU/USD</span>
                     <span className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">· Gold</span>
                   </div>
                 </div>
                 <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase tracking-widest text-foreground/90 ml-1">Session</label>
-                  <select name="session" className="select-premium h-12">
-                    <option value="">Select...</option>
-                    <option value="Asian">Asian</option>
-                    <option value="London">London</option>
-                    <option value="NY">New York</option>
-                    <option value="LN-NY">London–NY</option>
-                  </select>
+                  <CustomSelect 
+                    name="session" 
+                    value={session} 
+                    onChange={setSession}
+                    options={[
+                      { value: 'Sydeny', label: 'Sydeny' },
+                      { value: 'Tokoyo', label: 'Tokoyo' },
+                      { value: 'London', label: 'London' },
+                      { value: 'NewYork', label: 'NewYork' }
+                    ]}
+                  />
                 </div>
               </div>
 
@@ -324,14 +331,18 @@ export function LogTradePage() {
                 </div>
                 <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase tracking-widest text-foreground/90 ml-1">Setup</label>
-                  <select name="setup" className="select-premium h-12">
-                    <option value="">Select...</option>
-                    <option value="A+ Setup">A+ Setup</option>
-                    <option value="Breakout">Breakout</option>
-                    <option value="Reversal">Reversal</option>
-                    <option value="News">News</option>
-                    <option value="Trend">Trend</option>
-                  </select>
+                  <CustomSelect 
+                    name="setup" 
+                    value={setup} 
+                    onChange={setSetup}
+                    options={[
+                      { value: 'A+ Setup', label: 'A+ Setup' },
+                      { value: 'Breakout', label: 'Breakout' },
+                      { value: 'Reversal', label: 'Reversal' },
+                      { value: 'News', label: 'News' },
+                      { value: 'Trend', label: 'Trend' }
+                    ]}
+                  />
                 </div>
                 <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase tracking-widest text-foreground/90 ml-1">Leverage</label>
@@ -426,14 +437,15 @@ export function LogTradePage() {
                 <div className="w-2 h-2 rounded-full bg-primary" />
                 Equity Intelligence
               </h3>
-              <select 
-                className="select-premium min-w-[140px] text-[10px] font-black uppercase tracking-widest h-9" 
+              <CustomSelect 
+                className="min-w-[140px] h-9"
                 value={equityPeriod} 
-                onChange={e => setEquityPeriod(e.target.value)}
-              >
-                <option value="all">Full Profile</option>
-                <option value="30">30D Snapshot</option>
-              </select>
+                onChange={setEquityPeriod}
+                options={[
+                  { value: 'all', label: 'Full Profile' },
+                  { value: '30', label: '30D Snapshot' }
+                ]}
+              />
             </div>
             <div className="flex-1 w-full min-h-0 relative z-10">
                 {trades.length > 0 ? (

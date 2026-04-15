@@ -1,5 +1,5 @@
 import Stripe from 'stripe';
-import { admin, db } from './_firebase.js';
+import { admin, db, initAdmin } from './_firebase.js';
 
 export default async function handler(req, res) {
   // Health check — also reveals Firebase init state
@@ -14,7 +14,8 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   // Guard: Firebase must be initialised
-  if (!db || !admin?.apps?.length) {
+  initAdmin();
+  if (!admin.apps.length) {
     console.error('[checkout] Firebase not initialised — check FIREBASE_SERVICE_ACCOUNT env var');
     return res.status(500).json({ error: 'Server configuration error: Firebase Admin not initialised.' });
   }
@@ -46,7 +47,7 @@ export default async function handler(req, res) {
     verifiedUid = decodedToken.uid;
   } catch (err) {
     console.error('[checkout] Token verification failed:', err.message);
-    return res.status(401).json({ error: 'Unauthorized: Invalid token.', detail: err.message });
+    return res.status(401).json({ error: 'Unauthorized: Invalid token.' });
   }
 
   if (verifiedUid !== userId) {

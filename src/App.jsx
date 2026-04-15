@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "./firebase.js";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 import Login from "./Login.jsx";
 
 import { ToastProvider, useToast } from './components/ToastContext';
@@ -19,13 +19,14 @@ import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
 
 import { PricingModal } from './components/PricingModal';
 import { OnboardingModal } from './components/OnboardingModal';
+import { ConsentModal } from './components/ConsentModal';
 import { ErrorBoundary } from './components/ErrorBoundary';
 
 // Inner wrapper that requires toast
 function AuthenticatedApp({ user }) {
   const [showPricingModal, setShowPricingModal] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
-  const { plan, expiry, totalTrades, totalJournals, startCheckout, openPortal, isLoading: isSubLoading } = useSubscription(user);
+  const { plan, expiry, totalTrades, totalJournals, agreedToTerms, isLoading: isSubLoading, startCheckout, openPortal, agreeToTerms } = useSubscription(user);
   const toast = useToast();
 
   useEffect(() => {
@@ -49,6 +50,9 @@ function AuthenticatedApp({ user }) {
     toast('Welcome! Log your first trade below.', 'success');
   };
 
+  const location = useLocation();
+  const isPrivacyPage = location.pathname === '/privacy';
+
   return (
     <>
       <Routes>
@@ -66,6 +70,7 @@ function AuthenticatedApp({ user }) {
 
       {showPricingModal && <PricingModal plan={plan} expiry={expiry} onSubscribe={startCheckout} onClose={() => setShowPricingModal(false)} />}
       {showOnboarding && <OnboardingModal onComplete={completeOnboarding} onClose={dismissOnboarding} />}
+      {!agreedToTerms && !isSubLoading && !isPrivacyPage && <ConsentModal onAgree={agreeToTerms} />}
     </>
   );
 }
