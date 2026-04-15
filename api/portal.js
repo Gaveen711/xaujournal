@@ -1,18 +1,6 @@
 import Stripe from 'stripe';
-import admin from 'firebase-admin';
+import { admin, db } from './_firebase.js';
 
-// Self-contained Firebase Admin Initialization for Vercel Environment
-if (!admin.apps.length) {
-  try {
-    const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount)
-    });
-  } catch (error) {
-    console.error('Firebase Admin Init Error:', error);
-  }
-}
-const db = admin.firestore();
 
 export default async function handler(req, res) {
   // 1. Health Check

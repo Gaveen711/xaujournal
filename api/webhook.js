@@ -2,29 +2,13 @@
 // XAU Journal — Stripe Webhook Handler
 //
 // Events handled:
-//   checkout.session.completed       → upgrade user to Pro
-//   invoice.payment_failed           → start 1.5-week grace period
-//   customer.subscription.deleted   → start 1.5-week grace period
-//   invoice.paid                     → renew Pro (reset expiry + clear grace)
+//   checkout.session.completed      → upgrade user to Pro
+//   invoice.paid                    → renewal: reset expiry + clear grace
+//   invoice.payment_failed          → start 1.5-week grace period
+//   customer.subscription.deleted  → start 1.5-week grace period
 
 import Stripe from 'stripe';
-import admin from 'firebase-admin';
-
-let db;
-try {
-  if (!admin.apps.length) {
-    if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
-      console.error('❌ CRITICAL: FIREBASE_SERVICE_ACCOUNT is missing');
-    } else {
-      const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-      admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
-      console.log('✅ FIREBASE ADMIN INITIALIZED IN WEBHOOK');
-    }
-  }
-  db = admin.firestore();
-} catch (initError) {
-  console.error('🔥 FIREBASE INIT ERROR:', initError.message);
-}
+import { admin, db } from './_firebase.js';
 
 export const config = { api: { bodyParser: false } };
 
@@ -36,8 +20,7 @@ const getRawBody = async (readable) => {
   return Buffer.concat(chunks);
 };
 
-// 1.5 weeks = 10.5 days in ms
-const GRACE_MS = 10.5 * 24 * 60 * 60 * 1000;
+const GRACE_MS = 10.5 * 24 * 60 * 60 * 1000; // 1.5 weeks in ms
 
 // ── Helper: find userId by stripeCustomerId ───────────────────────────────────
 async function findUserByCustomer(customerId) {
@@ -52,11 +35,11 @@ async function findUserByCustomer(customerId) {
 async function startGracePeriod(uid, reason) {
   const graceUntil = new Date(Date.now() + GRACE_MS).toISOString();
   await db.collection('users').doc(uid).set({
-    plan:            'grace',
+    plan:           'grace',
     graceUntil,
-    graceReason:     reason,
-    mt5SyncEnabled:  true, // still allowed during grace
-    updatedAt:       admin.firestore.FieldValue.serverTimestamp(),
+    graceReason:    reason,
+    mt5SyncEnabled: true, // still allowed during grace
+    updatedAt:      admin.firestore.FieldValue.serverTimestamp(),
   }, { merge: true });
   console.log(`⏳ Grace period started for uid=${uid} until ${graceUntil} (${reason})`);
 }
@@ -92,7 +75,7 @@ export default async function handler(req, res) {
 
     if (!db) {
       console.error('❌ DB NOT AVAILABLE');
-      return res.status(500).json({ error: 'Database not initialized' });
+      return res.status(500).json({ error: 'Database not initialized. Check FIREBASE_SERVICE_ACCOUNT.' });
     }
 
     // ── checkout.session.completed → upgrade to Pro ──────────────────────────
@@ -107,28 +90,24 @@ export default async function handler(req, res) {
       expiryDate.setDate(expiryDate.getDate() + 30);
 
       await db.collection('users').doc(userId).set({
-        plan:            'pro',
-        planExpiry:      expiryDate.toISOString(),
-        graceUntil:      null,   // clear any existing grace
-        graceReason:     null,
-        mt5SyncEnabled:  true,
+        plan:             'pro',
+        planExpiry:       expiryDate.toISOString(),
+        graceUntil:       null,
+        graceReason:      null,
+        mt5SyncEnabled:   true,
         stripeCustomerId: session.customer,
-        updatedAt:       admin.firestore.FieldValue.serverTimestamp(),
+        updatedAt:        admin.firestore.FieldValue.serverTimestamp(),
       }, { merge: true });
 
       console.log('💎 USER UPGRADED SUCCESSFULLY');
     }
 
-    // ── invoice.paid → renewal — extend Pro + clear grace ───────────────────
+    // ── invoice.paid → renewal ───────────────────────────────────────────────
     else if (event.type === 'invoice.paid') {
-      const invoice    = event.data.object;
-      const customerId = invoice.customer;
-      const uid        = await findUserByCustomer(customerId);
-      if (!uid) { console.log('⚠️ No user for customer:', customerId); }
-      else {
+      const uid = await findUserByCustomer(event.data.object.customer);
+      if (uid) {
         const expiryDate = new Date();
         expiryDate.setDate(expiryDate.getDate() + 30);
-
         await db.collection('users').doc(uid).set({
           plan:           'pro',
           planExpiry:     expiryDate.toISOString(),
@@ -137,31 +116,20 @@ export default async function handler(req, res) {
           mt5SyncEnabled: true,
           updatedAt:      admin.firestore.FieldValue.serverTimestamp(),
         }, { merge: true });
-
         console.log(`✅ Renewal processed for uid=${uid}`);
       }
     }
 
-    // ── invoice.payment_failed → start grace period ──────────────────────────
+    // ── invoice.payment_failed → start grace ─────────────────────────────────
     else if (event.type === 'invoice.payment_failed') {
-      const invoice    = event.data.object;
-      const customerId = invoice.customer;
-      const uid        = await findUserByCustomer(customerId);
-      if (!uid) { console.log('⚠️ No user for customer:', customerId); }
-      else {
-        await startGracePeriod(uid, 'payment_failed');
-      }
+      const uid = await findUserByCustomer(event.data.object.customer);
+      if (uid) await startGracePeriod(uid, 'payment_failed');
     }
 
-    // ── customer.subscription.deleted → start grace period ──────────────────
+    // ── subscription.deleted → start grace ───────────────────────────────────
     else if (event.type === 'customer.subscription.deleted') {
-      const subscription = event.data.object;
-      const customerId   = subscription.customer;
-      const uid          = await findUserByCustomer(customerId);
-      if (!uid) { console.log('⚠️ No user for customer:', customerId); }
-      else {
-        await startGracePeriod(uid, 'subscription_cancelled');
-      }
+      const uid = await findUserByCustomer(event.data.object.customer);
+      if (uid) await startGracePeriod(uid, 'subscription_cancelled');
     }
 
     return res.status(200).json({ received: true });

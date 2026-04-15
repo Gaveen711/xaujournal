@@ -1,19 +1,7 @@
-import admin from 'firebase-admin';
 import { Resend } from 'resend';
 import { timingSafeEqual } from 'crypto';
+import { admin, db } from '../_firebase.js';
 
-// Self-contained Firebase Admin Initialization for Vercel Environment
-if (!admin.apps.length) {
-  try {
-    const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount)
-    });
-  } catch (error) {
-    console.error('Firebase Admin Init Error:', error);
-  }
-}
-const db = admin.firestore();
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 

@@ -5,18 +5,9 @@
 // Finds all users with plan='grace' and graceUntil < now,
 // deletes their apiKeys, sets plan='free', and clears mt5SyncEnabled.
 
-import admin from 'firebase-admin';
 import { timingSafeEqual } from 'crypto';
+import { admin, db } from '../_firebase.js';
 
-if (!admin.apps.length) {
-  try {
-    const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-    admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
-  } catch (error) {
-    console.error('Firebase Admin Init Error:', error);
-  }
-}
-const db = admin.firestore();
 
 export default async function handler(req, res) {
   // ── Auth guard (timing-safe) ───────────────────────────────────────────────

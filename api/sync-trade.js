@@ -3,20 +3,7 @@
 // PRO ONLY: rejects API keys belonging to users whose subscription
 // has expired beyond the 1.5-week grace period.
 
-import admin from 'firebase-admin';
-
-let db;
-try {
-  if (!admin.apps.length) {
-    const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-    admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
-  }
-  db = admin.firestore();
-} catch (e) {
-  console.error('Firebase Admin init error:', e.message);
-}
-
-const now = () => admin.firestore.FieldValue.serverTimestamp();
+import { admin, db, now } from './_firebase.js';
 
 // ── Shared plan guard (same logic as generate-api-key) ───────────────────────
 function isSyncAllowed(userData) {

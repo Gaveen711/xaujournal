@@ -2,21 +2,8 @@
 // XAU Journal — Generate a per-user MT5/TradingView sync API key
 // PRO ONLY — returns 403 if user is on free plan or grace period has lapsed.
 
-import admin from 'firebase-admin';
 import crypto from 'crypto';
-
-let db;
-try {
-  if (!admin.apps.length) {
-    const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-    admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
-  }
-  db = admin.firestore();
-} catch (e) {
-  console.error('Firebase Admin init error:', e.message);
-}
-
-const now = () => admin.firestore.FieldValue.serverTimestamp();
+import { admin, db, now } from './_firebase.js';
 
 // ── Plan guard ────────────────────────────────────────────────────────────────
 // Returns true if the user doc allows MT5 sync access.
