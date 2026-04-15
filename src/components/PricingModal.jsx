@@ -1,7 +1,7 @@
 import { XLg, CheckCircleFill, CheckCircle } from 'react-bootstrap-icons';
 
 export function PricingModal({ plan, expiry, onSubscribe, onClose }) {
-  const SUB_LIMITS = { freeTrades: 5, freeJournals: 10 };
+  const SUB_LIMITS = { freeTrades: 25, freeJournals: 10 };
   
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6" onClick={onClose}>
@@ -65,7 +65,7 @@ export function PricingModal({ plan, expiry, onSubscribe, onClose }) {
             <div className="space-y-1">
               <h3 className="text-lg font-bold text-primary">XAU Pro Elite</h3>
               <div className="flex items-baseline gap-1">
-                <span className="text-3xl font-black">$29.99</span>
+                <span className="text-3xl font-black">$9</span>
                 <span className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">/ month</span>
               </div>
             </div>
@@ -75,7 +75,6 @@ export function PricingModal({ plan, expiry, onSubscribe, onClose }) {
                 "Unlimited trades & entries",
                 "Advanced smart analytics",
                 "High-res equity curves",
-                "Unlimited screenshot storage",
                 "CSV Batch export & import"
               ].map(feat => (
                 <li key={feat} className="text-xs flex items-center gap-3 font-bold text-foreground/90">

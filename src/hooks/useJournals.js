@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { collection, getDocs, setDoc, deleteDoc, doc } from 'firebase/firestore';
+import { collection, getDocs, setDoc, deleteDoc, doc, updateDoc, increment } from 'firebase/firestore';
 import { db } from '../firebase';
 
 export function useJournals(user) {
@@ -31,21 +31,34 @@ export function useJournals(user) {
 
   const saveJournalEntry = async (date, text, mood) => {
     const newJournals = { ...journals };
+    const isNew = !journals[date];
+
     if (text.trim()) {
       newJournals[date] = { text, mood };
       await setDoc(doc(db, 'users', user.uid, 'journals', date), { text, mood });
+      if (isNew) {
+        await updateDoc(doc(db, 'users', user.uid), { totalJournalsLogged: increment(1) });
+      }
     } else {
+      const wasPresent = !!journals[date];
       delete newJournals[date];
       await deleteDoc(doc(db, 'users', user.uid, 'journals', date));
+      if (wasPresent) {
+        await updateDoc(doc(db, 'users', user.uid), { totalJournalsLogged: increment(-1) });
+      }
     }
     setJournals(newJournals);
     return newJournals;
   };
 
   const deleteEntry = async (date) => {
+    const wasPresent = !!journals[date];
     const newJournals = { ...journals };
     delete newJournals[date];
     await deleteDoc(doc(db, 'users', user.uid, 'journals', date));
+    if (wasPresent) {
+        await updateDoc(doc(db, 'users', user.uid), { totalJournalsLogged: increment(-1) });
+    }
     setJournals(newJournals);
   };
 

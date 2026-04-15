@@ -1,6 +1,19 @@
 import Stripe from 'stripe';
 import admin from 'firebase-admin';
 
+// Self-contained Firebase Admin Initialization for Vercel Environment
+if (!admin.apps.length) {
+  try {
+    const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount)
+    });
+  } catch (error) {
+    console.error('Firebase Admin Init Error:', error);
+  }
+}
+const db = admin.firestore();
+
 export default async function handler(req, res) {
   // 1. Health Check
   if (req.method === 'GET') {
@@ -13,34 +26,46 @@ export default async function handler(req, res) {
   }
 
   const { userId, origin } = req.body;
+
   if (!userId) {
     return res.status(400).json({ error: "Missing userId in request body." });
   }
 
-  const STRIPE_SECRET = process.env.STRIPE_SECRET;
-  const SERVICE_ACCOUNT = process.env.FIREBASE_SERVICE_ACCOUNT;
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: "Unauthorized: Missing token." });
+  }
+
+  const token = authHeader.split(' ')[1];
+  let verifiedUid;
+
+  try {
+    const decodedToken = await admin.auth().verifyIdToken(token);
+    verifiedUid = decodedToken.uid;
+  } catch (err) {
+    return res.status(401).json({ error: "Unauthorized: Invalid token." });
+  }
+
+  if (verifiedUid !== userId) {
+    return res.status(403).json({ error: "Forbidden: User ID mismatch." });
+  }
+
+  const ALLOWED_ORIGINS = [
+    'https://xaujournal.vercel.app',
+    'https://myjournal-bfeca.web.app',
+    'https://myjournal-walker3.vercel.app',
+    process.env.ALLOWED_ORIGIN
+  ].filter(Boolean);
+
+  const safeOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+
+  const { STRIPE_SECRET } = process.env;
 
   if (!STRIPE_SECRET) {
-    return res.status(500).json({ error: "Configuration Error: STRIPE_SECRET is missing." });
-  }
-  if (!SERVICE_ACCOUNT) {
-    return res.status(500).json({ error: "Configuration Error: FIREBASE_SERVICE_ACCOUNT is missing." });
+    return res.status(500).json({ error: "Configuration Error: Missing STRIPE_SECRET." });
   }
 
   const stripe = new Stripe(STRIPE_SECRET);
-
-  if (!admin.apps.length) {
-    try {
-      admin.initializeApp({
-        credential: admin.credential.cert(JSON.parse(SERVICE_ACCOUNT))
-      });
-    } catch (e) {
-      console.error("FIREBASE ADMIN INIT ERROR:", e);
-      return res.status(500).json({ error: `Firebase Admin initialization failed: ${e.message}` });
-    }
-  }
-
-  const db = admin.firestore();
 
   try {
     const userDoc = await db.collection('users').doc(userId).get();
@@ -60,7 +85,7 @@ export default async function handler(req, res) {
     // Create a portal session
     const session = await stripe.billingPortal.sessions.create({
       customer: stripeCustomerId,
-      return_url: origin || 'https://myjournal-walker3.vercel.app',
+      return_url: safeOrigin,
     });
 
     return res.status(200).json({ url: session.url });

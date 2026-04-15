@@ -19,7 +19,7 @@ const HistorySkeleton = () => (
 );
 
 export function HistoryPage() {
-  const { trades, isLoadingTrades, removeTrade } = useOutletContext();
+  const { trades, isLoadingTrades, removeTrade, plan, setShowPricingModal } = useOutletContext();
   const toast = useToast();
   
   const [filterSearch, setFilterSearch] = useState('');
@@ -47,19 +47,31 @@ export function HistoryPage() {
   else if (filterSort === 'worst') filtered.sort((a, b) => a.pnl - b.pnl);
 
   const onExportCSV = () => {
+    if (plan !== 'pro') {
+      setShowPricingModal(true);
+      return toast('Upgrade to Pro to export your terminal data.', 'warn');
+    }
     if (!trades.length) return toast('No trades to export.', 'warn');
-    const headers = ['Date', 'Market', 'Direction', 'Entry', 'Exit', 'P&L', 'Swap', 'Pips', 'Session', 'Setup', 'Outcome', 'Note'];
+    const headers = ['Date', 'Direction', 'Entry', 'Exit', 'P&L', 'Swap', 'Pips', 'Session', 'Setup', 'Outcome', 'Note'];
     const rows = trades.map(t => [
-      t.date, t.market, t.direction, t.entry, t.exit, t.pnl, t.swap || 0, t.pips || 0, t.session, t.setup, t.outcome, `"${(t.note || '').replace(/"/g, '""')}"`
+      t.date, t.direction, t.entry, t.exit, t.pnl, t.swap || 0, t.pips || 0, t.session, t.setup, t.outcome, `"${(t.note || '').replace(/"/g, '""')}"`
     ]);
-    const csvContent = "data:text/csv;charset=utf-8," + headers.join(",") + "\n" + rows.map(r => r.join(",")).join("\n");
-    const encodedUri = encodeURI(csvContent);
+    const csvContent = headers.join(",") + "\n" + rows.map(r => r.join(",")).join("\n");
+    
+    // Modern Blob + URL approach for large datasets
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    
     const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
+    link.setAttribute("href", url);
     link.setAttribute("download", `trading_journal_${new Date().toISOString().split('T')[0]}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    
+    // Cleanup the URL object
+    setTimeout(() => URL.revokeObjectURL(url), 100);
+    
     toast('CSV exported.', 'success');
   };
 
@@ -74,7 +86,7 @@ export function HistoryPage() {
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-black text-gradient">Trade History</h1>
+          <h1 className="text-3xl font-black text-gradient">TRADE HISTORY</h1>
           <p className="text-muted-foreground text-sm font-medium">A comprehensive log of your past performance.</p>
         </div>
         <button onClick={onExportCSV} className="btn-secondary gap-2 text-[11px] font-black uppercase tracking-widest px-5 h-10">
@@ -148,8 +160,13 @@ export function HistoryPage() {
                     </div>
                     
                     <div className="flex flex-col">
-                      <span className="text-xs font-black tracking-tight">{t.date}</span>
-                      <span className="text-[10px] text-foreground/85 font-bold uppercase tracking-tighter">{t.market} · {t.session} · {t.setup}</span>
+                      <span className="text-xs font-black tracking-tight flex items-center gap-1.5">
+                        {t.date}
+                        {t.source === 'MT5_AUTO' && (
+                          <span className="px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-widest bg-green-500/10 text-green-500 border border-green-500/20">MT5</span>
+                        )}
+                      </span>
+                      <span className="text-[10px] text-foreground/85 font-bold uppercase tracking-tighter">XAU/USD · {t.session} · {t.setup}</span>
                     </div>
                     
                     <button 

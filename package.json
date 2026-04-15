@@ -24,6 +24,7 @@
     "clsx": "^2.1.1",
     "dotenv": "^17.4.1",
     "firebase": "^12.12.0",
+    "firebase-admin": "^13.8.0",
     "lucide-react": "^1.8.0",
     "react": "^19.2.4",
     "react-bootstrap-icons": "^1.11.6",
@@ -49,5 +50,8 @@
     "postcss": "^8.5.9",
     "tailwindcss": "^3.4.19",
     "vite": "^8.0.4"
+  },
+  "overrides": {
+    "follow-redirects": ">=1.16.0"
   }
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { Line } from 'react-chartjs-2';
 import { calcPnl, todayStr } from '../lib/tradeUtils';
@@ -12,11 +12,13 @@ import {
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler);
 
 export function LogTradePage() {
-  const { trades, addTrade, setShowPricingModal, startingBalance, plan } = useOutletContext();
+  const { trades, addTrade, setShowPricingModal, startingBalance, updateBalance, plan, totalTrades, resetTrades, resetWallet } = useOutletContext();
   const toast = useToast();
   
-  const TRADE_LIMIT = 5;
-  const usedTrades = trades.length;
+
+
+  const TRADE_LIMIT = 25;
+  const usedTrades = totalTrades || 0;
   const isLimitReached = plan === 'free' && usedTrades >= TRADE_LIMIT;
 
   const [direction, setDirection] = useState(null);
@@ -27,19 +29,16 @@ export function LogTradePage() {
   const [entry, setEntry] = useState('');
   const [exit, setExit] = useState('');
   const [lots, setLots] = useState('0.10');
-  const [amount, setAmount] = useState('');
   const [swap, setSwap] = useState('');
   const [sl, setSl] = useState('');
   const [tp, setTp] = useState('');
   const [note, setNote] = useState('');
   const [leverage, setLeverage] = useState('');
-  const [market, setMarket] = useState('GOLD');
-
   const pnlData = calcPnl(
     parseFloat(entry) || 0, parseFloat(exit) || 0,
-    parseFloat(lots) || 0, parseFloat(amount) || 0,
+    parseFloat(lots) || 0, 0,
     parseFloat(sl) || 0, parseFloat(tp) || 0,
-    direction, market, parseFloat(swap) || 0
+    direction, 'GOLD', parseFloat(swap) || 0
   );
 
   const saveTradeForm = async (e) => {
@@ -57,28 +56,24 @@ export function LogTradePage() {
     const entryVal = parseFloat(formData.get('entry'));
     const exitVal = parseFloat(formData.get('exit'));
     const lotsVal = parseFloat(formData.get('lots')) || 0;
-    const amountVal = parseFloat(formData.get('amount')) || 0;
     const swapVal = parseFloat(formData.get('swap')) || 0;
     const slVal = parseFloat(formData.get('sl')) || null;
     const tpVal = parseFloat(formData.get('tp')) || null;
     const noteVal = formData.get('note').trim();
-    const session = formData.get('session');
-    const setup = formData.get('setup');
-    const marketVal = formData.get('market');
     const leverageVal = formData.get('leverage');
 
-    if (!date || !direction || isNaN(entryVal) || isNaN(exitVal) || (!amountVal && isNaN(lotsVal))) {
-      toast('Please fill in date, direction, prices and lot size.', 'error');
+    if (!date || !direction || isNaN(entryVal) || isNaN(exitVal) || isNaN(lotsVal)) {
+      toast('Please fill in date, direction, and prices.', 'error');
       setSaving(false);
       return;
     }
 
-    const tradeRes = calcPnl(entryVal, exitVal, lotsVal, amountVal, slVal, tpVal, direction, marketVal, swapVal);
+    const tradeRes = calcPnl(entryVal, exitVal, lotsVal, 0, slVal, tpVal, direction, 'GOLD', swapVal);
     const { pnl, pips, rr } = tradeRes;
     const outcome = pnl > 0.01 ? 'WIN' : pnl < -0.01 ? 'LOSS' : 'BE';
 
     const tradeData = {
-      date, direction, entry: entryVal, exit: exitVal, lots: isNaN(lotsVal) ? 0 : lotsVal, amount: amountVal, swap: swapVal, sl: slVal, tp: tpVal, rr, pips, session, setup, market: marketVal, leverage: leverageVal,
+      date, direction, entry: entryVal, exit: exitVal, lots: lotsVal, swap: swapVal, sl: slVal, tp: tpVal, rr, pips, session, setup, market: 'GOLD', leverage: leverageVal,
       pnl: parseFloat(pnl.toFixed(2)), outcome, note: noteVal, timestamp: new Date()
     };
 
@@ -87,20 +82,36 @@ export function LogTradePage() {
       e.target.reset();
       setDirection(null);
       setDate(todayStr());
-      setEntry(''); setExit(''); setLots('0.10'); setAmount(''); setSwap(''); setSl(''); setTp(''); setNote(''); setLeverage('');
+      setEntry(''); setExit(''); setLots('0.10'); setSwap(''); setSl(''); setTp(''); setNote(''); setLeverage('');
       const icon = outcome === 'WIN' ? '🟢' : outcome === 'LOSS' ? '🔴' : '🟡';
       toast(`${icon} Trade saved — ${outcome} ${pnl >= 0 ? '+' : ''}$${Math.abs(pnl).toFixed(2)}`, outcome === 'WIN' ? 'success' : outcome === 'LOSS' ? 'error' : 'warn');
     } catch (error) {
-      toast('Failed to save trade — ' + error.message, 'error');
+      toast('Failed to save trade — ' + error.message, 'lost');
     } finally {
       setSaving(false);
     }
   };
 
   const sortedForChart = [...trades].sort((a, b) => a.date.localeCompare(b.date));
-  const chartLabels = ['Start', ...sortedForChart.map(t => t.date)];
-  let currentBalance = startingBalance || 0;
-  const chartDataPoints = [currentBalance, ...sortedForChart.map(t => {
+  
+  let chartVisibleTrades = sortedForChart;
+  let initialBalanceForChart = startingBalance || 0;
+
+  if (equityPeriod === '30') {
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - 30);
+    const cutoffStr = cutoffDate.toISOString().split('T')[0];
+    
+    chartVisibleTrades = sortedForChart.filter(t => t.date >= cutoffStr);
+    
+    // Calculate the cumulative pnl of all trades BEFORE the 30-day window
+    const olderTrades = sortedForChart.filter(t => t.date < cutoffStr);
+    initialBalanceForChart += olderTrades.reduce((s, t) => s + (t.pnl || 0), 0);
+  }
+
+  const chartLabels = ['Start', ...chartVisibleTrades.map(t => t.date)];
+  let currentBalance = initialBalanceForChart;
+  const chartDataPoints = [currentBalance, ...chartVisibleTrades.map(t => {
     currentBalance += t.pnl;
     return parseFloat(currentBalance.toFixed(2));
   })];
@@ -110,12 +121,12 @@ export function LogTradePage() {
     datasets: [{
       label: 'Equity',
       data: chartDataPoints,
-      borderColor: 'hsl(262.1, 83.3%, 57.8%)',
+      borderColor: '#8B5CF6',
       backgroundColor: (context) => {
         const ctx = context.chart.ctx;
         const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-        gradient.addColorStop(0, 'rgba(170, 59, 255, 0.2)');
-        gradient.addColorStop(1, 'rgba(170, 59, 255, 0)');
+        gradient.addColorStop(0, 'rgba(139, 92, 246, 0.2)');
+        gradient.addColorStop(1, 'rgba(139, 92, 246, 0)');
         return gradient;
       },
       fill: true,
@@ -151,14 +162,49 @@ export function LogTradePage() {
     }
   };
 
-  const totalPnl = trades.reduce((s,t)=>s+t.pnl,0);
-  const currentWalletBalance = (startingBalance || 0) + totalPnl;
-  const winRate = trades.length ? (trades.filter(t => t.outcome === 'WIN').length / trades.length * 100).toFixed(0) : 0;
+  const [isEditingBalance, setIsEditingBalance] = useState(false);
+  const [tempBalance, setTempBalance] = useState(startingBalance || 0);
+  const [isWiping, setIsWiping] = useState(false);
 
-  const wins = trades.filter(t => t.pnl > 0);
-  const losses = trades.filter(t => t.pnl < 0);
-  const avgProfit = wins.length ? wins.reduce((s, t) => s + t.pnl, 0) / wins.length : 0;
-  const avgLoss = losses.length ? losses.reduce((s, t) => s + t.pnl, 0) / losses.length : 0;
+  useEffect(() => {
+    setTempBalance(startingBalance || 0);
+  }, [startingBalance]);
+
+  const handleSaveBalance = async () => {
+    await updateBalance(parseFloat(tempBalance) || 0);
+    setIsEditingBalance(false);
+    toast("Wallet initialized.", "success");
+  };
+
+  const handleWipeTerminal = async () => {
+    try {
+      await resetTrades();
+      await updateBalance(0);
+      setIsEditingBalance(true);
+      setIsWiping(false);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      toast("Terminal wiped. Setup new balance.", "warn");
+    } catch (e) {
+      toast("Failed to reset terminal: " + e.message, "error");
+    }
+  };
+
+  useEffect(() => {
+    let timer;
+    if (isWiping) {
+        timer = setTimeout(() => setIsWiping(false), 5000);
+    }
+    return () => clearTimeout(timer);
+  }, [isWiping]);
+
+  const totalPnl = chartVisibleTrades.reduce((s,t)=> s + (t.pnl || 0), 0);
+  const currentWalletBalance = (startingBalance || 0) + trades.reduce((s,t)=> s + (t.pnl || 0), 0);
+  const winRate = chartVisibleTrades.length ? (chartVisibleTrades.filter(t => t.outcome === 'WIN').length / chartVisibleTrades.length * 100).toFixed(0) : 0;
+
+  const wins = chartVisibleTrades.filter(t => (t.pnl || 0) > 0);
+  const losses = chartVisibleTrades.filter(t => (t.pnl || 0) < 0);
+  const avgProfit = wins.length ? wins.reduce((s, t) => s + (t.pnl || 0), 0) / wins.length : 0;
+  const avgLoss = losses.length ? losses.reduce((s, t) => s + (t.pnl || 0), 0) / losses.length : 0;
 
   return (
     <div className="space-y-6 sm:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -168,9 +214,37 @@ export function LogTradePage() {
           <p className="text-muted-foreground text-sm font-medium">Welcome back, Agent. Analyze your market impact.</p>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 w-full sm:w-auto">
-          <div className="card-premium p-4 flex flex-col gap-1 min-w-[120px] bg-muted/30">
-            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Wallet Balance</span>
-            <span className="text-xl font-black">${currentWalletBalance.toFixed(2)}</span>
+          <div className="card-premium p-4 flex flex-col gap-1 min-w-[150px] bg-muted/30 relative group overflow-hidden">
+            <div className="flex justify-between items-start">
+              <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Wallet Balance</span>
+              {plan === 'pro' && !isEditingBalance && (
+                <button 
+                  onClick={() => setIsEditingBalance(true)}
+                  className="text-[9px] font-black uppercase text-primary opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 hover:underline"
+                >
+                  Deposit
+                </button>
+              )}
+            </div>
+            
+            {isEditingBalance ? (
+              <div className="flex gap-2 items-center animate-in slide-in-from-right-2 duration-300">
+                <input 
+                  type="number"
+                  value={tempBalance}
+                  onChange={e => setTempBalance(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handleSaveBalance()}
+                  autoFocus
+                  className="bg-background/50 border border-primary/40 rounded-lg px-2 py-1 text-sm font-black w-full focus:outline-none focus:ring-1 focus:ring-primary"
+                />
+                <button onClick={handleSaveBalance} className="text-[10px] font-black text-primary uppercase hover:scale-110 active:scale-95 transition-all">Save</button>
+              </div>
+            ) : (
+              <span className="text-xl font-black">${currentWalletBalance.toFixed(2)}</span>
+            )}
+            
+            {/* Pulsing light for pro users when balance is active */}
+            {plan === 'pro' && <div className="absolute top-0 right-0 w-1 h-full bg-primary/20 animate-pulse" />}
           </div>
           <div className="card-premium p-4 flex flex-col gap-1 min-w-[120px] bg-muted/30">
             <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Win Rate</span>
@@ -215,12 +289,10 @@ export function LogTradePage() {
                 </div>
                 <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase tracking-widest text-foreground/90 ml-1">Market</label>
-                  <select name="market" value={market} onChange={e => setMarket(e.target.value)} className="select-premium h-12">
-                    <option value="GOLD">Gold (XAU/USD)</option>
-                    <option value="FOREX">Forex</option>
-                    <option value="CRYPTO">Crypto</option>
-                    <option value="STOCKS">Stocks / Indices</option>
-                  </select>
+                  <div className="h-12 rounded-lg border border-border/50 bg-muted/30 flex items-center px-4 gap-2">
+                    <span className="text-xs font-black text-primary">XAU/USD</span>
+                    <span className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">· Gold</span>
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase tracking-widest text-foreground/90 ml-1">Session</label>
@@ -295,10 +367,7 @@ export function LogTradePage() {
                   <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/90 ml-1">Swap / Fees ($)</label>
                   <input type="number" name="swap" step="0.01" value={swap} onChange={e => setSwap(e.target.value)} className="input-premium h-12 text-sm font-bold" placeholder="0.00" />
                 </div>
-                <div className="space-y-1.5">
-                  <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/90 ml-1">Risk Amt ($)</label>
-                  <input type="number" name="amount" step="0.01" value={amount} onChange={e => setAmount(e.target.value)} className="input-premium h-12 text-sm font-bold" placeholder="0.00" />
-                </div>
+
               </div>
 
               {pnlData.pnl !== null && (
@@ -411,6 +480,22 @@ export function LogTradePage() {
           </div>
         </div>
       </div>
+
+      {/* PRO RESET OPTION */}
+      {plan === 'pro' && (
+        <div className="pt-12 pb-8 flex justify-center animate-in fade-in slide-in-from-bottom-2 duration-1000 delay-500">
+          <button 
+            onClick={() => isWiping ? handleWipeTerminal() : setIsWiping(true)}
+            className={`px-8 h-10 border text-[9px] font-black uppercase tracking-[0.15em] rounded-xl transition-all duration-500 active:scale-95 ${
+              isWiping 
+                ? 'bg-destructive/10 text-destructive border-destructive/30 shadow-[0_0_15px_rgba(239,68,68,0.1)]' 
+                : 'bg-muted/30 border-border/40 text-foreground/30 hover:text-foreground/50 hover:bg-muted/50'
+            }`}
+          >
+            {isWiping ? 'Confirm Wipe?' : 'Reset Terminal'}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

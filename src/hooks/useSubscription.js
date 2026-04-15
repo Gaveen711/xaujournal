@@ -17,49 +17,48 @@ export function useSubscription(user) {
     const unsub = onSnapshot(doc(db, "users", user.uid), (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data();
-        const now = new Date();
+        const isPro = data.plan === 'pro';
         const expiryDate = data.planExpiry ? new Date(data.planExpiry) : null;
-
-        // Configuration for Grace Period (4 days in milliseconds)
+        const now = new Date();
         const GRACE_PERIOD_MS = 4 * 24 * 60 * 60 * 1000;
 
-        if (data.plan === 'pro' && expiryDate) {
+        if (isPro && expiryDate) {
           const cutoffDate = new Date(expiryDate.getTime() + GRACE_PERIOD_MS);
-
+          
           if (now > cutoffDate) {
-            // 1. HARD EXPIRE: Current time is beyond Expiry + 4 Days
-            updateDoc(doc(db, "users", user.uid), { plan: 'free' });
-            toast("Your Pro subscription and grace period have expired. Reverting to Free plan.", "warn");
-            setSubscription({ plan: 'free', expiry: data.planExpiry, isLoading: false });
-          } else if (now > expiryDate) {
-            // 2. SOFT EXPIRE: Plan is technically over, but within the 4-day grace period
-            // We keep the plan as 'pro' so they can still log their XAU trades
+            if (data.plan !== 'free') {
+              updateDoc(doc(db, "users", user.uid), { plan: 'free' });
+            }
             setSubscription({ 
-              plan: 'pro', 
+              plan: 'free', 
               expiry: data.planExpiry, 
-              isLoading: false,
-              isGracePeriod: true 
+              totalTrades: data.totalTradesLogged || 0,
+              totalJournals: data.totalJournalsLogged || 0,
+              isLoading: false 
             });
           } else {
-            // 3. ACTIVE: Plan is still valid
             setSubscription({ 
               plan: 'pro', 
               expiry: data.planExpiry, 
-              isLoading: false 
+              totalTrades: data.totalTradesLogged || 0,
+              totalJournals: data.totalJournalsLogged || 0,
+              isLoading: false,
+              isGracePeriod: now > expiryDate 
             });
           }
         } else {
-          // Fallback for Free users
           setSubscription({ 
             plan: data.plan || 'free', 
             expiry: data.planExpiry || null, 
+            totalTrades: data.totalTradesLogged || 0,
+            totalJournals: data.totalJournalsLogged || 0,
             isLoading: false 
           });
         }
       } else {
         // Create profile if missing
-        setDoc(doc(db, "users", user.uid), { plan: 'free' }, { merge: true });
-        setSubscription({ plan: 'free', expiry: null, isLoading: false });
+        setDoc(doc(db, "users", user.uid), { plan: 'free', totalTradesLogged: 0, totalJournalsLogged: 0 }, { merge: true });
+        setSubscription({ plan: 'free', expiry: null, totalTrades: 0, totalJournals: 0, isLoading: false });
       }
     });
 
@@ -68,9 +67,13 @@ export function useSubscription(user) {
 
   const startCheckout = async () => {
     try {
+      const token = await user.getIdToken();
       const resp = await fetch('/api/checkout', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({ 
           origin: window.location.origin,
           email: user.email,
@@ -92,9 +95,13 @@ export function useSubscription(user) {
 
   const openPortal = async () => {
     try {
+      const token = await user.getIdToken();
       const resp = await fetch('/api/portal', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({ 
           userId: user.uid,
           origin: window.location.origin

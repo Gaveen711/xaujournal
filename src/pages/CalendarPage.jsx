@@ -162,7 +162,7 @@ export function CalendarPage() {
                         {trade.direction[0]}
                       </div>
                       <div className="flex flex-col">
-                        <span className="text-sm font-black text-foreground tracking-tight">{trade.market || 'GOLD'}</span>
+                        <span className="text-sm font-black text-foreground tracking-tight">XAU/USD</span>
                         <span className="text-[9px] font-black text-muted-foreground/85 uppercase tracking-[0.1em]">{trade.setup || 'Direct Execution'}</span>
                       </div>
                     </div>

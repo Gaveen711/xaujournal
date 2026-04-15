@@ -1,0 +1,23 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+      match /trades/{tradeId} {
+        // Read: only the owner
+        allow read: if request.auth != null && request.auth.uid == userId;
+        // Write: owner can write any valid trade doc
+        // MT5 API writes happen via Firebase Admin SDK (bypasses these rules)
+        allow write: if request.auth != null && request.auth.uid == userId
+          && (request.resource.data.get('note', '') is string
+              && request.resource.data.get('note', '').size() < 4000);
+      }
+
+      // Secure journals
+      match /journals/{journalId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+  }
+}

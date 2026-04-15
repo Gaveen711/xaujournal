@@ -1,12 +1,12 @@
 {
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/((?!api/).*)",
       "destination": "/index.html"
     }
   ],
   "crons": [{
-    "path": "/api/cron",
+    "path": "/api/cron/remind-expiry",
     "schedule": "0 10 * * *"
     }
   ]

@@ -3,19 +3,22 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signInWithPopup,
+  sendPasswordResetEmail,
 } from 'firebase/auth';
 import { auth, googleProvider } from './firebase.js';
 
 function Login() {
-  const [isSignUp, setIsSignUp] = useState(true);
+  const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleEmailAuth = async (e) => {
     e.preventDefault();
     setError('');
+    setMessage('');
     setLoading(true);
     try {
       if (isSignUp) {
@@ -29,10 +32,28 @@ function Login() {
       setLoading(false);
     }
   };
-  
+
+  const handleResetPassword = async () => {
+    if (!email) {
+      alert('Enter your (email) first');
+      return;
+    }
+    setError('');
+    setMessage('');
+    setLoading(true);
+    try {
+      await sendPasswordResetEmail(auth, email);
+      setMessage('Reset link sent to your email.');
+    } catch (err) {
+      setError(err.message.replace('Firebase: ', '').replace(/\(.*\)/, '').trim());
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleGoogle = async () => {
     setError('');
+    setMessage('');
     setLoading(true);
     try {
       await signInWithPopup(auth, googleProvider);
@@ -55,9 +76,11 @@ function Login() {
             </div>
             <div className="space-y-1">
               <h1 className="text-2xl font-black text-gradient uppercase tracking-tight">
-                {isSignUp ? 'Welcome Traders' : 'Access Granted'}
+                {isSignUp ? 'New Account' : 'Existing Access'}
               </h1>
-              
+              <p className="text-[10px] text-muted-foreground/60 font-black uppercase tracking-[0.2em]">
+                 {isSignUp ? 'Register your terminal' : 'Authorize secure session'}
+              </p>
             </div>
           </div>
 
@@ -74,12 +97,11 @@ function Login() {
                 <path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/>
                 <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/>
               </svg>
-              <span>Sign In With Google</span>
+              <span>Sign In</span>
             </button>
 
             <div className="flex items-center gap-4">
               <div className="flex-1 h-[1px] bg-border/30" />
-              <span className="text-[9px] font-black text-muted-foreground/40 uppercase tracking-[0.2em]">Secure Node</span>
               <div className="flex-1 h-[1px] bg-border/30" />
             </div>
 
@@ -97,20 +119,37 @@ function Login() {
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-[0.15em] text-muted-foreground/60 ml-1">Password</label>
+                <div className="flex justify-between items-center px-1">
+                  <label className="text-[10px] font-black uppercase tracking-[0.15em] text-muted-foreground/60"> Password</label>
+                  {!isSignUp && (
+                    <button
+                      type="button"
+                      onClick={handleResetPassword}
+                      className="text-[9px] font-black text-primary hover:text-primary/70 transition-colors uppercase tracking-widest"
+                    >
+                      Forgot?
+                    </button>
+                  )}
+                </div>
                 <input
                   type="password"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   placeholder=""
-                  required
+                  required={!loading}
                   className="input-premium h-12 text-sm font-bold"
                 />
               </div>
 
               {error && (
                 <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-500 text-[11px] font-black uppercase tracking-tight animate-in shake-1">
-                  Cipher Mismatch: {error}
+                  Alert: {error}
+                </div>
+              )}
+
+              {message && (
+                <div className="p-3 bg-primary/10 border border-primary/20 rounded-xl text-primary text-[11px] font-black uppercase tracking-tight animate-in fade-in">
+                   Status: {message}
                 </div>
               )}
 
@@ -119,17 +158,18 @@ function Login() {
                 disabled={loading}
                 className="btn-primary w-full h-12 text-xs font-black uppercase tracking-[0.2em] shadow-xl shadow-primary/20 active:scale-95 transition-all"
               >
-                {loading ? 'Decrypting Access...' : isSignUp ? 'Sign in' : 'Authorize Signal'}
+                {loading ? 'Authorizing...' : isSignUp ? 'Create New Account' : 'Sign in to Terminal'}
               </button>
             </form>
           </div>
 
           <div className="text-center pt-2">
             <button
+              type="button"
               onClick={() => { setIsSignUp(!isSignUp); setError(''); }}
               className="text-[10px] font-black text-muted-foreground/60 hover:text-primary transition-all uppercase tracking-widest"
             >
-              {isSignUp ? 'Already Logged? Sign In' : "New User? Create Account"}
+              {isSignUp ? 'Already a member? Sign in here' : "Need an account? Register here"}
             </button>
           </div>
         </div>
@@ -137,15 +177,13 @@ function Login() {
         <div className="flex items-center justify-center gap-4 mt-8 opacity-30">
            <div className="h-[1px] w-8 bg-muted-foreground" />
            <p className="text-[9px] text-center text-muted-foreground uppercase tracking-[0.3em] font-black">
-              End-to-End Encrypted
+               Secure Node
            </p>
            <div className="h-[1px] w-8 bg-muted-foreground" />
         </div>
       </div>
     </div>
-
   );
 }
-
 
 export default Login;
