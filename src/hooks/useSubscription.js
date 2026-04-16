@@ -39,6 +39,7 @@ export function useSubscription(user) {
               expiry: data.planExpiry, 
               totalTrades: data.totalTradesLogged || 0,
               totalJournals: data.totalJournalsLogged || 0,
+              agreedToTerms: data.agreedToTerms || false,
               isLoading: false 
             });
           } else {
@@ -47,6 +48,7 @@ export function useSubscription(user) {
               expiry: data.planExpiry, 
               totalTrades: data.totalTradesLogged || 0,
               totalJournals: data.totalJournalsLogged || 0,
+              agreedToTerms: data.agreedToTerms || false,
               isLoading: false,
               isGracePeriod: now > expiryDate 
             });
