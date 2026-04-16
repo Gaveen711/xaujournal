@@ -39,5 +39,11 @@ credentials.json
 /cypress/screenshots
 .nyc_output
 
+# Firebase
+.firebase/
+.firebaserc
+firebase-debug.log*
+
 # Explicitly keep shared API utilities
 !api/_firebase.js
+

@@ -11,7 +11,9 @@ import {
   SunFill,
   MoonStarsFill,
   CreditCard,
-  PersonCircle
+  PersonCircle,
+  Lightning,
+  LightningFill
 } from 'react-bootstrap-icons';
 import { auth } from '../../firebase';
 import { useAppTheme } from '../../hooks/useAppTheme';
@@ -19,11 +21,12 @@ import { useTrades } from '../../hooks/useTrades';
 import { useJournals } from '../../hooks/useJournals';
 import { useWallet } from '../../hooks/useWallet';
 
-export function DashboardLayout({ user, plan, totalTrades, totalJournals, setShowPricingModal, openPortal }) {
+export function DashboardLayout({ user, plan, expiry, totalTrades, totalJournals, setShowPricingModal, openPortal }) {
   const { isLightMode, toggleTheme } = useAppTheme();
   const location = useLocation();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   
+  const isGracePeriod = plan === 'grace';
 
   const profileMenuRef = useRef(null);
   const [isVisible, setIsVisible] = useState(true);
@@ -59,7 +62,7 @@ export function DashboardLayout({ user, plan, totalTrades, totalJournals, setSho
 
   const { trades, isLoading: isLoadingTrades, addTrade, removeTrade, editTrade, resetTrades, lastMT5Sync } = useTrades(user);
   const { journals, isLoading: isLoadingJournals, saveJournalEntry, deleteEntry } = useJournals(user);
-  const { startingBalance, updateBalance, resetWallet } = useWallet(user);
+  const { startingBalance, updateBalance, monthlyGoal, updateMonthlyGoal, resetWallet } = useWallet(user);
 
   const [copied, setCopied] = useState(false);
   const copyUid = () => {
@@ -73,7 +76,8 @@ export function DashboardLayout({ user, plan, totalTrades, totalJournals, setSho
     { id: 'history', name: 'History', icon: ClockHistory, iconSolid: ClockFill },
     { id: 'calendar', name: 'Calendar', icon: Calendar3, iconSolid: Calendar3Fill },
     { id: 'analytics', name: 'Analytics', icon: BarChartLine, iconSolid: BarChartLineFill },
-    { id: 'journal', name: 'Journal', icon: Book, iconSolid: BookFill }
+    { id: 'journal', name: 'Journal', icon: Book, iconSolid: BookFill },
+    { id: 'sync', name: 'Sync', icon: Lightning, iconSolid: LightningFill }
   ];
 
   const activeIndex = navigation.findIndex(item => 
@@ -275,10 +279,10 @@ export function DashboardLayout({ user, plan, totalTrades, totalJournals, setSho
           </div>
         ) : (
           <Outlet context={{ 
-            user, plan, totalTrades, setShowPricingModal, openPortal,
+            user, plan, expiry, totalTrades, setShowPricingModal, openPortal,
             trades, isLoadingTrades, addTrade, removeTrade, editTrade, resetTrades,
             journals, isLoadingJournals, saveJournalEntry, deleteEntry,
-            startingBalance, updateBalance, resetWallet, lastMT5Sync
+            startingBalance, updateBalance, monthlyGoal, updateMonthlyGoal, resetWallet, lastMT5Sync
           }} />
         )}
       </main>

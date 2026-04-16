@@ -51,8 +51,8 @@ export function PricingModal({ plan, expiry, onSubscribe, onClose }) {
               ))}
             </ul>
             
-            <button disabled className="w-full py-3.5 rounded-2xl bg-border/20 text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 cursor-default border border-border/10">
-              Current Plan
+            <button disabled className={`w-full py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest cursor-default border ${plan === 'free' ? 'bg-border/20 text-muted-foreground/60 border-border/10' : 'bg-background/20 text-muted-foreground/40 border-border/5'}`}>
+              {plan === 'free' ? 'Current Plan' : 'Legacy Plan'}
             </button>
           </div>
 

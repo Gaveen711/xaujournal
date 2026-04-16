@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { Line } from 'react-chartjs-2';
-import { calcPnl, todayStr } from '../lib/tradeUtils';
+import { calcPnl, todayStr, formatCompact, formatCurrencyCompact } from '../lib/tradeUtils';
 import { useToast } from '../components/ToastContext';
 import { ArrowUpRight, ArrowDownRight, BarChartLine } from 'react-bootstrap-icons';
 import { DatePicker } from '../components/ui/DatePicker';
 import { CustomSelect } from '../components/ui/CustomSelect';
+import { RiskCalculator } from '../components/RiskCalculator';
+import { Calculator } from 'react-bootstrap-icons';
 import {
   Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler
 } from 'chart.js';
@@ -13,7 +15,10 @@ import {
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler);
 
 export function LogTradePage() {
-  const { trades, addTrade, setShowPricingModal, startingBalance, updateBalance, plan, totalTrades, resetTrades, resetWallet } = useOutletContext();
+  const { 
+    trades, addTrade, setShowPricingModal, startingBalance, updateBalance, 
+    plan, totalTrades, resetTrades, resetWallet, monthlyGoal, updateMonthlyGoal 
+  } = useOutletContext();
   const toast = useToast();
   
 
@@ -24,6 +29,7 @@ export function LogTradePage() {
 
   const [direction, setDirection] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [showRiskCalc, setShowRiskCalc] = useState(false);
   const [equityPeriod, setEquityPeriod] = useState('all');
 
   const [date, setDate] = useState(todayStr());
@@ -93,6 +99,20 @@ export function LogTradePage() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const onApplyRisk = (calcLots, calcSlPips) => {
+    setLots(calcLots.toString());
+    // Calculate SL Price based on entry if available
+    if (entry && direction) {
+      const entryPrice = parseFloat(entry);
+      // Gold: 1 pip = 0.10. 
+      const slDist = calcSlPips * 0.1;
+      const calculatedSl = direction === 'BUY' ? entryPrice - slDist : entryPrice + slDist;
+      setSl(calculatedSl.toFixed(2));
+    }
+    setShowRiskCalc(false);
+    toast('Risk intelligence applied.', 'success');
   };
 
   const sortedForChart = [...trades].sort((a, b) => a.date.localeCompare(b.date));
@@ -166,7 +186,9 @@ export function LogTradePage() {
   };
 
   const [isEditingBalance, setIsEditingBalance] = useState(false);
+  const [isEditingGoal, setIsEditingGoal] = useState(false);
   const [tempBalance, setTempBalance] = useState(startingBalance || 0);
+  const [tempGoal, setTempGoal] = useState(monthlyGoal || 1000);
   const [isWiping, setIsWiping] = useState(false);
 
   useEffect(() => {
@@ -177,6 +199,12 @@ export function LogTradePage() {
     await updateBalance(parseFloat(tempBalance) || 0);
     setIsEditingBalance(false);
     toast("Wallet initialized.", "success");
+  };
+
+  const handleSaveGoal = async () => {
+    await updateMonthlyGoal(parseFloat(tempGoal) || 0);
+    setIsEditingGoal(false);
+    toast("Monthly objective synchronized.", "success");
   };
 
   const handleWipeTerminal = async () => {
@@ -203,6 +231,12 @@ export function LogTradePage() {
   const totalPnl = chartVisibleTrades.reduce((s,t)=> s + (t.pnl || 0), 0);
   const currentWalletBalance = (startingBalance || 0) + trades.reduce((s,t)=> s + (t.pnl || 0), 0);
   const winRate = chartVisibleTrades.length ? (chartVisibleTrades.filter(t => t.outcome === 'WIN').length / chartVisibleTrades.length * 100).toFixed(0) : 0;
+
+  const now = new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+  const thisMonthTrades = trades.filter(t => t.date >= monthStart);
+  const thisMonthPnl = thisMonthTrades.reduce((s,t) => s + (t.pnl || 0), 0);
+  const goalProgress = Math.min(100, Math.max(0, (thisMonthPnl / (monthlyGoal || 1)) * 100));
 
   const wins = chartVisibleTrades.filter(t => (t.pnl || 0) > 0);
   const losses = chartVisibleTrades.filter(t => (t.pnl || 0) < 0);
@@ -243,7 +277,7 @@ export function LogTradePage() {
                 <button onClick={handleSaveBalance} className="text-[10px] font-black text-primary uppercase hover:scale-110 active:scale-95 transition-all">Save</button>
               </div>
             ) : (
-              <span className="text-xl font-black">${currentWalletBalance.toFixed(2)}</span>
+              <span className="text-xl font-black">{formatCurrencyCompact(currentWalletBalance)}</span>
             )}
             
             {/* Pulsing light for pro users when balance is active */}
@@ -253,11 +287,47 @@ export function LogTradePage() {
             <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Win Rate</span>
             <span className="text-xl font-black">{winRate}%</span>
           </div>
-          <div className="card-premium p-4 flex flex-col gap-1 min-w-[120px] bg-muted/30">
-            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Absolute P&L</span>
-            <span className={`text-xl font-black ${totalPnl >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-              {totalPnl >= 0 ? '+' : ''}${Math.abs(totalPnl).toFixed(0)}
-            </span>
+
+          <div className="card-premium p-4 flex flex-col gap-2 min-w-[200px] bg-muted/30 relative overflow-hidden group">
+            <div className="flex justify-between items-center">
+              <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Objective Progress</span>
+              <button 
+                onClick={() => setIsEditingGoal(true)}
+                className="text-[9px] font-black uppercase text-primary opacity-0 group-hover:opacity-100 transition-all hover:underline"
+              >
+                Target
+              </button>
+            </div>
+            
+            <div className="flex justify-between items-center">
+              {isEditingGoal ? (
+                <div className="flex gap-2 items-center w-full animate-in slide-in-from-right-2">
+                  <input 
+                    type="number"
+                    value={tempGoal}
+                    onChange={e => setTempGoal(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && handleSaveGoal()}
+                    autoFocus
+                    className="bg-background/50 border border-primary/40 rounded-lg px-2 py-0.5 text-xs font-black w-full"
+                  />
+                  <button onClick={handleSaveGoal} className="text-[9px] font-black text-primary uppercase">Set</button>
+                </div>
+              ) : (
+                <>
+                  <span className={`text-xl font-black ${thisMonthPnl >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                    {formatCurrencyCompact(thisMonthPnl)} <span className="text-[10px] text-muted-foreground">/ {formatCurrencyCompact(monthlyGoal)}</span>
+                  </span>
+                  <span className="text-[10px] font-black text-primary">{goalProgress.toFixed(0)}%</span>
+                </>
+              )}
+            </div>
+
+            <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden border border-border/20 shadow-inner">
+              <div 
+                className={`h-full transition-all duration-1000 ease-[var(--apple-ease)] ${thisMonthPnl >= monthlyGoal ? 'bg-gradient-to-r from-green-500 to-green-400 shadow-[0_0_10px_rgba(34,197,94,0.3)]' : 'bg-primary'}`} 
+                style={{ width: `${goalProgress}%` }}
+              />
+            </div>
           </div>
         </div>
       </header>
@@ -280,10 +350,26 @@ export function LogTradePage() {
           )}
           
           <div className="card-premium p-8 sm:p-10 space-y-8 animate-in slide-in-from-left-4 duration-700 delay-100">
-            <h3 className="text-xl font-bold flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-              New Operation
-            </h3>
+            <div className="flex justify-between items-center">
+              <h3 className="text-xl font-bold flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                New Operation
+              </h3>
+              <button 
+                type="button"
+                onClick={() => setShowRiskCalc(!showRiskCalc)}
+                className={`p-2 rounded-xl border transition-all active:scale-95 ${showRiskCalc ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20' : 'bg-muted/30 border-border/40 text-foreground/40 hover:text-primary hover:border-primary/40'}`}
+              >
+                <Calculator className="w-4 h-4" />
+              </button>
+            </div>
+
+            {showRiskCalc && (
+              <div className="animate-in slide-in-from-top-4 duration-500">
+                <RiskCalculator balance={currentWalletBalance} onApply={onApplyRisk} onClose={() => setShowRiskCalc(false)} />
+              </div>
+            )}
+
             <form onSubmit={saveTradeForm} className="space-y-5">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="space-y-2">
@@ -304,8 +390,8 @@ export function LogTradePage() {
                     value={session} 
                     onChange={setSession}
                     options={[
-                      { value: 'Sydeny', label: 'Sydeny' },
-                      { value: 'Tokoyo', label: 'Tokoyo' },
+                      { value: 'Sydney', label: 'Sydney' },
+                      { value: 'Tokyo', label: 'Tokyo' },
                       { value: 'London', label: 'London' },
                       { value: 'NewYork', label: 'NewYork' }
                     ]}

@@ -4,6 +4,7 @@
 // Auth: sends Firebase ID token as Authorization: Bearer header.
 
 import { useState } from "react";
+import { useOutletContext } from "react-router-dom";
 import { auth } from "../firebase";
 import {
   Key,
@@ -19,7 +20,7 @@ import {
 } from "react-bootstrap-icons";
 
 // ── Vercel endpoint URLs ──────────────────────────────────────────────────────
-const BASE_URL     = "https://xaujournal-eqv79xl20-walker-4a977fbd.vercel.app";
+const BASE_URL     = window.location.origin;
 const MT5_ENDPOINT = `${BASE_URL}/api/sync-trade`;
 const TV_ENDPOINT  = `${BASE_URL}/api/tv-webhook`;
 // ─────────────────────────────────────────────────────────────────────────────
@@ -46,7 +47,8 @@ async function callApi(path) {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-export default function MT5SyncSetup({ plan = 'free', planExpiry = null, graceUntil = null, onUpgrade }) {
+export default function MT5SyncSetup() {
+  const { plan = 'free', expiry = null, setShowPricingModal: onUpgrade } = useOutletContext();
   const [apiKey,   setApiKey]   = useState(null);
   const [loading,  setLoading]  = useState(false);
   const [revoking, setRevoking] = useState(false);
@@ -56,13 +58,12 @@ export default function MT5SyncSetup({ plan = 'free', planExpiry = null, graceUn
 
   // ── Plan status helpers ─────────────────────────────────────────────────
   const nowMs        = Date.now();
-  const isActivePro  = plan === 'pro'  && planExpiry  && new Date(planExpiry).getTime()  > nowMs;
-  const isGrace      = plan === 'grace' && graceUntil && new Date(graceUntil).getTime() > nowMs;
+  const isActivePro  = plan === 'pro' || (plan === 'pro' && expiry && new Date(expiry).getTime() > nowMs);
+  const isGrace      = plan === 'grace';
   const isSyncAllowed = isActivePro || isGrace;
 
-  const graceEndsIn = isGrace
-    ? Math.ceil((new Date(graceUntil).getTime() - nowMs) / (1000 * 60 * 60 * 24))
-    : 0;
+  const graceEndsIn = 0; // Simplified for now
+
 
   async function handleGenerate() {
     setLoading(true);
@@ -130,7 +131,13 @@ export default function MT5SyncSetup({ plan = 'free', planExpiry = null, graceUn
   );
 
   return (
-    <div className="space-y-6 max-w-2xl">
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <header className="flex flex-col gap-1">
+        <h1 className="text-3xl font-black text-gradient">AUTO-SYNC TERMINAL</h1>
+        <p className="text-muted-foreground text-sm font-medium uppercase tracking-widest">Connect your algorithmic and manual execution sources.</p>
+      </header>
+
+      <div className="space-y-6 max-w-2xl">
 
       {/* ── Free-user gate ──────────────────────────────────────────────── */}
       {!isSyncAllowed && (
@@ -484,6 +491,8 @@ export default function MT5SyncSetup({ plan = 'free', planExpiry = null, graceUn
         </>
       )}
       </>)}
+      </div>
     </div>
+
   );
 }

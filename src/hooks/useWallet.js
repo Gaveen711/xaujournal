@@ -5,6 +5,7 @@ import { storage } from '../lib/tradeUtils';
 
 export function useWallet(user) {
   const [startingBalance, setStartingBalance] = useState(0);
+  const [monthlyGoal, setMonthlyGoal] = useState(1000); // Default $1000 goal
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -20,8 +21,10 @@ export function useWallet(user) {
         const userSnap = await getDoc(userRef);
         
         // 1. Check Cloud Balance
-        if (userSnap.exists() && userSnap.data().startingBalance !== undefined) {
-          setStartingBalance(userSnap.data().startingBalance);
+        if (userSnap.exists()) {
+          const data = userSnap.data();
+          if (data.startingBalance !== undefined) setStartingBalance(data.startingBalance);
+          if (data.monthlyGoal !== undefined) setMonthlyGoal(data.monthlyGoal);
         } else {
           // 2. Migration Check
           const localBal = await storage.get('xau-starting-balance');
@@ -64,5 +67,14 @@ export function useWallet(user) {
     }
   };
 
-  return { startingBalance, updateBalance, resetWallet, isLoading };
+  const updateMonthlyGoal = async (newGoal) => {
+    setMonthlyGoal(newGoal);
+    if (user) {
+      await updateDoc(doc(db, "users", user.uid), {
+        monthlyGoal: newGoal
+      });
+    }
+  };
+
+  return { startingBalance, updateBalance, monthlyGoal, updateMonthlyGoal, resetWallet, isLoading };
 }

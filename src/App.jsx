@@ -11,6 +11,7 @@ import { HistoryPage } from './pages/HistoryPage';
 import { CalendarPage } from './pages/CalendarPage';
 import { AnalyticsPage } from './pages/AnalyticsPage';
 import { JournalPage } from './pages/JournalPage';
+import MT5SyncSetup from './components/MT5SyncSetup';
 import { useSubscription } from './hooks/useSubscription';
 import { useAppTheme } from './hooks/useAppTheme';
 import { CheckoutSuccess } from './pages/CheckoutSuccess';
@@ -56,12 +57,13 @@ function AuthenticatedApp({ user }) {
   return (
     <>
       <Routes>
-        <Route element={<DashboardLayout user={user} plan={plan} totalTrades={totalTrades} totalJournals={totalJournals} setShowPricingModal={setShowPricingModal} openPortal={openPortal} />}>
+        <Route element={<DashboardLayout user={user} plan={plan} expiry={expiry} totalTrades={totalTrades} totalJournals={totalJournals} setShowPricingModal={setShowPricingModal} openPortal={openPortal} />}>
           <Route path="/" element={<LogTradePage />} />
           <Route path="/history" element={<HistoryPage />} />
           <Route path="/calendar" element={<CalendarPage />} />
           <Route path="/analytics" element={<AnalyticsPage />} />
           <Route path="/journal" element={<JournalPage />} />
+          <Route path="/sync" element={<MT5SyncSetup />} />
           <Route path="/privacy" element={<PrivacyPolicyPage />} />
           <Route path="/checkout-success" element={<CheckoutSuccess />} />
           <Route path="/checkout-cancel" element={<CheckoutCancel />} />

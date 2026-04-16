@@ -4,10 +4,10 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 0%;
+    --background: 220 33% 98%;
+    --foreground: 222 47% 11%;
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 0%;
+    --card-foreground: 222 47% 11%;
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 0%;
     --primary: 262.1 83.3% 57.8%;
@@ -15,14 +15,14 @@
     --primary-foreground: 210 20% 98%;
     --secondary: 220 14.3% 95.9%;
     --secondary-foreground: 220.9 39.3% 11%;
-    --muted: 220 14.3% 95.9%;
-    --muted-foreground: 220 10% 20%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 30%;
     --accent: 262.1 83.3% 57.8%;
     --accent-foreground: 220.9 39.3% 11%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 20% 98%;
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
+    --border: 214.3 31.8% 85%;
+    --input: 214.3 31.8% 85%;
     --ring: 262.1 83.3% 57.8%;
     --radius: 1rem;
     
@@ -68,7 +68,7 @@
   body {
     @apply bg-background text-foreground;
     font-family: 'Satoshi', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    font-weight: 400; /* Increased from 350 for better readability */
+    font-weight: 500; /* Increased to medium for enhanced readability in light mode */
     font-feature-settings: "rlig" 1, "calt" 1;
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
@@ -76,10 +76,14 @@
 
   /* Global Font Weight Adjustments */
   .font-black, .font-bold, .font-black-force {
-    font-weight: 600 !important;
+    font-weight: 700 !important;
   }
   
-  .font-semibold, .font-medium {
+  .font-semibold {
+    font-weight: 600 !important;
+  }
+
+  .font-medium {
     font-weight: 500 !important;
   }
 }

@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { useToast } from '../components/ToastContext';
-import { Download, Search, XLg } from 'react-bootstrap-icons';
+import { Download, Search, XLg, PencilSquare } from 'react-bootstrap-icons';
 import { CustomSelect } from '../components/ui/CustomSelect';
+import { EditTradeModal } from '../components/EditTradeModal';
 
 const HistorySkeleton = () => (
   <div className="space-y-4 animate-pulse">
@@ -20,7 +21,7 @@ const HistorySkeleton = () => (
 );
 
 export function HistoryPage() {
-  const { trades, isLoadingTrades, removeTrade, plan, setShowPricingModal } = useOutletContext();
+  const { trades, isLoadingTrades, removeTrade, editTrade, plan, setShowPricingModal } = useOutletContext();
   const toast = useToast();
   
   const [filterSearch, setFilterSearch] = useState('');
@@ -30,6 +31,7 @@ export function HistoryPage() {
   const [filterSetup, setFilterSetup] = useState('');
   const [filterSort, setFilterSort] = useState('newest');
   
+  const [editingTrade, setEditingTrade] = useState(null);
   const [expandedNotes, setExpandedNotes] = useState({});
 
   if (isLoadingTrades) return <HistorySkeleton />;
@@ -74,6 +76,16 @@ export function HistoryPage() {
     setTimeout(() => URL.revokeObjectURL(url), 100);
     
     toast('CSV exported.', 'success');
+  };
+
+  const onSaveEdit = async (id, data) => {
+    try {
+      await editTrade(id, data);
+      setEditingTrade(null);
+      toast('Trade log updated.', 'success');
+    } catch (e) {
+      toast('Failed to update log.', 'error');
+    }
   };
 
   const onDeleteTrade = async (id) => {
@@ -219,6 +231,13 @@ export function HistoryPage() {
                       </div>
                       
                       <button 
+                        className="hidden sm:flex w-8 h-8 rounded-full items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all opacity-0 group-hover:opacity-100 active:scale-90" 
+                        onClick={e => { e.stopPropagation(); setEditingTrade(t); }}
+                      >
+                        <PencilSquare className="w-3.5 h-3.5" />
+                      </button>
+
+                      <button 
                         className="hidden sm:flex w-8 h-8 rounded-full items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all opacity-0 group-hover:opacity-100 active:scale-90" 
                         onClick={e => { e.stopPropagation(); onDeleteTrade(t.id); }}
                       >
@@ -249,6 +268,14 @@ export function HistoryPage() {
           </div>
           )}
       </div>
+
+      {editingTrade && (
+        <EditTradeModal 
+          trade={editingTrade} 
+          onSave={onSaveEdit} 
+          onClose={() => setEditingTrade(null)} 
+        />
+      )}
     </div>
   );
 }

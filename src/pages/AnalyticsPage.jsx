@@ -1,5 +1,12 @@
 import { useOutletContext } from 'react-router-dom';
-import { BarChartLine } from 'react-bootstrap-icons';
+import { Bar, Line } from 'react-chartjs-2';
+import { formatCurrencyCompact } from '../lib/tradeUtils';
+import { BarChartLine, ClockFill, LightningFill, ShieldExclamation } from 'react-bootstrap-icons';
+import {
+  Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, Filler
+} from 'chart.js';
+
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, Filler);
 
 const AnalyticsSkeleton = () => (
   <div className="space-y-8 animate-pulse">
@@ -7,6 +14,10 @@ const AnalyticsSkeleton = () => (
       {[1, 2, 3, 4, 5, 6].map(i => (
         <div key={i} className="h-24 bg-muted rounded-2xl"></div>
       ))}
+    </div>
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="h-80 bg-muted rounded-2xl"></div>
+      <div className="h-80 bg-muted rounded-2xl"></div>
     </div>
     <div className="h-64 bg-muted rounded-2xl"></div>
   </div>
@@ -37,12 +48,91 @@ export function AnalyticsPage() {
   const avgRR = rrTrades.length ? rrTrades.reduce((s, t) => s + t.rr, 0) / rrTrades.length : null;
 
   let peak = startingBalance || 0, maxDD = 0, running = startingBalance || 0;
-  [...trades].sort((a, b) => a.date.localeCompare(b.date)).forEach(t => {
+  const sortedTrades = [...trades].sort((a, b) => a.date.localeCompare(b.date));
+  const drawdownCurve = [0];
+  const drawdownLabels = ['Start'];
+
+  sortedTrades.forEach(t => {
     running += t.pnl;
     if (running > peak) peak = running;
-    const dd = peak - running;
-    if (dd > maxDD) maxDD = dd;
+    const dd = running - peak;
+    if (Math.abs(dd) > maxDD) maxDD = Math.abs(dd);
+    drawdownCurve.push(parseFloat(dd.toFixed(2)));
+    drawdownLabels.push(t.date);
   });
+
+  const sessionDataMap = {};
+  const setupDataMap = {};
+  
+  trades.forEach(t => {
+    const s = t.session || 'Unknown';
+    if (!sessionDataMap[s]) sessionDataMap[s] = { pnl: 0, wins: 0, total: 0 };
+    sessionDataMap[s].pnl += t.pnl;
+    sessionDataMap[s].total++;
+    if (t.outcome === 'WIN') sessionDataMap[s].wins++;
+
+    const set = t.setup || 'Unknown';
+    if (!setupDataMap[set]) setupDataMap[set] = { pnl: 0, wins: 0, total: 0 };
+    setupDataMap[set].pnl += t.pnl;
+    setupDataMap[set].total++;
+    if (t.outcome === 'WIN') setupDataMap[set].wins++;
+  });
+
+  const sessionChartData = {
+    labels: Object.keys(sessionDataMap),
+    datasets: [{
+      label: 'Session P&L',
+      data: Object.values(sessionDataMap).map(d => d.pnl),
+      backgroundColor: Object.values(sessionDataMap).map(d => d.pnl >= 0 ? 'rgba(34, 197, 94, 0.4)' : 'rgba(239, 68, 68, 0.4)'),
+      borderColor: Object.values(sessionDataMap).map(d => d.pnl >= 0 ? '#22c55e' : '#ef4444'),
+      borderWidth: 1,
+      borderRadius: 8,
+    }]
+  };
+
+  const setupChartData = {
+    labels: Object.keys(setupDataMap),
+    datasets: [{
+      label: 'Setup P&L',
+      data: Object.values(setupDataMap).map(d => d.pnl),
+      backgroundColor: '#8B5CF622',
+      borderColor: '#8B5CF6',
+      borderWidth: 2,
+      borderRadius: 12,
+    }]
+  };
+
+  const drawdownChartData = {
+    labels: drawdownLabels,
+    datasets: [{
+      label: 'Underwater Drawdown',
+      data: drawdownCurve,
+      borderColor: '#ef4444',
+      backgroundColor: 'rgba(239, 68, 68, 0.05)',
+      fill: true,
+      tension: 0.4,
+      pointRadius: 0,
+      borderWidth: 2,
+    }]
+  };
+
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { 
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: 'rgba(13, 13, 20, 0.9)',
+        padding: 12,
+        borderRadius: 8,
+        displayColors: false
+      }
+    },
+    scales: {
+      y: { grid: { color: 'rgba(255,255,255,0.03)', drawBorder: false }, ticks: { color: '#64748b', font: { size: 10 } } },
+      x: { grid: { display: false }, ticks: { display: false } }
+    }
+  };
 
   const totalPnl = trades.reduce((s, t) => s + t.pnl, 0);
   const currentWalletBalance = (startingBalance || 0) + totalPnl;
@@ -57,11 +147,11 @@ export function AnalyticsPage() {
   const maxAbs = months.length ? Math.max(...months.map(m => Math.abs(monthMap[m]))) : 1;
 
   const statCards = [
-    { label: 'Wallet Balance', value: `$${currentWalletBalance.toFixed(2)}`, sub: 'Current Liquidity', color: 'text-primary' },
+    { label: 'Wallet Balance', value: formatCurrencyCompact(currentWalletBalance), sub: 'Current Liquidity', color: 'text-primary' },
     { label: 'Win Rate', value: `${winRatePercent}%`, sub: `${wins.length} successful`, color: 'text-green-500' },
-    { label: 'Expectancy', value: trades.length ? `${expectancy >= 0 ? '+' : ''}$${expectancy.toFixed(2)}` : '—', sub: 'Average per trade', color: expectancy > 0 ? 'text-green-500' : expectancy < 0 ? 'text-red-500' : '' },
-    { label: 'Avg Win', value: wins.length ? `+$${avgWin.toFixed(2)}` : '—', sub: `${wins.length} winners`, color: 'text-green-500' },
-    { label: 'Avg Loss', value: losses.length ? `-$${Math.abs(avgLoss).toFixed(2)}` : '—', sub: `${losses.length} losers`, color: 'text-red-500' },
+    { label: 'Expectancy', value: trades.length ? formatCurrencyCompact(expectancy) : '—', sub: 'Average per trade', color: expectancy > 0 ? 'text-green-500' : expectancy < 0 ? 'text-red-500' : '' },
+    { label: 'Avg Win', value: wins.length ? formatCurrencyCompact(avgWin) : '—', sub: `${wins.length} winners`, color: 'text-green-500' },
+    { label: 'Avg Loss', value: losses.length ? formatCurrencyCompact(avgLoss) : '—', sub: `${losses.length} losers`, color: 'text-red-500' },
     { label: 'Profit Factor', value: pf !== null ? pf.toFixed(2) : '—', sub: 'Gross Profit / Loss', color: pf >= 1.5 ? 'text-green-500' : pf < 1 ? 'text-red-500' : '' },
   ];
 
@@ -88,9 +178,41 @@ export function AnalyticsPage() {
         ))}
       </div>
 
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="card-premium p-6 sm:p-8 animate-in slide-in-from-left-4 duration-700 delay-300">
+          <h3 className="text-sm font-black uppercase tracking-widest mb-8 flex items-center gap-2 text-foreground/80">
+            <ClockFill className="w-4 h-4 text-primary" />
+            Session Performance Matrix
+          </h3>
+          <div className="h-64">
+            <Bar data={sessionChartData} options={chartOptions} />
+          </div>
+        </div>
+
+        <div className="card-premium p-6 sm:p-8 animate-in slide-in-from-right-4 duration-700 delay-300">
+          <h3 className="text-sm font-black uppercase tracking-widest mb-8 flex items-center gap-2 text-foreground/80">
+            <LightningFill className="w-4 h-4 text-primary" />
+            Setup Intelligence
+          </h3>
+          <div className="h-64">
+            <Bar data={setupChartData} options={chartOptions} />
+          </div>
+        </div>
+      </div>
+
+      <div className="card-premium p-6 sm:p-8 animate-in slide-in-from-bottom-4 duration-700 delay-400">
+        <h3 className="text-sm font-black uppercase tracking-widest mb-8 flex items-center gap-2 text-foreground/80 text-red-500">
+          <ShieldExclamation className="w-4 h-4" />
+          Underwater Drawdown Curve
+        </h3>
+        <div className="h-64">
+          <Line data={drawdownChartData} options={chartOptions} />
+        </div>
+      </div>
+
       <div className="card-premium p-6 sm:p-8 animate-in slide-in-from-bottom-4 duration-700 delay-500">
-        <h3 className="text-lg font-bold mb-8 flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-primary" />
+        <h3 className="text-sm font-black uppercase tracking-widest mb-8 flex items-center gap-2 text-foreground/80">
+          <BarChartLine className="w-4 h-4 text-primary" />
           Monthly Performance Signals
         </h3>
         <div className="space-y-5">
@@ -103,7 +225,7 @@ export function AnalyticsPage() {
                 <div className="flex justify-between items-center mb-2 px-1">
                   <span className="text-xs font-black uppercase tracking-[0.15em] text-foreground">{label}</span>
                   <span className={`text-sm font-black tracking-tight ${value >= 0 ? 'text-green-500 shadow-green-500/20' : 'text-red-500 shadow-red-500/20'}`}>
-                    {value >= 0 ? '+' : ''}${Math.abs(value).toFixed(0)}
+                    {formatCurrencyCompact(value)}
                   </span>
                 </div>
                 <div className="h-4 w-full bg-muted/30 rounded-full overflow-hidden border border-border/40 shadow-inner p-[2px]">

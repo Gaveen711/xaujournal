@@ -5,6 +5,29 @@ export const todayStr = () => {
   return `${today.getFullYear()}-${pad2(today.getMonth() + 1)}-${pad2(today.getDate())}`;
 };
 
+export const formatCompact = (val) => {
+  if (val === null || val === undefined || isNaN(val)) return '—';
+  const absVal = Math.abs(val);
+  const sign = val < 0 ? '-' : '';
+  
+  if (absVal >= 1000000) {
+    return sign + (absVal / 1000000).toFixed(1).replace(/\.0$/, '') + 'm';
+  }
+  if (absVal >= 1000) {
+    return sign + (absVal / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
+  }
+  return sign + absVal.toFixed(2).replace(/\.00$/, '');
+};
+
+export const formatCurrencyCompact = (val) => {
+  const formatted = formatCompact(val);
+  if (formatted === '—') return '—';
+  if (formatted.startsWith('-')) {
+    return `-$${formatted.substring(1)}`;
+  }
+  return `$${formatted}`;
+};
+
 // XAUUSD only: 1 pip = $0.10 per 0.01 lot (contract size 100, pip size 0.01)
 const XAUUSD_CONTRACT_SIZE = 100;
 const XAUUSD_PIP_SIZE      = 0.01;
