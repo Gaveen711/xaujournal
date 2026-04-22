@@ -5,7 +5,7 @@ import { fileURLToPath, URL } from 'node:url'
 const __dirname = fileURLToPath(new URL('.', import.meta.url))
 
 export default defineConfig({
-  base: './',
+  base: '/',
   plugins: [react()],
   css: {
     postcss: './postcss.config.js',
@@ -21,6 +21,9 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           if (id.includes('node_modules')) {
+            if (id.includes('firebase')) return 'firebase';
+            if (id.includes('framer-motion')) return 'framer-motion';
+            if (id.includes('chart.js') || id.includes('react-chartjs-2')) return 'chart';
             return 'vendor';
           }
         }

@@ -1,17 +1,7 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
-
-const GOLD = '#C9A84C';
-const GOLD_DIM = 'rgba(201,168,76,0.12)';
-const GOLD_LINE = 'rgba(201,168,76,0.28)';
-
-function useNavScroll(ref) {
-  useEffect(() => {
-    const nav = ref.current; if (!nav) return;
-    const fn = () => { nav.style.background = window.scrollY > 20 ? 'rgba(3,3,10,0.84)' : 'transparent'; nav.style.backdropFilter = window.scrollY > 20 ? 'blur(24px)' : 'none'; nav.style.borderBottomColor = window.scrollY > 20 ? 'rgba(255,255,255,0.06)' : 'transparent'; };
-    window.addEventListener('scroll', fn, { passive: true }); return () => window.removeEventListener('scroll', fn);
-  }, [ref]);
-}
+import { motion } from 'framer-motion';
+import Lenis from 'lenis';
 
 const SECTIONS = [
   {
@@ -98,98 +88,205 @@ We do not use advertising cookies, tracking pixels, or third-party analytics scr
 export function PrivacyPolicyPage() {
   const navigate = useNavigate();
   const navRef = useRef(null);
-  useNavScroll(navRef);
-  useEffect(() => { window.scrollTo(0, 0); }, []);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showScroll, setShowScroll] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setShowScroll(window.scrollY > 300);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  useEffect(() => {
+    const lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      direction: 'vertical',
+      gestureDirection: 'vertical',
+      smooth: true,
+      mouseMultiplier: 1,
+      smoothTouch: false,
+      touchMultiplier: 2,
+      infinite: false,
+    });
+
+    function raf(time) {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    }
+
+    requestAnimationFrame(raf);
+    window.scrollTo(0, 0);
+
+    return () => lenis.destroy();
+  }, []);
+
+  useEffect(() => {
+    const nav = navRef.current;
+    if (!nav) return;
+    const onScroll = () => {
+      if (window.scrollY > 20) {
+        nav.classList.add('bg-background/80', 'backdrop-blur-xl', 'border-b', 'border-border/50');
+        nav.classList.remove('bg-transparent', 'border-transparent');
+      } else {
+        nav.classList.remove('bg-background/80', 'backdrop-blur-xl', 'border-b', 'border-border/50');
+        nav.classList.add('bg-transparent', 'border-transparent');
+      }
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { staggerChildren: 0.1, delayChildren: 0.1 } },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] } },
+  };
 
   return (
-    <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
-      {/* Nav */}
+    <div className="min-h-screen bg-background text-foreground overflow-x-hidden selection:bg-primary/20 font-sans">
+      
+      {/* ── Ambient blobs ─────────────────────────────────────── */}
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden" aria-hidden="true">
+        <div className="absolute top-[-10%] left-[-5%] w-[50vw] h-[50vw] rounded-full bg-primary/5 blur-[100px] opacity-60 mix-blend-screen" />
+      </div>
+
+      {/* ── Nav ───────────────────────────────────────────────── */}
       <header>
-        <nav ref={navRef} role="navigation" aria-label="Main navigation" style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100, height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 2rem', background: 'transparent', borderBottom: '1px solid transparent', transition: 'background 0.4s cubic-bezier(0.22,1,0.36,1), border-color 0.4s' }}>
-          <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'hsl(var(--foreground))' }}>
-            <span style={{ width: 30, height: 30, borderRadius: 7, background: `linear-gradient(135deg,${GOLD},#7B5A1A)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem', fontWeight: 900, color: '#000' }}>XAU</span>
-            <span style={{ fontSize: '1rem', fontWeight: 800, letterSpacing: '-0.03em' }}>Gold Journal</span>
-          </Link>
-          <ul className="hidden md:flex" style={{ alignItems: 'center', gap: '0.125rem', listStyle: 'none', margin: 0, padding: 0 }}>
-            {[{ to: '/', l: 'Home' }, { to: '/pricing', l: 'Pricing' }, { to: '/contact', l: 'Contact' }].map(({ to, l }) => (
-              <li key={to}><NavLink to={to} style={{ textDecoration: 'none', fontSize: '0.8125rem', fontWeight: 500, padding: '0.375rem 0.875rem', borderRadius: 6, color: 'hsl(var(--muted-foreground))', transition: 'color 0.2s' }} onMouseOver={e => e.currentTarget.style.color = 'hsl(var(--foreground))'} onMouseOut={e => e.currentTarget.style.color = 'hsl(var(--muted-foreground))'}>{l}</NavLink></li>
+        <nav ref={navRef} className="fixed top-0 left-0 right-0 z-[100] h-16 flex items-center justify-between px-6 transition-all duration-500 ease-out border-b border-transparent bg-transparent">
+          <button onClick={() => { navigate('/'); window.scrollTo(0,0); }} aria-label="Go home" className="flex items-center gap-2 hover:opacity-80 transition-opacity z-50">
+            <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primary-to flex items-center justify-center text-[0.65rem] font-black text-white shadow-lg shadow-primary/20">XAU</span>
+            <span className="text-lg font-bold tracking-tight">Journal</span>
+          </button>
+
+          <ul className="hidden md:flex items-center gap-1">
+            {[{to:'/',l:'Home'},{to:'/pricing',l:'Pricing'},{to:'/contact',l:'Contact'}].map(({to,l})=>(
+              <li key={to}>
+                <NavLink to={to} className="text-sm font-medium px-4 py-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all">
+                  {l}
+                </NavLink>
+              </li>
             ))}
           </ul>
-          <button onClick={() => navigate('/login')} style={{ background: GOLD, color: '#000', border: 'none', fontSize: '0.8rem', fontWeight: 800, letterSpacing: '0.03em', padding: '0.5rem 1.25rem', borderRadius: 7, cursor: 'pointer', transition: 'all 0.22s cubic-bezier(0.22,1,0.36,1)' }} onMouseOver={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = `0 4px 20px ${GOLD_LINE}`; }} onMouseOut={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}>Get started free</button>
+
+          <div className="flex items-center gap-3 z-50">
+            <button onClick={()=>navigate('/login')} className="hidden md:block glass text-foreground text-sm font-bold tracking-wide px-5 py-2.5 rounded-full shadow-lg hover:bg-foreground/10 hover:-translate-y-0.5 transition-all duration-300">
+              Get started
+            </button>
+            <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="md:hidden p-2 text-foreground">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                 {mobileMenuOpen ? <path d="M18 6L6 18M6 6l12 12"/> : <path d="M4 6h16M4 12h16M4 18h16"/>}
+              </svg>
+            </button>
+          </div>
+
+          {/* Mobile Menu */}
+          <div className={`md:hidden fixed inset-0 bg-background/95 backdrop-blur-xl transition-all duration-300 ease-in-out ${mobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
+            <div className="flex flex-col items-center justify-center h-full gap-8">
+              {[{to:'/',l:'Home'},{to:'/pricing',l:'Pricing'},{to:'/contact',l:'Contact'}].map(({to,l})=>(
+                <NavLink key={to} to={to} onClick={() => setMobileMenuOpen(false)} className="text-2xl font-black tracking-tight text-foreground hover:text-primary transition-colors">
+                  {l}
+                </NavLink>
+              ))}
+              <button onClick={()=>navigate('/login')} className="mt-8 glass text-foreground text-lg font-bold tracking-wide px-8 py-4 rounded-full shadow-lg hover:bg-foreground/10 hover:-translate-y-0.5 transition-all duration-300">
+                Get started
+              </button>
+            </div>
+          </div>
         </nav>
       </header>
 
-      <main style={{ position: 'relative', zIndex: 1 }}>
+      <main className="relative z-10 px-6 pt-32 pb-32">
         {/* Hero */}
-        <div style={{ textAlign: 'center', padding: '9rem 2rem 5rem', maxWidth: 640, margin: '0 auto' }}>
-          <p style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: GOLD, marginBottom: '1.25rem' }}>Legal</p>
-          <h1 style={{ fontSize: 'clamp(2.25rem,5vw,3.5rem)', fontWeight: 900, letterSpacing: '-0.04em', lineHeight: 1.06, margin: '0 0 1.25rem' }}>Privacy Policy</h1>
-          <p style={{ fontSize: '1rem', color: 'hsl(var(--muted-foreground))', lineHeight: 1.75, fontWeight: 400, margin: '0 0 0.5rem' }}>
+        <motion.div variants={containerVariants} initial="hidden" animate="visible" className="text-center max-w-2xl mx-auto mb-20">
+          <motion.p variants={itemVariants} className="text-primary text-xs font-bold tracking-[0.2em] uppercase mb-4">Legal</motion.p>
+          <motion.h1 variants={itemVariants} className="text-[clamp(2.5rem,6vw,4rem)] font-black leading-[1.05] tracking-tight mb-6">
+            Privacy Policy
+          </motion.h1>
+          <motion.p variants={itemVariants} className="text-lg text-muted-foreground font-medium leading-relaxed mb-2">
             We believe privacy policies should be readable. This one is.
-          </p>
-          <p style={{ fontSize: '0.8125rem', color: 'hsl(var(--muted-foreground))', fontWeight: 400 }}>Effective date: April 15, 2026 · Last updated: April 15, 2026</p>
-        </div>
+          </motion.p>
+          <motion.p variants={itemVariants} className="text-sm text-muted-foreground/70 font-medium">
+            Effective date: April 15, 2026 · Last updated: April 15, 2026
+          </motion.p>
+        </motion.div>
 
         {/* Two-column layout: TOC + content */}
-        <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 2rem 10rem', display: 'grid', gridTemplateColumns: '220px 1fr', gap: '5rem', alignItems: 'start' }}>
-
+        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-[240px_1fr] gap-12 lg:gap-20 items-start">
+          
           {/* Table of contents — sticky sidebar */}
-          <nav aria-label="Table of contents" className="hidden lg:block" style={{ position: 'sticky', top: '5.5rem', paddingTop: '0.25rem' }}>
-            <p style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: GOLD, marginBottom: '1rem' }}>Contents</p>
-            <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-              {SECTIONS.map(s => (
-                <li key={s.id}>
-                  <a href={`#${s.id}`} style={{ textDecoration: 'none', fontSize: '0.8125rem', color: 'hsl(var(--muted-foreground))', display: 'block', padding: '0.25rem 0', transition: 'color 0.2s', lineHeight: 1.5 }}
-                    onMouseOver={e => e.currentTarget.style.color = GOLD}
-                    onMouseOut={e => e.currentTarget.style.color = 'hsl(var(--muted-foreground))'}>{s.title.replace(/^\d+\.\s/, '')}</a>
-                </li>
+          <nav aria-label="Table of contents" className="hidden lg:block sticky top-28">
+            <p className="text-primary text-xs font-bold tracking-[0.15em] uppercase mb-6">Contents</p>
+            <ul className="flex flex-col gap-3">
+              {SECTIONS.map((s, i) => (
+                <motion.li key={s.id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 + (i*0.05) }}>
+                  <a href={`#${s.id}`} className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors block leading-snug">
+                    {s.title.replace(/^\\d+\\.\\s/, '')}
+                  </a>
+                </motion.li>
               ))}
             </ul>
           </nav>
 
           {/* Policy content */}
-          <article>
-            <div style={{ padding: '1.5rem', borderRadius: 10, border: `1px solid ${GOLD_LINE}`, background: GOLD_DIM, marginBottom: '3rem' }}>
-              <p style={{ fontSize: '0.875rem', lineHeight: 1.75, fontWeight: 400, color: 'hsl(var(--foreground))', margin: 0 }}>
-                <strong>Summary:</strong> We only collect what's needed to run the app. Your trading data belongs to you. We don't sell it. You can delete everything at any time.
+          <motion.article initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.4 }}>
+            <div className="p-6 rounded-2xl border border-primary/20 bg-primary/5 backdrop-blur-sm mb-12 shadow-inner">
+              <p className="text-sm md:text-base leading-relaxed font-medium text-foreground">
+                <strong className="text-primary mr-2 font-bold">Summary:</strong> 
+                We only collect what's needed to run the app. Your trading data belongs to you. We don't sell it. You can delete everything at any time.
               </p>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '3.5rem' }}>
+            <div className="flex flex-col gap-16">
               {SECTIONS.map(s => (
-                <section key={s.id} id={s.id} style={{ scrollMarginTop: '5.5rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.875rem', marginBottom: '1.25rem' }}>
-                    <div style={{ width: 3, height: 24, background: GOLD, borderRadius: 2, flexShrink: 0 }} />
-                    <h2 style={{ fontSize: '1.0625rem', fontWeight: 800, letterSpacing: '-0.02em', margin: 0 }}>{s.title}</h2>
+                <section key={s.id} id={s.id} className="scroll-mt-28">
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="w-1 h-8 bg-gradient-to-b from-primary to-primary-to rounded-full shrink-0 shadow-sm shadow-primary/30" />
+                    <h2 className="text-xl md:text-2xl font-bold tracking-tight text-foreground">{s.title}</h2>
                   </div>
-                  <div style={{ paddingLeft: '1.75rem' }}>
-                    {s.content.split('\n\n').map((block, i) => (
-                      <p key={i} style={{ fontSize: '0.9rem', color: 'hsl(var(--muted-foreground))', lineHeight: 1.85, fontWeight: 400, margin: '0 0 1rem', whiteSpace: 'pre-line' }}>{block}</p>
+                  <div className="pl-5 md:pl-8">
+                    {s.content.split('\\n\\n').map((block, i) => (
+                      <p key={i} className="text-base text-muted-foreground leading-relaxed font-medium mb-4 whitespace-pre-line">
+                        {block}
+                      </p>
                     ))}
                   </div>
-                  <div style={{ marginTop: '2rem', height: 1, background: 'hsl(var(--border))' }} />
                 </section>
               ))}
             </div>
-          </article>
+          </motion.article>
         </div>
       </main>
 
-      {/* Footer */}
-      <footer style={{ borderTop: '1px solid hsl(var(--border))', padding: '3rem 2rem' }}>
-        <div style={{ maxWidth: 1100, margin: '0 auto', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '1.5rem' }}>
-          <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'hsl(var(--foreground))' }}>
-            <span style={{ width: 24, height: 24, borderRadius: 5, background: `linear-gradient(135deg,${GOLD},#7B5A1A)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.58rem', fontWeight: 900, color: '#000' }}>XAU</span>
-            <span style={{ fontSize: '0.875rem', fontWeight: 800, letterSpacing: '-0.02em' }}>Gold Journal</span>
-          </Link>
-          <ul style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem', listStyle: 'none', margin: 0, padding: 0 }}>
-            {[{ to: '/', l: 'Home' }, { to: '/pricing', l: 'Pricing' }, { to: '/contact', l: 'Contact' }].map(({ to, l }) => (
-              <li key={to}><NavLink to={to} style={{ textDecoration: 'none', fontSize: '0.8125rem', color: 'hsl(var(--muted-foreground))', transition: 'color 0.2s' }} onMouseOver={e => e.currentTarget.style.color = 'hsl(var(--foreground))'} onMouseOut={e => e.currentTarget.style.color = 'hsl(var(--muted-foreground))'}>{l}</NavLink></li>
-            ))}
-          </ul>
-          <p style={{ fontSize: '0.75rem', color: 'hsl(var(--muted-foreground))', margin: 0 }}>© {new Date().getFullYear()} XAU Journal</p>
+      {/* ── Footer ────────────────────────────────────────────────── */}
+      <footer className="relative z-10 border-t border-border/50 py-12 px-6 bg-muted/10">
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex items-center gap-3">
+            <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primary-to flex items-center justify-center text-[0.6rem] font-black text-white shadow-md">XAU</span>
+            <span className="text-lg font-bold tracking-tight">Journal</span>
+          </div>
+          
+          <div className="flex flex-col items-center md:items-end gap-2 text-xs font-medium text-muted-foreground/60">
+            <div className="flex items-center gap-3">
+              <span>© {new Date().getFullYear()} XAU Journal</span>
+              <span className="w-1 h-1 rounded-full bg-border/40" />
+              <NavLink to="/privacy" className="hover:text-primary transition-colors">Privacy Policy</NavLink>
+            </div>
+            <span>Crafted with precision</span>
+          </div>
         </div>
       </footer>
+      {/* Scroll to Top */}
+      <button 
+        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} 
+        className={`fixed bottom-8 right-8 z-[90] p-3 rounded-full bg-primary/20 backdrop-blur-md border border-primary/30 text-primary shadow-lg shadow-primary/10 transition-all duration-500 hover:-translate-y-1 hover:bg-primary/30 ${showScroll ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10 pointer-events-none'}`}
+      >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 15l-6-6-6 6"/></svg>
+      </button>
     </div>
   );
 }
