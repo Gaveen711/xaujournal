@@ -1,5 +1,5 @@
 // api/sync-trade.js
-// XAU Journal — MT5 EA Sync Endpoint
+// xaujournal — MT5 EA Sync Endpoint
 // PRO ONLY: rejects API keys belonging to users whose subscription
 // has expired beyond the 1.5-week grace period.
 

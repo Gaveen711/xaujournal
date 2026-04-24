@@ -3,7 +3,13 @@ import { NavLink, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import Lenis from 'lenis';
 import { useAppTheme } from '../hooks/useAppTheme';
-import { MoonStarsFill, SunFill } from 'react-bootstrap-icons';
+import { 
+  MoonStarsFill, 
+  SunFill, 
+  CloudArrowDownFill, 
+  LightningChargeFill, 
+  BarChartLineFill 
+} from 'react-bootstrap-icons';
 
 /* ─── Data ───────────────────────────────────────────────────────── */
 const FEATURES = [
@@ -30,7 +36,7 @@ const FEATURES = [
   {
     icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
     title: 'Bank-Grade Security',
-    body: 'Firestore row-level security rules mean your data is yours alone. Nobody — including us — can access your trades.',
+    body: 'Strict isolated storage protocols mean your data is yours alone. Nobody — including us — can access your private trade history.',
   },
   {
     icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>,
@@ -40,9 +46,24 @@ const FEATURES = [
 ];
 
 const STEPS = [
-  { n: '01', title: 'Install the EA', body: 'Drop our MQL5 Expert Advisor onto any chart in MT5. It runs silently and requires no manual action.' },
-  { n: '02', title: 'Trade normally', body: 'The moment you close a position, the EA captures price, lot, P&L, and duration — and syncs everything instantly.' },
-  { n: '03', title: 'Find your edge', body: 'Review analytics, annotate trades, and study your calendar. Turn raw executions into actionable intelligence.' },
+  { 
+    id: '01',
+    icon: <CloudArrowDownFill className="w-6 h-6" />, 
+    title: 'Install the EA', 
+    body: 'Drop our MQL5 Expert Advisor onto any chart in MT5. It runs silently and requires no manual action.' 
+  },
+  { 
+    id: '02',
+    icon: <LightningChargeFill className="w-6 h-6" />, 
+    title: 'Trade normally', 
+    body: 'The moment you close a position, the EA captures price, lot, P&L, and duration — and syncs everything instantly.' 
+  },
+  { 
+    id: '03',
+    icon: <BarChartLineFill className="w-6 h-6" />, 
+    title: 'Find your edge', 
+    body: 'Review analytics, annotate trades, and study your calendar. Turn raw executions into actionable intelligence.' 
+  },
 ];
 
 const STATS = [
@@ -147,8 +168,7 @@ export function LandingPage() {
         <nav ref={navRef} className="fixed top-0 left-0 right-0 z-[100] h-16 flex items-center justify-between px-12 transition-all duration-500 ease-out border-b border-transparent bg-transparent">
           <button onClick={() => window.scrollTo({top:0,behavior:'smooth'})} aria-label="Go to top"
             className="flex items-center gap-2 hover:opacity-80 transition-opacity z-50">
-            <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primary-to flex items-center justify-center text-[0.65rem] font-black text-white shadow-lg shadow-primary/20">XAU</span>
-            <span className="text-lg font-bold tracking-tight">Journal</span>
+            <span className="text-lg font-bold tracking-tighter">xaujournal</span>
           </button>
 
           <ul className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center gap-1">
@@ -287,21 +307,35 @@ export function LandingPage() {
               
               {STEPS.map((step, i) => (
                 <motion.div 
-                  key={step.n}
+                  key={step.id}
                   initial={{ opacity: 0, y: 40 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.7, delay: i * 0.2 }}
-                  className="relative p-8 rounded-[2rem] bg-card border border-border/50 shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 group"
+                  whileHover={{ y: -12, scale: 1.02 }}
+                  className="relative p-8 rounded-[2.5rem] bg-card border border-border/50 shadow-xl hover:shadow-[0_30px_60px_-15px_rgba(139,92,246,0.15)] hover:border-primary/40 transition-all duration-500 group cursor-pointer"
                 >
-                  <div className="absolute -top-6 left-8 w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-primary-to text-white flex items-center justify-center text-xl font-black shadow-lg shadow-primary/30 group-hover:scale-110 transition-transform duration-500">
-                    {step.n}
+                  {/* Icon Badge */}
+                  <div className="absolute -top-6 left-8 w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-primary-to text-white flex items-center justify-center shadow-lg shadow-primary/20 group-hover:scale-110 group-hover:rotate-6 group-hover:shadow-primary/40 transition-all duration-500">
+                    {step.icon}
                   </div>
-                  <div className="absolute top-6 right-6 text-6xl font-black text-muted/30 select-none group-hover:text-primary/10 transition-colors duration-500">
-                    {step.n}
+                  
+                  {/* Subtle Background Number */}
+                  <div className="absolute top-8 right-8 text-7xl font-black text-foreground/[0.03] select-none group-hover:text-primary/[0.05] transition-colors duration-700">
+                    {step.id}
                   </div>
-                  <h3 className="text-xl font-bold mt-8 mb-4 tracking-tight group-hover:text-primary transition-colors">{step.title}</h3>
-                  <p className="text-muted-foreground leading-relaxed font-medium">{step.body}</p>
+
+                  <div className="mt-8">
+                    <h3 className="text-2xl font-bold mb-4 tracking-tight group-hover:text-primary transition-colors duration-300">
+                      {step.title}
+                    </h3>
+                    <p className="text-muted-foreground leading-relaxed font-medium text-base">
+                      {step.body}
+                    </p>
+                  </div>
+
+                  {/* Hover Glow Effect */}
+                  <div className="absolute inset-0 rounded-[2.5rem] bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
                 </motion.div>
               ))}
             </div>
@@ -345,14 +379,13 @@ export function LandingPage() {
       {/* ── Footer ────────────────────────────────────────────────── */}
       <footer className="relative z-10 border-t border-border/50 py-12 px-6 bg-muted/10">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-3">
-            <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primary-to flex items-center justify-center text-[0.6rem] font-black text-white shadow-md">XAU</span>
-            <span className="text-lg font-bold tracking-tight">Journal</span>
+          <div className="flex items-center gap-2">
+            <span className="text-lg font-bold tracking-tighter">xaujournal</span>
           </div>
           
           <div className="flex flex-col items-center md:items-end gap-2 text-xs font-medium text-muted-foreground/60">
             <div className="flex items-center gap-3">
-              <span>© {new Date().getFullYear()} XAU Journal</span>
+              <span>© {new Date().getFullYear()} xaujournal</span>
               <span className="w-1 h-1 rounded-full bg-border/40" />
               <NavLink to="/privacy" className="hover:text-primary transition-colors">Privacy Policy</NavLink>
             </div>

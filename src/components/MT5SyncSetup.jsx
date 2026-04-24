@@ -1,5 +1,5 @@
 // src/components/MT5SyncSetup.jsx
-// XAU Journal — MT5 & TradingView Auto-Sync Settings UI
+// xaujournal — MT5 & TradingView Auto-Sync Settings UI
 // Calls Vercel API routes (not Firebase callable functions).
 // Auth: sends Firebase ID token as Authorization: Bearer header.
 

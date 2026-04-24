@@ -1,10 +1,10 @@
-# XAU Journal — Pro Trade Intelligence Terminal
+# xaujournal — Pro Trade Intelligence Terminal
 
 A high-performance, premium trading journal designed for XAU/USD (Gold) and Forex market participants. Built with a sleek, dark terminal aesthetic and professional-grade security.
 
 ## 🚀 Project Scope
 
-The XAU Journal project aims to provide traders with a frictionless, insight-driven environment to log operations and refine their market strategies. The project scope encompasses:
+The xaujournal project aims to provide traders with a frictionless, insight-driven environment to log operations and refine their market strategies. The project scope encompasses:
 
 ### 1. Performance Terminal (The Execution Engine)
 *   **Precision Logging**: Real-time trade entry with automated P&L calculation based on market-specific pips and lot sizes.
@@ -36,4 +36,4 @@ The XAU Journal project aims to provide traders with a frictionless, insight-dri
 Includes a fully integrated **Privacy Protocol** documenting AES-256 encryption standards and Stripe PCI-compliant processing.
 
 ---
-© 2026 XAU Journal. Curated By Gaveen Perera
+© 2026 xaujournal. Curated By Gaveen Perera

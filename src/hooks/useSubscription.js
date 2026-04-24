@@ -85,7 +85,8 @@ export function useSubscription(user) {
         body: JSON.stringify({ 
           origin: window.location.origin,
           email: user.email,
-          userId: user.uid
+          userId: user.uid,
+          planType: 'pro_monthly' // Defaulting to pro_monthly for now
         })
       });
       

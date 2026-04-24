@@ -20,7 +20,7 @@ export function ConsentModal({ onAgree }) {
         <div className="space-y-3">
           <h2 className="text-3xl font-black text-gradient uppercase tracking-tight">Access Protocol</h2>
           <p className="text-xs text-muted-foreground font-medium uppercase tracking-[0.2em] leading-relaxed">
-            By entering the XAU Journal terminal, you acknowledge our data synchronization protocols.
+            By entering the xaujournal terminal, you acknowledge our data synchronization protocols.
           </p>
         </div>
 
@@ -29,7 +29,7 @@ export function ConsentModal({ onAgree }) {
             <p className="font-bold text-foreground/80 uppercase tracking-widest text-[9px]">The Intelligence Agreement:</p>
             <ul className="space-y-2 list-disc list-inside text-muted-foreground">
               <li>You agree to our <button onClick={() => navigate('/privacy')} className="text-primary hover:underline font-black uppercase">Privacy & Policy</button>.</li>
-              <li>You consent to secure synchronized data storage via Firebase.</li>
+              <li>You consent to secure, isolated cloud synchronization protocols.</li>
               <li>You accept automated MT5 signal transmission if EA is activated.</li>
             </ul>
           </div>

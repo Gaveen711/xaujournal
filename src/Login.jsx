@@ -96,7 +96,7 @@ function Login() {
                 {isSignUp ? 'Create Account' : 'Welcome Back'}
               </h1>
               <p className="text-[10px] text-muted-foreground/60 font-black uppercase tracking-[0.2em]">
-                {isSignUp ? 'Start your gold journal' : 'Sign in to your journal'}
+                {isSignUp ? 'Start your xaujournal' : 'Sign in to your journal'}
               </p>
             </div>
           </div>

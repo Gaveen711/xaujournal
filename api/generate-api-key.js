@@ -1,5 +1,5 @@
 // api/generate-api-key.js
-// XAU Journal — Generate a per-user MT5/TradingView sync API key
+// xaujournal — Generate a per-user MT5/TradingView sync API key
 // PRO ONLY — returns 403 if user is on free plan or grace period has lapsed.
 
 import crypto from 'crypto';

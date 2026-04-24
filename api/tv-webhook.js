@@ -1,5 +1,5 @@
 // api/tv-webhook.js
-// XAU Journal — TradingView Alert Webhook
+// xaujournal — TradingView Alert Webhook
 // Receives alert payloads from TradingView strategies.
 //
 // TradingView Alert Message template:

@@ -1,5 +1,5 @@
 // functions/index.js
-// XAU Journal — Auto-Sync Cloud Functions
+// xaujournal — Auto-Sync Cloud Functions
 //
 // Handles trade data from:
 //   • MT5 Expert Advisor  (x-api-key header auth)

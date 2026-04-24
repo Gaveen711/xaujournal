@@ -94,12 +94,9 @@ export function DashboardLayout({ user, plan, expiry, totalTrades, totalJournals
 
             <div className="flex items-center gap-8">
               <div className="flex-shrink-0 flex items-center gap-2 cursor-pointer group transition-all duration-300" onClick={() => (window.location.href = '/app')}>
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-purple-500 flex items-center justify-center text-white font-black text-xs shadow-lg shadow-primary/30 group-hover:rotate-12 group-hover:scale-110 transition-all duration-500">My</div>
-                <div className="flex items-center gap-2">
-                  <span className="font-bold tracking-tight hidden sm:block group-hover:text-primary transition-colors duration-300">Journal</span>
-                  <div className={`px-2 py-0.5 rounded-full text-[7px] font-black uppercase tracking-[0.15em] border transition-all duration-500 ${plan === 'pro' ? 'bg-primary/20 text-primary border-primary/40 shadow-[0_0_15px_rgba(139,92,246,0.2)]' : 'bg-white/5 text-foreground/40 border-white/10'}`}>
-                    {plan}
-                  </div>
+                <span className="text-lg font-bold tracking-tighter group-hover:text-primary transition-colors duration-300">xaujournal</span>
+                <div className={`px-2 py-0.5 rounded-full text-[7px] font-black uppercase tracking-[0.15em] border transition-all duration-500 ${plan === 'pro' ? 'bg-primary/20 text-primary border-primary/40 shadow-[0_0_15px_rgba(139,92,246,0.2)]' : 'bg-white/5 text-foreground/40 border-white/10'}`}>
+                  {plan}
                 </div>
               </div>
               
@@ -292,17 +289,14 @@ export function DashboardLayout({ user, plan, expiry, totalTrades, totalJournals
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8 relative z-10">
 
           <div className="flex flex-col items-center md:items-start gap-4">
-            <div className="flex items-center gap-3 group cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary to-purple-500 flex items-center justify-center text-white font-black text-[10px] group-hover:scale-110 transition-transform duration-500">
-                My
-              </div>
-              <span className="text-sm font-black uppercase tracking-widest group-hover:text-primary transition-colors duration-300">Journal</span>
+            <div className="flex items-center gap-2 group cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+              <span className="text-lg font-bold tracking-tighter group-hover:text-primary transition-colors duration-300">xaujournal</span>
             </div>
           </div>
 
           <div className="flex flex-col items-center md:items-end gap-3 uppercase font-black text-[10px] tracking-widest">
             <p className="text-foreground/30 flex items-center gap-3">
-              © {new Date().getFullYear()} XAU Journal 
+              © {new Date().getFullYear()} xaujournal 
               <span className="w-1 h-1 rounded-full bg-border/40" />
               <NavLink to="/privacy" className="hover:text-primary transition-colors">Privacy Policy</NavLink>
             </p>

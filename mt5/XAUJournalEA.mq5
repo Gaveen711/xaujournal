@@ -1,23 +1,23 @@
 //+------------------------------------------------------------------+
 //|                                          XAUJournalEA.mq5        |
-//|                               XAU Journal — MT5 Auto-Sync EA     |
+//|                               xaujournal — MT5 Auto-Sync EA     |
 //+------------------------------------------------------------------+
 //
 //  INSTALL (3 minutes):
 //  1. MT5 → File → Open Data Folder → MQL5/Experts/ → paste this file
 //  2. MetaEditor (F4) → open file → F7 to compile
 //  3. Drag EA onto any XAUUSD chart
-//  4. EA Properties → paste your API Key + Endpoint URL from XAU Journal settings
+//  4. EA Properties → paste your API Key + Endpoint URL from xaujournal settings
 //  5. Tools → Options → Expert Advisors → Allow WebRequest
 //     → add your Endpoint URL to the allowed list
 //  6. Trade normally — every trade auto-syncs ✓
 //
 //+------------------------------------------------------------------+
 
-#property copyright "XAU Journal"
+#property copyright "xaujournal"
 #property version   "1.00"
 
-input string ApiKey       = "";         // XAU Journal API Key
+input string ApiKey       = "";         // xaujournal API Key
 input string EndpointURL  = "";         // Cloud Function URL e.g. https://xaujournal.vercel.app/api/sync-trade
 input string TrackSymbols = "XAUUSD";  // Comma-separated symbols, blank = ALL
 input bool   DebugLogs    = false;      // Show verbose logs in Experts tab
@@ -30,7 +30,7 @@ int OnInit()
 {
    if(ApiKey == "" || EndpointURL == "")
    {
-      Alert("XAU Journal EA: API Key and Endpoint URL are required.\n"
+      Alert("xaujournal EA: API Key and Endpoint URL are required.\n"
             "Right-click the EA → Properties → Inputs.");
       return INIT_PARAMETERS_INCORRECT;
    }
@@ -48,7 +48,7 @@ int OnInit()
    }
 
    string tracking = (g_symbolCount == 0) ? "ALL symbols" : TrackSymbols;
-   Print("XAU Journal EA active. Tracking: ", tracking);
+   Print("xaujournal EA active. Tracking: ", tracking);
    return INIT_SUCCEEDED;
 }
 
@@ -111,7 +111,7 @@ void OnTradeTransaction(const MqlTradeTransaction& trans,
       lots, price, profit, commission, swap, timeStr, comment
    );
 
-   if(DebugLogs) Print("XAU Journal SEND: ", json);
+   if(DebugLogs) Print("xaujournal SEND: ", json);
    PostToJournal(json);
 }
 
@@ -128,12 +128,12 @@ void PostToJournal(string json)
                          body, response, responseHeaders);
 
    if(code == -1)
-      Print("XAU Journal EA WebRequest error ", GetLastError(),
+      Print("xaujournal EA WebRequest error ", GetLastError(),
             ". Whitelist URL in Tools → Options → Expert Advisors.");
    else if(code == 200)
-      Print("XAU Journal: trade synced OK");
+      Print("xaujournal: trade synced OK");
    else
-      Print("XAU Journal: HTTP ", code, " | ", CharArrayToString(response));
+      Print("xaujournal: HTTP ", code, " | ", CharArrayToString(response));
 }
 
 //+------------------------------------------------------------------+
@@ -144,4 +144,4 @@ bool IsTracked(string symbol)
    return false;
 }
 
-void OnDeinit(const int reason) { Print("XAU Journal EA stopped."); }
+void OnDeinit(const int reason) { Print("xaujournal EA stopped."); }

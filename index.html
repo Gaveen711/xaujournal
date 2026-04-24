@@ -4,14 +4,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <script>
-    if (localStorage.getItem('xau-theme') === 'light') {
-      document.documentElement.classList.remove('dark');
-    }
-  </script>
+  <script src="/theme-init.js"></script>
 
   <!-- ── Primary SEO ────────────────────────────────────────────── -->
-  <title>Gold Journal — XAUUSD Trading Journal & Analytics</title>
+  <title>xaujournal — XAUUSD Trading Journal & Analytics</title>
   <meta name="description"
     content="The trading journal built exclusively for gold traders. Automated MT5 sync, deep analytics, trade calendar, and session intelligence for XAUUSD." />
   <meta name="keywords"
@@ -28,15 +24,15 @@
   <!-- ── Open Graph ─────────────────────────────────────────────── -->
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://xaujournal.com" />
-  <meta property="og:title" content="Gold Journal — XAUUSD Trading Journal & Analytics" />
+  <meta property="og:title" content="xaujournal — XAUUSD Trading Journal & Analytics" />
   <meta property="og:description"
     content="Automated MT5 sync, deep analytics, and a beautiful calendar — everything a gold trader needs." />
   <meta property="og:image" content="https://xaujournal.com/og-image.png" />
-  <meta property="og:site_name" content="Gold Journal" />
+  <meta property="og:site_name" content="xaujournal" />
 
   <!-- ── Twitter / X ───────────────────────────────────────────── -->
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Gold Journal — XAUUSD Trading Journal" />
+  <meta name="twitter:title" content="xaujournal — XAUUSD Trading Journal" />
   <meta name="twitter:description"
     content="The only trading journal built exclusively for gold traders. MT5 sync, analytics, calendar." />
   <meta name="twitter:image" content="https://xaujournal.com/og-image.png" />
@@ -50,7 +46,7 @@
     {
       "@context": "https://schema.org",
       "@type": "SoftwareApplication",
-      "name": "Gold Journal",
+      "name": "xaujournal",
       "description": "XAUUSD trading journal with automated MT5 sync and advanced analytics",
       "applicationCategory": "FinanceApplication",
       "operatingSystem": "Web",
@@ -81,32 +77,7 @@
 <body>
   <div id="root"></div>
   <script type="module" src="/src/main.jsx"></script>
-  <script>
-    // SECURITY SHIELD: Maximum protection against inspection
-    (function() {
-      // 1. Disable Right Click
-      document.addEventListener('contextmenu', e => e.preventDefault());
-
-      // 2. Disable Keyboard Shortcuts (F12, Ctrl+Shift+I, Ctrl+U, Ctrl+S)
-      document.addEventListener('keydown', e => {
-        if (
-          e.keyCode === 123 || // F12
-          (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74 || e.keyCode === 67)) || // Ctrl+Shift+I/J/C
-          (e.ctrlKey && (e.keyCode === 85 || e.keyCode === 83)) // Ctrl+U or Ctrl+S
-        ) {
-          e.preventDefault();
-          return false;
-        }
-      });
-
-      // 3. Clear console on load and continuously
-      if (typeof console !== "undefined") {
-        console.clear();
-        const clear = () => console.clear();
-        setInterval(clear, 2000);
-      }
-    })();
-  </script>
+  <script src="/security-shield.js"></script>
 </body>
 
 </html>

@@ -20,24 +20,37 @@ export function useWallet(user) {
         const userRef = doc(db, "users", user.uid);
         const userSnap = await getDoc(userRef);
         
-        // 1. Check Cloud Balance
+        let cloudStartingBalance = undefined;
+        let cloudMonthlyGoal = undefined;
+
         if (userSnap.exists()) {
           const data = userSnap.data();
-          if (data.startingBalance !== undefined) setStartingBalance(data.startingBalance);
-          if (data.monthlyGoal !== undefined) setMonthlyGoal(data.monthlyGoal);
-        } else {
-          // 2. Migration Check
+          cloudStartingBalance = data.startingBalance;
+          cloudMonthlyGoal = data.monthlyGoal;
+        }
+
+        // 2. Migration & Initialization Check
+        if (cloudStartingBalance === undefined) {
           const localBal = await storage.get('xau-starting-balance');
+          const bal = localBal !== null ? (parseFloat(localBal) || 0) : 0;
+          
+          // Save to cloud immediately to fix the orphaned local state
+          await updateDoc(userRef, { startingBalance: bal }, { merge: true });
+          setStartingBalance(bal);
+          
           if (localBal !== null) {
-            const bal = parseFloat(localBal) || 0;
-            // Save to cloud
-            await updateDoc(userRef, { startingBalance: bal });
-            setStartingBalance(bal);
-            // Cleanup local
             await storage.remove('xau-starting-balance');
-          } else {
-            setStartingBalance(0);
           }
+        } else {
+          setStartingBalance(cloudStartingBalance);
+        }
+
+        if (cloudMonthlyGoal !== undefined) {
+          setMonthlyGoal(cloudMonthlyGoal);
+        } else {
+          // Initialize goal if missing
+          await updateDoc(userRef, { monthlyGoal: 1000 }, { merge: true });
+          setMonthlyGoal(1000);
         }
       } catch (error) {
         console.error('Wallet Sync Error:', error);

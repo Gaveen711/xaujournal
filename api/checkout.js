@@ -73,8 +73,8 @@ export default async function handler(req, res) {
           price_data: {
             currency: 'usd',
             product: process.env.STRIPE_PRODUCT_ID || process.env.VITE_STRIPE_PRODUCT_ID || 'prod_UNob9xTUDh4IOn',
-            unit_amount: 2999, // $29.99
-            recurring: { interval: 'month' },
+            unit_amount: req.body.planType === 'pro_yearly' ? 19900 : 2999,
+            recurring: { interval: req.body.planType === 'pro_yearly' ? 'year' : 'month' },
           },
           quantity: 1,
         },

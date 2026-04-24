@@ -1,6 +1,6 @@
 {
   "name": "functions",
-  "description": "XAU Journal — Firebase Cloud Functions",
+  "description": "xaujournal — Firebase Cloud Functions",
   "scripts": {
     "serve": "firebase emulators:start --only functions",
     "shell": "firebase functions:shell",

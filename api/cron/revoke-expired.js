@@ -1,5 +1,5 @@
 // api/cron/revoke-expired.js
-// XAU Journal — Daily cron: revoke API keys for users whose grace period has ended.
+// xaujournal — Daily cron: revoke API keys for users whose grace period has ended.
 //
 // Runs daily at 11:00 UTC (configured in vercel.json).
 // Finds all users with plan='grace' and graceUntil < now,

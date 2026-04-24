@@ -9,9 +9,9 @@ const SECTIONS = [
   {
     id: 'data-collection',
     title: '1. What data we collect',
-    content: `We collect only what is necessary to operate Gold Journal:
+    content: `We collect only what is necessary to operate xaujournal:
 
-• Account data — your email address, display name, and authentication provider (email/password or Google OAuth) via Firebase Authentication.
+• Account data — your email address, display name, and authentication provider (email/password or Google OAuth) via secure industry-standard authentication.
 
 • Trade data — entry/exit prices, lot size, direction, duration, P&L, and any notes you attach. This is sent by you manually or by the MT5 Expert Advisor under your explicit control.
 
@@ -22,9 +22,9 @@ const SECTIONS = [
   {
     id: 'data-security',
     title: '2. How we protect your data',
-    content: `All data in transit is encrypted via TLS 1.3. Data at rest is stored in Google Firebase (Firestore), protected by Firestore Security Rules that enforce strict user-level isolation — no user can access another user's data, and neither can we in normal operation.
+    content: `All data in transit is encrypted via TLS 1.3. Data at rest is stored in encrypted, isolated cloud databases protected by strict security protocols that enforce user-level isolation — no user can access another user's data, and neither can we in normal operation.
 
-Your trade data is scoped under the path users/{uid}/trades, meaning only a valid Firebase Auth token for your account grants read/write access. API keys for MT5 sync are stored in a separate Firestore collection, hashed, and can be rotated or revoked at any time from your account settings.`,
+Your trade data is strictly scoped, meaning only a valid authentication token for your account grants read/write access. API keys for MT5 sync are stored in a separate secure collection, hashed, and can be rotated or revoked at any time from your account settings.`,
   },
   {
     id: 'mt5-sync',
@@ -38,16 +38,16 @@ You can revoke sync access at any time by rotating your API key or removing the 
   {
     id: 'payments',
     title: '4. Payments & subscriptions',
-    content: `All financial transactions are processed by Stripe. Gold Journal does not store credit card numbers, CVVs, or bank details on our servers. When you upgrade to Pro, we create a Stripe Customer and Subscription linked to your Firebase UID.
+    content: `All financial transactions are processed by Stripe. xaujournal does not store credit card numbers, CVVs, or bank details on our servers. When you upgrade to Pro, we create a Stripe Customer and Subscription linked to your unique account identifier.
 
-Subscription status (active, cancelled, past due) is synced from Stripe webhooks to Firestore and used to gate Pro features. You can manage or cancel your subscription at any time via the billing portal accessible from your account settings.`,
+Subscription status (active, cancelled, past due) is synced securely to our database and used to gate Pro features. You can manage or cancel your subscription at any time via the billing portal accessible from your account settings.`,
   },
   {
     id: 'data-sharing',
     title: '5. Data sharing & third parties',
     content: `We do not sell, rent, or share your personal or trading data with any third party for advertising or commercial purposes. The only third-party services that process your data are:
 
-• Google Firebase — authentication and database storage.
+• Infrastructure partners — secure authentication and cloud storage.
 • Stripe — payment processing and subscription management.
 • Vercel — serverless function hosting for the sync API.
 
@@ -61,24 +61,24 @@ Each of these services maintains its own privacy and security certifications (SO
 • Export — download a CSV of all trade records from the History page at any time.
 • Delete entries — permanently remove individual trades from the History page.
 • Reset account — use the "Reset Terminal" function in account settings to wipe all trade and journal data.
-• Delete account — contact us at support@xaujournal.com to permanently delete your account. All associated data will be purged from Firestore within 30 days.
+• Delete account — contact us at support@xaujournal.com to permanently delete your account. All associated data will be purged from our records within 30 days.
 
 If you are located in the European Economic Area (EEA), you have additional rights under the GDPR including the right to access, rectify, port, and erase your data. Contact us to exercise any of these rights.`,
   },
   {
     id: 'cookies',
     title: '7. Cookies & local storage',
-    content: `Gold Journal uses minimal browser storage:
+    content: `xaujournal uses minimal browser storage:
 
 • localStorage — stores your onboarding state, starting balance, and theme preference. This data never leaves your device.
-• Firebase Auth SDK — stores an authentication token in IndexedDB to keep you logged in between sessions. This is essential for the app to function.
+• Authentication service — stores an authentication token in IndexedDB to keep you logged in between sessions. This is essential for the app to function.
 
 We do not use advertising cookies, tracking pixels, or third-party analytics scripts.`,
   },
   {
     id: 'changes',
     title: '8. Changes to this policy',
-    content: `We may update this policy as the product evolves. Material changes will be communicated via the in-app notification system and by email to your registered address at least 14 days before they take effect. Continued use of Gold Journal after that date constitutes acceptance of the revised policy.`,
+    content: `We may update this policy as the product evolves. Material changes will be communicated via the in-app notification system and by email to your registered address at least 14 days before they take effect. Continued use of xaujournal after that date constitutes acceptance of the revised policy.`,
   },
   {
     id: 'contact',
@@ -172,8 +172,7 @@ export function PrivacyPolicyPage() {
       <header>
         <nav ref={navRef} className="fixed top-0 left-0 right-0 z-[100] h-16 flex items-center justify-between px-6 transition-all duration-500 ease-out border-b border-transparent bg-transparent">
           <button onClick={() => { navigate('/'); window.scrollTo(0,0); }} aria-label="Go home" className="flex items-center gap-2 hover:opacity-80 transition-opacity z-50">
-            <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primary-to flex items-center justify-center text-[0.65rem] font-black text-white shadow-lg shadow-primary/20">XAU</span>
-            <span className="text-lg font-bold tracking-tight">Journal</span>
+            <span className="text-lg font-bold tracking-tighter">xaujournal</span>
           </button>
 
           <ul className="hidden md:flex items-center gap-1">
@@ -287,14 +286,13 @@ export function PrivacyPolicyPage() {
       {/* ── Footer ────────────────────────────────────────────────── */}
       <footer className="relative z-10 border-t border-border/50 py-12 px-6 bg-muted/10">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-3">
-            <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primary-to flex items-center justify-center text-[0.6rem] font-black text-white shadow-md">XAU</span>
-            <span className="text-lg font-bold tracking-tight">Journal</span>
+          <div className="flex items-center gap-2">
+            <span className="text-lg font-bold tracking-tighter">xaujournal</span>
           </div>
           
           <div className="flex flex-col items-center md:items-end gap-2 text-xs font-medium text-muted-foreground/60">
             <div className="flex items-center gap-3">
-              <span>© {new Date().getFullYear()} XAU Journal</span>
+              <span>© {new Date().getFullYear()} xaujournal</span>
               <span className="w-1 h-1 rounded-full bg-border/40" />
               <NavLink to="/privacy" className="hover:text-primary transition-colors">Privacy Policy</NavLink>
             </div>

@@ -47,7 +47,11 @@ export function useTrades(user) {
   }, [user]);
 
   const addTrade = async (tradeData) => {
-    const docRef = await addDoc(collection(db, 'users', user.uid, 'trades'), tradeData);
+    const collRef = collection(db, 'users', user.uid, 'trades');
+    const docRef  = await addDoc(collRef, tradeData);
+    // Persist the ID inside the document to prevent orphaned record risk
+    await updateDoc(docRef, { id: docRef.id });
+    
     await updateDoc(doc(db, 'users', user.uid), {
       totalTradesLogged: increment(1)
     });
@@ -62,8 +66,8 @@ export function useTrades(user) {
   };
 
   const editTrade = async (id, updatedData) => {
-    const { id: _, ...cleanData } = updatedData;
-    await updateDoc(doc(db, 'users', user.uid, 'trades', id), cleanData);
+    // We explicitly keep the id if it exists in updatedData to maintain record identity
+    await updateDoc(doc(db, 'users', user.uid, 'trades', id), updatedData);
   };
 
   const resetTrades = async () => {

@@ -26,10 +26,10 @@ const PRO_FEATURES = [
 
 const FAQ = [
   { q: 'Can I cancel anytime?', a: 'Yes. Cancel from the billing portal at any time. You keep Pro access until the end of your billing period — no partial-month charges.' },
-  { q: 'Is my trading data safe?', a: 'Your data is stored in Firebase with row-level security rules. Only you can access it. We cannot read your trades.' },
+  { q: 'Is my trading data secure?', a: 'Your data is secured using industry-standard encryption and isolated cloud storage. Only you have access to your trade history; we cannot read your private logs.' },
   { q: 'Does the EA work on mobile MT5?', a: 'Expert Advisors require the MT5 desktop terminal on Windows. The recommended workflow is to run the EA on your desktop while executing trades from mobile — data syncs in real time.' },
   { q: 'What payment methods do you accept?', a: 'All major credit and debit cards via Stripe. No PayPal at this time.' },
-  { q: 'Is there a free trial for Pro?', a: 'The free plan lets you experience the full interface. A 7-day Pro trial is on our roadmap — sign up to be notified.' },
+  { q: 'Is there a free trial for Pro?', a: 'The free plan provides full access to the core journaling experience. We are currently developing a Pro trial experience—sign up to be notified when it launches.' },
 ];
 
 export function PricingPage() {
@@ -116,8 +116,7 @@ export function PricingPage() {
       <header>
         <nav ref={navRef} className="fixed top-0 left-0 right-0 z-[100] h-16 flex items-center justify-between px-12 transition-all duration-500 ease-out border-b border-transparent bg-transparent">
           <button onClick={() => { navigate('/'); window.scrollTo(0,0); }} aria-label="Go home" className="flex items-center gap-2 hover:opacity-80 transition-opacity z-50">
-            <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primary-to flex items-center justify-center text-[0.65rem] font-black text-white shadow-lg shadow-primary/20">XAU</span>
-            <span className="text-lg font-bold tracking-tight">Journal</span>
+            <span className="text-lg font-bold tracking-tighter">xaujournal</span>
           </button>
 
           <ul className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center gap-1">
@@ -265,14 +264,13 @@ export function PricingPage() {
       {/* Footer */}
       <footer className="relative z-10 border-t border-border/50 py-12 px-6 bg-muted/10">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-3">
-            <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primary-to flex items-center justify-center text-[0.6rem] font-black text-white shadow-md">XAU</span>
-            <span className="text-lg font-bold tracking-tight">Journal</span>
+          <div className="flex items-center gap-2">
+            <span className="text-lg font-bold tracking-tighter">xaujournal</span>
           </div>
           
           <div className="flex flex-col items-center md:items-end gap-2 text-xs font-medium text-muted-foreground/60">
             <div className="flex items-center gap-3">
-              <span>© {new Date().getFullYear()} XAU Journal</span>
+              <span>© {new Date().getFullYear()} xaujournal</span>
               <span className="w-1 h-1 rounded-full bg-border/40" />
               <NavLink to="/privacy" className="hover:text-primary transition-colors">Privacy Policy</NavLink>
             </div>

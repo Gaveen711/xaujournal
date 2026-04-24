@@ -102,8 +102,7 @@ export function ContactPage() {
             <header>
                 <nav ref={navRef} className="fixed top-0 left-0 right-0 z-[100] h-16 flex items-center justify-between px-12 transition-all duration-500 ease-out border-b border-transparent bg-transparent">
                     <button onClick={() => { navigate('/'); window.scrollTo(0,0); }} aria-label="Go home" className="flex items-center gap-2 hover:opacity-80 transition-opacity z-50">
-                        <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primary-to flex items-center justify-center text-[0.65rem] font-black text-white shadow-lg shadow-primary/20">XAU</span>
-                        <span className="text-lg font-bold tracking-tight">Journal</span>
+                        <span className="text-lg font-bold tracking-tighter">xaujournal</span>
                     </button>
 
                     <ul className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center gap-1">
@@ -239,14 +238,13 @@ export function ContactPage() {
             {/* ── Footer ────────────────────────────────────────────────── */}
             <footer className="relative z-10 border-t border-border/50 py-12 px-6 bg-muted/10">
                 <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-                    <div className="flex items-center gap-3">
-                        <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primary-to flex items-center justify-center text-[0.6rem] font-black text-white shadow-md">XAU</span>
-                        <span className="text-lg font-bold tracking-tight">Journal</span>
+                    <div className="flex items-center gap-2">
+                        <span className="text-lg font-bold tracking-tighter">xaujournal</span>
                     </div>
                     
                     <div className="flex flex-col items-center md:items-end gap-2 text-xs font-medium text-muted-foreground/60">
                         <div className="flex items-center gap-3">
-                            <span>© {new Date().getFullYear()} XAU Journal</span>
+                            <span>© {new Date().getFullYear()} xaujournal</span>
                             <span className="w-1 h-1 rounded-full bg-border/40" />
                             <NavLink to="/privacy" className="hover:text-primary transition-colors">Privacy Policy</NavLink>
                         </div>

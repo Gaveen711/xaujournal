@@ -1,5 +1,5 @@
 // api/revoke-api-key.js
-// XAU Journal — Revoke a user's MT5/TradingView sync API key
+// xaujournal — Revoke a user's MT5/TradingView sync API key
 // Called from the React Settings page with a valid Firebase ID token.
 //
 // Request:

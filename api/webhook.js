@@ -1,5 +1,5 @@
 // api/webhook.js
-// XAU Journal — Stripe Webhook Handler
+// xaujournal — Stripe Webhook Handler
 //
 // Events handled:
 //   checkout.session.completed      → upgrade user to Pro
