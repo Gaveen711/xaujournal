@@ -23,9 +23,11 @@ export function LogTradePage() {
   
 
 
-  const TRADE_LIMIT = 25;
-  const usedTrades = totalTrades || 0;
-  const isLimitReached = plan === 'free' && usedTrades >= TRADE_LIMIT;
+  const TRADE_LIMIT = 50;
+  const now = new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+  const thisMonthTradesCount = trades.filter(t => t.date >= monthStart).length;
+  const isLimitReached = plan === 'free' && thisMonthTradesCount >= TRADE_LIMIT;
 
   const [direction, setDirection] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -55,7 +57,7 @@ export function LogTradePage() {
     
     if (isLimitReached) {
       setShowPricingModal(true);
-      toast(`Free plan limit reached (${TRADE_LIMIT} trades). Please upgrade to Pro Version.`, 'warn');
+      toast(`Monthly limit reached (${TRADE_LIMIT} trades). Access will reset next month, or upgrade now for unlimited logs.`, 'warn');
       return;
     }
 
@@ -72,7 +74,7 @@ export function LogTradePage() {
     const leverageVal = formData.get('leverage');
 
     if (!date || !direction || isNaN(entryVal) || isNaN(exitVal) || isNaN(lotsVal)) {
-      toast('Please fill in date, direction, and prices.', 'error');
+      toast('Please complete all required fields.', 'error');
       setSaving(false);
       return;
     }
@@ -92,10 +94,9 @@ export function LogTradePage() {
       setDirection(null);
       setDate(todayStr());
       setEntry(''); setExit(''); setLots('0.10'); setSwap(''); setSl(''); setTp(''); setNote(''); setLeverage(''); setSession(''); setSetup('');
-      const icon = outcome === 'WIN' ? '🟢' : outcome === 'LOSS' ? '🔴' : '🟡';
-      toast(`${icon} Trade saved — ${outcome} ${pnl >= 0 ? '+' : ''}$${Math.abs(pnl).toFixed(2)}`, outcome === 'WIN' ? 'success' : outcome === 'LOSS' ? 'error' : 'warn');
+      toast(`Trade recorded: ${outcome} ${pnl >= 0 ? '+' : ''}$${Math.abs(pnl).toFixed(2)}`, outcome === 'WIN' ? 'success' : outcome === 'LOSS' ? 'error' : 'warn');
     } catch (error) {
-      toast('Failed to save trade — ' + error.message, 'lost');
+      toast('Failed to record trade. Please try again.', 'error');
     } finally {
       setSaving(false);
     }
@@ -232,8 +233,6 @@ export function LogTradePage() {
   const currentWalletBalance = (startingBalance || 0) + trades.reduce((s,t)=> s + (t.pnl || 0), 0);
   const winRate = chartVisibleTrades.length ? (chartVisibleTrades.filter(t => t.outcome === 'WIN').length / chartVisibleTrades.length * 100).toFixed(0) : 0;
 
-  const now = new Date();
-  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
   const thisMonthTrades = trades.filter(t => t.date >= monthStart);
   const thisMonthPnl = thisMonthTrades.reduce((s,t) => s + (t.pnl || 0), 0);
   const goalProgress = Math.min(100, Math.max(0, (thisMonthPnl / (monthlyGoal || 1)) * 100));
@@ -494,12 +493,12 @@ export function LogTradePage() {
                 <div className="space-y-2 pt-2">
                   <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
                     <span>Operation Limit</span>
-                    <span>{usedTrades} / {TRADE_LIMIT} Logs</span>
+                    <span>{thisMonthTradesCount} / {TRADE_LIMIT} Logs</span>
                   </div>
                   <div className="h-2 w-full bg-muted rounded-full overflow-hidden border border-border/30 shadow-inner">
                     <div 
                       className={`h-full transition-all duration-1000 ease-[var(--apple-ease)] ${isLimitReached ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' : 'bg-primary'}`} 
-                      style={{ width: `${(usedTrades / TRADE_LIMIT) * 100}%` }}
+                      style={{ width: `${(thisMonthTradesCount / TRADE_LIMIT) * 100}%` }}
                     />
                   </div>
                 </div>

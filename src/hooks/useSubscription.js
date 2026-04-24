@@ -98,7 +98,7 @@ export function useSubscription(user) {
       }
     } catch (error) {
       console.error("Checkout Error:", error);
-      toast("Could not initiate checkout. Check your Vercel logs.", "error");
+      toast("Could not initiate secure checkout. Please try again.", "error");
     }
   };
 
@@ -119,20 +119,18 @@ export function useSubscription(user) {
       
       const contentType = resp.headers.get("content-type");
       if (!contentType || !contentType.includes("application/json")) {
-        const text = await resp.text();
-        console.error("API Error (Not JSON):", text);
-        throw new Error(resp.status === 404 ? "Portal API not found. If testing locally, use 'vercel dev'." : "Server returned an invalid response.");
+        throw new Error("Server communication failure.");
       }
 
       const data = await resp.json();
       if (data.url) {
         window.location.href = data.url;
       } else {
-        throw new Error(data.error || 'Failed to create portal session');
+        throw new Error('Failed to access management portal.');
       }
     } catch (error) {
       console.error("Portal Error:", error);
-      toast(error.message || "Could not open management portal.", "error");
+      toast("Could not access the billing portal at this time.", "error");
     }
   };
 
@@ -144,7 +142,7 @@ export function useSubscription(user) {
       });
     } catch (error) {
       console.error("Agreement Error:", error);
-      toast("Failed to save agreement. Check connection.", "error");
+      toast("Failed to process agreement. Please check your connection.", "error");
     }
   };
   

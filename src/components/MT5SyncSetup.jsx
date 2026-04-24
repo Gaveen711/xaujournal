@@ -6,6 +6,7 @@
 import { useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import { auth } from "../firebase";
+import { getFriendlyErrorMessage } from "../lib/errorUtils";
 import {
   Key,
   Clipboard,
@@ -72,21 +73,22 @@ export default function MT5SyncSetup() {
       const data = await callApi("/api/generate-api-key");
       setApiKey(data.apiKey);
     } catch (e) {
-      setError(e.message || "Could not generate key. Try again.");
+      setError(getFriendlyErrorMessage(e));
     } finally {
       setLoading(false);
     }
   }
 
   async function handleRevoke() {
-    if (!window.confirm("Revoke your key? MT5 and TradingView will stop syncing until you generate a new one."))
+    if (!window.confirm("Revoke your sync key? Auto-sync will stop until you generate a new one."))
       return;
     setRevoking(true);
+    setError(null);
     try {
       await callApi("/api/revoke-api-key");
       setApiKey(null);
     } catch (e) {
-      setError(e.message || "Could not revoke key.");
+      setError(getFriendlyErrorMessage(e));
     } finally {
       setRevoking(false);
     }

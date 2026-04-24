@@ -1,7 +1,7 @@
 import { XLg, CheckCircleFill, CheckCircle } from 'react-bootstrap-icons';
 
 export function PricingModal({ plan, expiry, onSubscribe, onClose }) {
-  const SUB_LIMITS = { freeTrades: 30, freeJournals: 10 };
+  const SUB_LIMITS = { freeTrades: 50, freeJournals: 10 };
 
   const FREE_FEATS = [
     `${SUB_LIMITS.freeTrades} trades / month`,

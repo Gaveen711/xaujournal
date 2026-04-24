@@ -8,7 +8,14 @@ import {
   SunFill, 
   CloudArrowDownFill, 
   LightningChargeFill, 
-  BarChartLineFill 
+  BarChartLineFill,
+  Stars,
+  Phone,
+  HddNetwork,
+  Display,
+  GearWideConnected,
+  DatabaseFill,
+  WindowSidebar
 } from 'react-bootstrap-icons';
 
 /* ─── Data ───────────────────────────────────────────────────────── */
@@ -21,7 +28,7 @@ const FEATURES = [
   {
     icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>,
     title: 'Deep Analytics',
-    body: 'Win-rate by session, drawdown clusters, streak analysis, and behavioural heatmaps — every metric purpose-built for clarity.',
+    body: 'Win-rate by session, drawdown clusters, streak analysis, and behavioural heatmaps, every metric purpose-built for clarity.',
   },
   {
     icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>,
@@ -36,7 +43,7 @@ const FEATURES = [
   {
     icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
     title: 'Bank-Grade Security',
-    body: 'Strict isolated storage protocols mean your data is yours alone. Nobody — including us — can access your private trade history.',
+    body: 'Strict isolated storage protocols mean your data is yours alone. Nobody including us can access your private trade history.',
   },
   {
     icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>,
@@ -96,6 +103,10 @@ export function LandingPage() {
   }, [mobileMenuOpen]);
 
   useEffect(() => {
+    // Disable Lenis on touch devices (Safari iOS) to prevent scrolling conflicts
+    const isTouch = !window.matchMedia('(hover: hover)').matches;
+    if (isTouch) return;
+
     const lenis = new Lenis({
       duration: 1.2,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
@@ -159,8 +170,8 @@ export function LandingPage() {
       
       {/* ── Ambient blobs ─────────────────────────────────────── */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden" aria-hidden="true">
-        <div className="absolute top-[-10%] left-[-5%] w-[50vw] h-[50vw] rounded-full bg-primary/10 blur-[100px] opacity-60 mix-blend-screen" />
-        <div className="absolute bottom-[-10%] right-[-5%] w-[40vw] h-[40vw] rounded-full bg-primary/5 blur-[120px] opacity-60 mix-blend-screen" />
+        <div className="absolute top-[-10%] left-[-5%] w-[60vw] h-[60vw] rounded-full bg-primary/5 blur-[80px] opacity-40 md:opacity-60 md:blur-[120px]" />
+        <div className="absolute bottom-[-10%] right-[-5%] w-[50vw] h-[50vw] rounded-full bg-primary/5 blur-[80px] opacity-30 md:opacity-50 md:blur-[100px]" />
       </div>
 
       {/* ── Nav ───────────────────────────────────────────────── */}
@@ -234,7 +245,7 @@ export function LandingPage() {
             </motion.div>
 
             <motion.p variants={itemVariants} className="text-[clamp(1.1rem,2vw,1.25rem)] text-muted-foreground leading-relaxed max-w-2xl mb-12 font-medium">
-              Automated MT5 sync, deep session analytics, and a beautiful calendar. Everything a professional trader needs to find their edge.
+              Automated MT5 sync, deep session analytics, and a beautiful journal. Everything a professional trader needs to find their edge.
             </motion.p>
 
             <motion.div variants={itemVariants} className="flex flex-wrap items-center justify-center gap-4">
@@ -336,6 +347,66 @@ export function LandingPage() {
 
                   {/* Hover Glow Effect */}
                   <div className="absolute inset-0 rounded-[2.5rem] bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ── Architecture Flow ─────────────────────────────────── */}
+        <section className="relative z-10 py-32 px-6">
+          <div className="max-w-4xl mx-auto">
+            <motion.div 
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
+              className="text-center mb-20"
+            >
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-[10px] font-black uppercase tracking-widest mb-4">
+                <Stars className="w-3 h-3" /> Pro Only
+              </div>
+              <h2 className="text-[clamp(2rem,5vw,3rem)] font-black leading-tight tracking-tight mb-4">The Data Pipeline</h2>
+              <p className="text-muted-foreground font-medium max-w-xl mx-auto">
+                An institutional-grade architecture built for absolute precision. From your first execution to the final analytics, every data point is handled with zero-latency automation.
+              </p>
+            </motion.div>
+
+            <div className="relative flex flex-col items-center gap-4">
+              {/* Vertical Path */}
+              <div className="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-[2px] bg-gradient-to-b from-primary/5 via-primary/40 to-primary/5 hidden md:block" />
+
+              {[
+                { label: 'Mobile Access', sub: 'Universal MT5 connectivity for traders on the move.', icon: <Phone className="w-5 h-5" /> },
+                { label: 'Broker Agnostic', sub: 'Seamlessly connects with any MT5 broker worldwide.', icon: <HddNetwork className="w-5 h-5" /> },
+                { label: 'Automated Sync', sub: 'Zero manual entry — your trades are recorded instantly.', icon: <Display className="w-5 h-5" /> },
+                { label: 'Cloud Processing', sub: 'Advanced logic layer handles all complex calculations.', icon: <GearWideConnected className="w-5 h-5" /> },
+                { label: 'Encrypted Vault', sub: 'Military-grade protection for your private trade data.', icon: <DatabaseFill className="w-5 h-5" /> },
+                { label: 'Intelligence Suite', sub: 'Professional dashboard for deep performance insights.', icon: <WindowSidebar className="w-5 h-5" /> },
+              ].map((step, i) => (
+                <motion.div
+                  key={step.label}
+                  initial={{ opacity: 0, x: i % 2 === 0 ? -30 : 30 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.6, delay: i * 0.1 }}
+                  className="relative z-10 flex flex-col md:flex-row items-center gap-6 w-full max-w-2xl group"
+                >
+                  {/* Node */}
+                  <div className="flex-shrink-0 w-12 h-12 rounded-2xl bg-card border border-border/50 flex items-center justify-center text-primary shadow-lg group-hover:scale-110 group-hover:border-primary/50 group-hover:shadow-primary/10 transition-all duration-500">
+                    {step.icon}
+                  </div>
+
+                  {/* Content */}
+                  <div className="flex-1 text-center md:text-left bg-card/40 backdrop-blur-sm border border-border/40 p-5 rounded-2xl group-hover:border-primary/20 group-hover:bg-card/60 transition-all duration-500">
+                    <h3 className="font-bold text-foreground group-hover:text-primary transition-colors">{step.label}</h3>
+                    <p className="text-xs text-muted-foreground font-medium uppercase tracking-widest mt-1">{step.sub}</p>
+                  </div>
+
+                  {/* Desktop Step Number */}
+                  <div className="absolute -left-12 top-1/2 -translate-y-1/2 text-2xl font-black text-foreground/5 hidden lg:block select-none group-hover:text-primary/10 transition-colors">
+                    {String(i + 1).padStart(2, '0')}
+                  </div>
                 </motion.div>
               ))}
             </div>

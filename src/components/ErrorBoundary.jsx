@@ -27,23 +27,23 @@ export class ErrorBoundary extends React.Component {
             </div>
             
             <div className="space-y-2">
-              <h1 className="text-2xl font-black text-gradient uppercase tracking-tight">Terminal Interrupted</h1>
-              <p className="text-xs text-muted-foreground font-medium leading-relaxed uppercase tracking-wider">
-                A critical exception occurred in the terminal node. Our security protocols have paused the session.
+              <h1 className="text-2xl font-black text-gradient uppercase tracking-tight">System Error</h1>
+              <p className="text-[10px] text-muted-foreground font-bold leading-relaxed uppercase tracking-[0.2em]">
+                The application encountered an unexpected state. Our security protocols have paused the session for your protection.
               </p>
             </div>
-
-            <div className="p-4 bg-muted/30 border border-border/50 rounded-2xl">
-                <p className="text-[10px] font-mono text-destructive tracking-tight truncate">
-                   ERR: {this.state.error?.message || "Unknown Core Exception"}
+            
+            <div className="p-4 bg-muted/20 border border-border/40 rounded-2xl">
+                <p className="text-[9px] font-mono text-muted-foreground/40 tracking-tighter uppercase">
+                   Reference: {this.state.error?.message?.slice(0, 40) || "Integrity Failure"}...
                 </p>
             </div>
 
             <button 
               onClick={() => window.location.reload()}
-              className="w-full py-4 rounded-2xl bg-primary text-white text-[10px] font-black uppercase tracking-[0.2em] shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all"
+              className="w-full py-4 rounded-2xl bg-primary text-white text-[10px] font-black uppercase tracking-[0.2em] shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all"
             >
-              Initialize Recovery
+              Restart Terminal
             </button>
           </div>
         </div>

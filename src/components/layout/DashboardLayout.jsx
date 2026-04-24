@@ -61,6 +61,10 @@ export function DashboardLayout({ user, plan, expiry, totalTrades, totalJournals
   }, []);
 
   const { trades, isLoading: isLoadingTrades, addTrade, removeTrade, editTrade, resetTrades, lastMT5Sync } = useTrades(user);
+  
+  const now = new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+  const thisMonthTradesCount = trades.filter(t => t.date >= monthStart).length;
   const { journals, isLoading: isLoadingJournals, saveJournalEntry, deleteEntry } = useJournals(user);
   const { startingBalance, updateBalance, monthlyGoal, updateMonthlyGoal, resetWallet } = useWallet(user);
 
@@ -234,7 +238,7 @@ export function DashboardLayout({ user, plan, expiry, totalTrades, totalJournals
 
       {/* MAIN CONTENT */}
       <main className="flex-1 max-w-7xl mx-auto px-4 py-24 sm:px-6 lg:px-8 w-full">
-        {plan === 'free' && (totalTrades >= 25 || totalJournals >= 10) ? (
+        {plan === 'free' && (thisMonthTradesCount >= 50 || totalJournals >= 10) ? (
           <div className="min-h-[60vh] flex flex-col items-center justify-center text-center p-6 space-y-8 animate-in fade-in zoom-in-95 duration-700">
             <div className="relative">
               <div className="absolute inset-0 bg-red-500/20 blur-3xl animate-pulse rounded-full" />
@@ -246,7 +250,7 @@ export function DashboardLayout({ user, plan, expiry, totalTrades, totalJournals
             <div className="max-w-md space-y-3">
               <h2 className="text-3xl font-black text-gradient-red uppercase tracking-tighter">Terminal Locked</h2>
               <p className="text-sm text-muted-foreground font-medium uppercase tracking-widest leading-relaxed">
-                {totalTrades >= 25 ? "Free trade limit reached (25/25)." : "Free journal limit reached (10/10)."} <br/>
+                {thisMonthTradesCount >= 50 ? "Free monthly limit reached (50/50)." : "Free journal limit reached (10/10)."} <br/>
                 <span className="text-destructive font-black">Upgrade to Pro</span> to unlock unlimited operations and cognitive brief logs.
               </p>
             </div>

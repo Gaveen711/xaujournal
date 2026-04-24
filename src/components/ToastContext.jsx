@@ -32,10 +32,10 @@ export const ToastProvider = ({ children }) => {
               {t.type === 'success' ? '✓' : t.type === 'error' ? '!' : 'i'}
             </div>
             <div className="flex flex-col gap-0.5">
-              <span className="text-[10px] font-black uppercase tracking-widest opacity-50">
-                {t.type === 'success' ? 'Success' : t.type === 'error' ? 'Error' : 'Notification'}
+              <span className="text-[9px] font-bold uppercase tracking-[0.15em] opacity-40">
+                {t.type === 'success' ? 'Confirmed' : t.type === 'error' ? 'Alert' : 'Notice'}
               </span>
-              <span className="text-sm font-bold text-foreground/90">{t.msg}</span>
+              <span className="text-sm font-semibold text-foreground/90 leading-tight">{t.msg}</span>
             </div>
           </div>
         ))}

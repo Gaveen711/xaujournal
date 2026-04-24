@@ -72,6 +72,15 @@
     font-feature-settings: "rlig" 1, "calt" 1;
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
   }
 
   /* Global Font Weight Adjustments */
@@ -85,6 +94,12 @@
 
   .font-medium {
     font-weight: 500 !important;
+  }
+
+  /* Prevent selection on interactive elements for a native feel */
+  button, nav, .card-premium {
+    user-select: none;
+    -webkit-user-select: none;
   }
 }
 

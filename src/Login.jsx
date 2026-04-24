@@ -7,6 +7,7 @@ import {
   sendPasswordResetEmail,
 } from 'firebase/auth';
 import { auth, googleProvider, setPersistence, browserLocalPersistence, browserSessionPersistence } from './firebase.js';
+import { getFriendlyErrorMessage } from './lib/errorUtils';
 
 function Login() {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -31,7 +32,7 @@ function Login() {
       }
       localStorage.setItem('xau-auth-hint', 'true');
     } catch (err) {
-      setError(err.message.replace('Firebase: ', '').replace(/\(.*\)/, '').trim());
+      setError(getFriendlyErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -39,7 +40,7 @@ function Login() {
 
   const handleResetPassword = async () => {
     if (!email) {
-      alert('Enter your (email) first');
+      setError('Please enter your email address.');
       return;
     }
     setError('');
@@ -49,7 +50,7 @@ function Login() {
       await sendPasswordResetEmail(auth, email);
       setMessage('Reset link sent to your email.');
     } catch (err) {
-      setError(err.message.replace('Firebase: ', '').replace(/\(.*\)/, '').trim());
+      setError(getFriendlyErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -64,7 +65,7 @@ function Login() {
       await signInWithPopup(auth, googleProvider);
       localStorage.setItem('xau-auth-hint', 'true');
     } catch (err) {
-      setError(err.message.replace('Firebase: ', '').replace(/\(.*\)/, '').trim());
+      setError(getFriendlyErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -173,14 +174,14 @@ function Login() {
               </div>
 
               {error && (
-                <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-500 text-[11px] font-black uppercase tracking-tight animate-in shake-1">
-                  Alert: {error}
+                <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-500 text-[11px] font-bold uppercase tracking-tight animate-in shake-1">
+                  {error}
                 </div>
               )}
 
               {message && (
-                <div className="p-3 bg-primary/10 border border-primary/20 rounded-xl text-primary text-[11px] font-black uppercase tracking-tight animate-in fade-in">
-                  Status: {message}
+                <div className="p-3 bg-primary/10 border border-primary/20 rounded-xl text-primary text-[11px] font-bold uppercase tracking-tight animate-in fade-in">
+                  {message}
                 </div>
               )}
 

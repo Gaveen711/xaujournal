@@ -6,7 +6,7 @@ import { useAppTheme } from '../hooks/useAppTheme';
 import { MoonStarsFill, SunFill } from 'react-bootstrap-icons';
 
 const FREE_FEATURES = [
-  '30 trades / month',
+  '50 trades / month',
   'Basic P&L tracking',
   'Trade calendar',
   'Manual trade entry',
