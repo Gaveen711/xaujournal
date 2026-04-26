@@ -55,10 +55,19 @@ function initAdmin() {
   return admin;
 }
 
-// Export a proxy for db to ensure it's always initialized when accessed
+// Safe db accessor — returns null if Firebase never initialised.
+// Always call isDbReady() before using db.
+export function isDbReady() {
+  initAdmin();
+  return admin.apps.length > 0;
+}
+
 export const db = new Proxy({}, {
   get: (target, prop) => {
-    initAdmin();
+    if (!isDbReady()) {
+      console.error(`❌ db.${String(prop)} called but Firebase is not initialised.`);
+      return undefined;
+    }
     return admin.firestore()[prop];
   }
 });

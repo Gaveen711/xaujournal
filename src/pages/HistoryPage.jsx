@@ -206,12 +206,20 @@ export function HistoryPage() {
                       <span className="text-[10px] text-foreground/85 font-bold uppercase tracking-tighter">XAU/USD · {t.session} · {t.setup}</span>
                     </div>
                     
-                    <button 
-                      className="sm:hidden w-10 h-10 rounded-full flex items-center justify-center text-muted-foreground/40 hover:text-destructive transition-colors" 
-                      onClick={e => { e.stopPropagation(); onDeleteTrade(t.id); }}
-                    >
-                      <XLg className="w-4 h-4" />
-                    </button>
+                    <div className="sm:hidden flex items-center gap-1">
+                      <button 
+                        className="w-10 h-10 rounded-full flex items-center justify-center text-muted-foreground hover:text-primary transition-colors" 
+                        onClick={e => { e.stopPropagation(); setEditingTrade(t); }}
+                      >
+                        <PencilSquare className="w-4 h-4" />
+                      </button>
+                      <button 
+                        className="w-10 h-10 rounded-full flex items-center justify-center text-muted-foreground/40 hover:text-destructive transition-colors" 
+                        onClick={e => { e.stopPropagation(); onDeleteTrade(t.id); }}
+                      >
+                        <XLg className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
 
                   <div className="flex items-center justify-between sm:justify-start gap-8 flex-1">
@@ -230,19 +238,21 @@ export function HistoryPage() {
                         </span>
                       </div>
                       
-                      <button 
-                        className="hidden sm:flex w-8 h-8 rounded-full items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all opacity-0 group-hover:opacity-100 active:scale-90" 
-                        onClick={e => { e.stopPropagation(); setEditingTrade(t); }}
-                      >
-                        <PencilSquare className="w-3.5 h-3.5" />
-                      </button>
+                      <div className="hidden sm:flex items-center gap-2">
+                        <button 
+                          className="w-8 h-8 rounded-full flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all opacity-0 group-hover:opacity-100 active:scale-90" 
+                          onClick={e => { e.stopPropagation(); setEditingTrade(t); }}
+                        >
+                          <PencilSquare className="w-3.5 h-3.5" />
+                        </button>
 
-                      <button 
-                        className="hidden sm:flex w-8 h-8 rounded-full items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all opacity-0 group-hover:opacity-100 active:scale-90" 
-                        onClick={e => { e.stopPropagation(); onDeleteTrade(t.id); }}
-                      >
-                        <XLg className="w-3.5 h-3.5" />
-                      </button>
+                        <button 
+                          className="w-8 h-8 rounded-full flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all opacity-0 group-hover:opacity-100 active:scale-90" 
+                          onClick={e => { e.stopPropagation(); onDeleteTrade(t.id); }}
+                        >
+                          <XLg className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>

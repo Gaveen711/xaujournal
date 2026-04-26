@@ -8,7 +8,7 @@
 //   customer.subscription.deleted  → start 1.5-week grace period
 
 import Stripe from 'stripe';
-import { admin, db } from './_firebase.js';
+import { admin, db, isDbReady } from './_firebase.js';
 import resend from './_resend.js';
 
 export const config = { api: { bodyParser: false } };
@@ -68,14 +68,14 @@ export default async function handler(req, res) {
     let event;
     try {
       event = stripe.webhooks.constructEvent(rawBody, sig, STRIPE_WEBHOOK_SECRET);
-      console.log('⚓ EVENT VERIFIED:', event.type);
+      console.log('⚓ EVENT VERIFIED:', event.type, 'ID:', event.id);
     } catch (err) {
       console.error('❌ SIGNATURE ERROR:', err.message);
       return res.status(400).json({ error: `Webhook Signature Error: ${err.message}` });
     }
 
-    if (!db) {
-      console.error('❌ DB NOT AVAILABLE');
+    if (!isDbReady()) {
+      console.error('❌ DB NOT AVAILABLE — FIREBASE_SERVICE_ACCOUNT env var likely missing or malformed in Vercel.');
       return res.status(500).json({ error: 'Database not initialized. Check FIREBASE_SERVICE_ACCOUNT.' });
     }
 
@@ -164,9 +164,11 @@ export default async function handler(req, res) {
       }
     }
 
-    // ── invoice.paid → renewal ───────────────────────────────────────────────
-    else if (event.type === 'invoice.paid') {
-      const uid = await findUserByCustomer(event.data.object.customer);
+    // ── invoice.paid / invoice.payment_succeeded → renewal ─────────────────
+    else if (event.type === 'invoice.paid' || event.type === 'invoice.payment_succeeded') {
+      const customerId = event.data.object.customer;
+      const uid = await findUserByCustomer(customerId);
+      console.log(`🔍 Renewal: customer=${customerId} -> uid=${uid}`);
       if (uid) {
         const expiryDate = new Date();
         expiryDate.setDate(expiryDate.getDate() + 30);
@@ -178,7 +180,7 @@ export default async function handler(req, res) {
           mt5SyncEnabled: true,
           updatedAt:      admin.firestore.FieldValue.serverTimestamp(),
         }, { merge: true });
-        console.log(`✅ Renewal processed for uid=${uid}`);
+        console.log(`✅ Renewal processed for uid=${uid} (${event.type})`);
       }
     }
 
@@ -188,10 +190,25 @@ export default async function handler(req, res) {
       if (uid) await startGracePeriod(uid, 'payment_failed');
     }
 
-    // ── subscription.deleted → start grace ───────────────────────────────────
+    // ── subscription.deleted / updated (cancellation) ────────────────────────
     else if (event.type === 'customer.subscription.deleted') {
       const uid = await findUserByCustomer(event.data.object.customer);
-      if (uid) await startGracePeriod(uid, 'subscription_cancelled');
+      console.log(`🔍 Deletion: customer=${event.data.object.customer} -> uid=${uid}`);
+      if (uid) await startGracePeriod(uid, 'subscription_deleted');
+    }
+
+    else if (event.type === 'customer.subscription.updated') {
+      const sub = event.data.object;
+      if (sub.cancel_at_period_end) {
+        const uid = await findUserByCustomer(sub.customer);
+        console.log(`🔍 Scheduled Cancel: customer=${sub.customer} -> uid=${uid}`);
+        if (uid) {
+          // We don't enter grace yet because they still have access until period end,
+          // but we could mark it as "Cancelled (ending soon)" if we had a field for it.
+          // For now, let's just log it.
+          console.log(`⏳ Subscription for ${uid} scheduled to end at ${new Date(sub.current_period_end * 1000).toISOString()}`);
+        }
+      }
     }
 
     return res.status(200).json({ received: true });
