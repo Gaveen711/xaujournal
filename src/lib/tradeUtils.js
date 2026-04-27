@@ -13,7 +13,7 @@ export const formatCompact = (val) => {
   if (absVal >= 1000000) {
     return sign + (absVal / 1000000).toFixed(1).replace(/\.0$/, '') + 'm';
   }
-  if (absVal >= 1000) {
+  if (absVal >= 10000) {
     return sign + (absVal / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
   }
   return sign + absVal.toFixed(2).replace(/\.00$/, '');
@@ -28,9 +28,9 @@ export const formatCurrencyCompact = (val) => {
   return `$${formatted}`;
 };
 
-// XAUUSD only: 1 pip = $0.10 per 0.01 lot (contract size 100, pip size 0.01)
+// XAUUSD only: 1 pip = $1.00 per 0.01 lot (contract size 100, pip size 0.1)
 const XAUUSD_CONTRACT_SIZE = 100;
-const XAUUSD_PIP_SIZE      = 0.01;
+const XAUUSD_PIP_SIZE      = 0.1;
 
 export const calcPnl = (entry, exit, lots, actualPnl, sl, tp, dir = null, _market = 'GOLD', swap = 0) => {
   if (!entry || !exit || !dir) return { pnl: null, rr: null, pips: null };

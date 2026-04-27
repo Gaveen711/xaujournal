@@ -432,7 +432,24 @@ export function LogTradePage() {
                 </div>
                 <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase tracking-widest text-foreground/90 ml-1">Leverage</label>
-                  <input type="text" name="leverage" value={leverage} onChange={e => setLeverage(e.target.value)} className="input-premium h-12 text-sm font-bold" placeholder="e.g. 1:Unlimited" />
+                  <CustomSelect 
+                    name="leverage" 
+                    value={leverage} 
+                    onChange={setLeverage}
+                    options={[
+                      { value: '1:1', label: '1:1' },
+                      { value: '1:10', label: '1:10' },
+                      { value: '1:30', label: '1:30' },
+                      { value: '1:50', label: '1:50' },
+                      { value: '1:100', label: '1:100' },
+                      { value: '1:200', label: '1:200' },
+                      { value: '1:500', label: '1:500' },
+                      { value: '1:1000', label: '1:1000' },
+                      { value: '1:2000', label: '1:2000' },
+                      { value: '1:3000', label: '1:3000' },
+                      { value: '1:Unlimited', label: '1:Unlimited' }
+                    ]}
+                  />
                 </div>
               </div>
 

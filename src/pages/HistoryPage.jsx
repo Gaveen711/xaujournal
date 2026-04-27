@@ -90,8 +90,13 @@ export function HistoryPage() {
 
   const onDeleteTrade = async (id) => {
     if (confirm('Delete this trade?')) {
-      await removeTrade(id);
-      toast('Trade deleted.', 'warn');
+      try {
+        await removeTrade(id);
+        toast('Trade deleted.', 'warn');
+      } catch (e) {
+        console.error('Delete error:', e);
+        toast('Failed to delete trade.', 'error');
+      }
     }
   };
 

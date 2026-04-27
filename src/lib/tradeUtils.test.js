@@ -7,7 +7,7 @@ describe('Trade Logic (calcPnl)', () => {
     // PNL = 10 * 1 * 100 = 1000
     const result = calcPnl(2000, 2010, 1, null, null, null, 'BUY');
     expect(result.pnl).toBe(1000);
-    expect(result.pips).toBe(1000); // (2010 - 2000) / 0.01 = 10 / 0.01 = 1000
+    expect(result.pips).toBe(100); // (2010 - 2000) / 0.1 = 10 / 0.1 = 100
   });
 
   it('calculates correct P&L for a SELL trade (diff * lots * 100)', () => {
@@ -15,7 +15,7 @@ describe('Trade Logic (calcPnl)', () => {
     // PNL = 10 * 0.5 * 100 = 500
     const result = calcPnl(2010, 2000, 0.5, null, null, null, 'SELL');
     expect(result.pnl).toBe(500);
-    expect(result.pips).toBe(1000); // (2010 - 2000) / 0.01 = 10 / 0.01 = 1000
+    expect(result.pips).toBe(100); // (2010 - 2000) / 0.1 = 10 / 0.1 = 100
   });
 
   it('calculates correct P&L for a losing BUY trade', () => {
@@ -23,7 +23,7 @@ describe('Trade Logic (calcPnl)', () => {
     // PNL = -10 * 2 * 100 = -2000
     const result = calcPnl(2010, 2000, 2, null, null, null, 'BUY');
     expect(result.pnl).toBe(-2000);
-    expect(result.pips).toBe(1000); 
+    expect(result.pips).toBe(100); 
   });
 
   it('calculates correct P&L with swap applied', () => {
