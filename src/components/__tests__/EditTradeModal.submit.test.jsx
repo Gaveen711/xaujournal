@@ -233,15 +233,9 @@ describe('firestore.rules — editing a broker-synced trade', () => {
     ['netPnl', 'commission'].forEach((field) => expect(allowed.has(field)).toBe(false));
   });
 
-  it('keeps create closed, rate-limited, and integrity-checked', () => {
+  it('keeps client trade creation closed until server ingestion owns the cooldown', () => {
     const block = tradesBlock();
-    // A client authors the whole document on create, so the key set stays shut.
-    expect(block).toMatch(/allow create:[\s\S]*?request\.resource\.data\.keys\(\)\.hasOnly\(clientWritableTradeFields\(\)\)/);
-    // 5-second cooldown against 10,000-trades/minute billing attacks.
-    expect(block).toContain('data.lastTradeTime == request.time');
-    expect(block).toContain("request.time > get(/databases/$(database)/documents/users/$(userId)).data.lastTradeTime + duration.value(5, 's')");
-    // Integrity and direction vocabulary, unwidened.
-    expect(block).toContain('absPnlDiff < 1.0');
-    expect(block).toContain("direction in ['BUY', 'SELL']");
+    expect(block).toMatch(/allow create:\s*if false/);
+    expect(block).not.toContain('lastTradeTime');
   });
 });

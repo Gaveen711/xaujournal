@@ -51,6 +51,9 @@ firebase-debug.log*
 # Explicitly keep shared API utilities
 !api/_firebase.js
 
+# Generated Graphify cache
+graphify-out/cache/
+
 s v g . z i p  
 svg.zip
 .env*

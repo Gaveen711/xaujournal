@@ -1,8 +1,6 @@
 import { useEffect, useId, useMemo, useState } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import {
-  EmailAuthProvider,
-  reauthenticateWithCredential,
   updatePassword,
   updateProfile,
 } from 'firebase/auth';
@@ -71,7 +69,6 @@ export function SettingsPage() {
   );
   const [savingName, setSavingName] = useState(false);
 
-  const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [savingPassword, setSavingPassword] = useState(false);
@@ -126,11 +123,6 @@ export function SettingsPage() {
       return;
     }
 
-    if (!currentPassword) {
-      toast('Enter your current password first.', 'error');
-      return;
-    }
-
     if (newPassword.length < 8) {
       toast('New password must be at least 8 characters.', 'error');
       return;
@@ -143,10 +135,7 @@ export function SettingsPage() {
 
     setSavingPassword(true);
     try {
-      const credential = EmailAuthProvider.credential(user.email, currentPassword);
-      await reauthenticateWithCredential(user, credential);
       await updatePassword(user, newPassword);
-      setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
       toast('Password updated securely.', 'success');
@@ -308,14 +297,8 @@ export function SettingsPage() {
             <form onSubmit={handleSavePassword} className="flex flex-col gap-4">
               <fieldset
                 disabled={!canChangePassword || savingPassword}
-                className="grid grid-cols-1 gap-4 disabled:opacity-50 lg:grid-cols-3"
+                className="grid grid-cols-1 gap-4 disabled:opacity-50 lg:grid-cols-2"
               >
-                <PasswordInput
-                  label="Current password"
-                  value={currentPassword}
-                  onChange={setCurrentPassword}
-                  autoComplete="current-password"
-                />
                 <PasswordInput
                   label="New password"
                   value={newPassword}

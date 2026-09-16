@@ -5,15 +5,18 @@ This document outlines critical manual steps to ensure the long-term security an
 ---
 
 ## 1. 🚨 Usage & Spend Alerts (CRITICAL)
+
 Before scaling to real users, you MUST set up budget alerts to prevent unexpected costs from spikes in traffic or potential DDoS.
 
 ### Vercel Spend Alerts
+
 1. Go to your [Vercel Dashboard](https://vercel.com/dashboard).
 2. Select **Settings** → **Billing**.
 3. Under **Spend Management**, set a budget (e.g., $10/month).
 4. Enable **Email Notifications** when spending reaches 50%, 75%, and 100%.
 
 ### Firebase Usage Alerts
+
 1. Go to the [Firebase Console](https://console.firebase.google.com/).
 2. Select **Usage and Billing** → **Details & Settings**.
 3. Click on **Advisory alerts**.
@@ -22,17 +25,17 @@ Before scaling to real users, you MUST set up budget alerts to prevent unexpecte
 ---
 
 ## 2. 🔑 API Key Rotation Plan
+
 If you ever committed secrets (like a PayPal client secret or Firebase Service Account) to Git history, they are considered compromised.
 
 ### Steps to Rotate:
+
 1. **Payments (PayPal credentials)**:
    - Go to the PayPal Developer Dashboard and rotate the REST app secret if you suspect compromise.
    - Update `PAYPAL_CLIENT_ID` and `PAYPAL_CLIENT_SECRET` in Vercel, then redeploy.
    - If you replace the PayPal REST app or webhook, update `PAYPAL_WEBHOOK_ID` and confirm the monthly and yearly plan IDs still belong to that app.
    - Keep Sandbox and Live credentials separate; never test production billing with Sandbox plan IDs.
-   - Ensure no legacy payment-provider secrets remain configured in Vercel.
-
-
+     y - Ensure no legacy payment-provider secrets remain configured in Vercel.
 
 2. **Firebase Service Account**:
    - Go to Google Cloud Console → **IAM & Admin** → **Service Accounts**.
@@ -48,7 +51,9 @@ If you ever committed secrets (like a PayPal client secret or Firebase Service A
 ---
 
 ## 3. 🧹 Git History Scrubbing
+
 If a secret was committed in the past, rotating it is the primary defense. However, to completely remove it from your repository's history:
+
 1. Use **[BFG Repo-Cleaner](https://rtyley.github.io/bfg-repo-cleaner/)** or **`git-filter-repo`** to scrub the sensitive string from all commits.
 2. Force push the clean history to GitHub.
 3. **Enable GitHub Secret Scanning**: Go to **Settings** → **Code security and analysis** and ensure "Secret scanning" is enabled.
@@ -56,6 +61,7 @@ If a secret was committed in the past, rotating it is the primary defense. Howev
 ---
 
 ## 4. 🧪 Production Monitoring
+
 - **Vercel Logs**: Check `api/` route logs daily for `401 Unauthorized` or `500 Internal Server Error` spikes.
 - **Firestore Monitoring**: Check the **Usage** tab in Firebase to ensure document writes are within expected bounds.
 

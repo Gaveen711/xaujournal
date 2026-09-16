@@ -48,7 +48,7 @@ service cloud.firestore {
           // Wallet preferences
           'walletBalance', 'monthlyGoal',
           // Client-maintained counters (see note above)
-          'totalTradesLogged', 'totalJournalsLogged', 'analytics', 'lastTradeTime',
+          'totalTradesLogged', 'totalJournalsLogged', 'analytics',
           // Client-maintained maps (see note above)
           'sessionAnalytics', 'disciplineRules'
         ];
@@ -230,15 +230,11 @@ service cloud.firestore {
 
         // Create is wholly client-authored, so the key set stays closed here:
         // netPnl, commission and the rest cannot be conjured by a client.
-        allow create: if isOwner(userId)
-          && request.resource.data.keys().hasOnly(clientWritableTradeFields())
-          && isValidTrade()
-          // Rate limiting to prevent 10,000 trades/minute billing attacks (5-second cooldown)
-          && getAfter(/databases/$(database)/documents/users/$(userId)).data.lastTradeTime == request.time
-          && (
-             get(/databases/$(database)/documents/users/$(userId)).data.get('lastTradeTime', null) == null ||
-             request.time > get(/databases/$(database)/documents/users/$(userId)).data.lastTradeTime + duration.value(5, 's')
-          );
+        // Manual trade creation is server-only. Firestore Rules cannot count
+        // writes in a batch, so a client could submit many valid trades with
+        // the same request.time and bypass a client-authored cooldown.
+        // Server trade ingestion owns the atomic cooldown and validation.
+        allow create: if false;
         allow delete: if isOwner(userId);
       }
 
