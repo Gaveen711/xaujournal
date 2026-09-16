@@ -657,7 +657,7 @@ export function DashboardLayout({ user, analytics, plan, expiry, isTrial, isTria
         </header>
 
         {/* CONTENT GRID */}
-        <div className="dashboard-content mx-auto flex w-full max-w-[1850px] min-w-0 flex-1 flex-col-reverse overflow-x-hidden px-3 pt-20 pb-32 sm:px-4 md:px-6 md:py-6 md:pb-8 lg:flex-row lg:px-8">
+        <div className="dashboard-content mx-auto flex w-full max-w-[1850px] min-w-0 flex-1 flex-col-reverse overflow-x-hidden px-3 pt-20 pb-32 sm:px-4 md:px-6 md:py-6 md:pb-8 min-[1440px]:flex-row lg:px-8">
           <div className="relative w-full min-w-0 flex-1 overflow-x-hidden">
             {dataLoadError && (
               <div role="alert" className="mb-4 flex flex-wrap items-center justify-between gap-3 border border-border bg-muted/40 px-4 py-3 text-sm text-foreground">
@@ -685,14 +685,14 @@ export function DashboardLayout({ user, analytics, plan, expiry, isTrial, isTria
 
           {/* RIGHT COLUMN — log-trade panel, only on the index route */}
           {isLogRoute && (
-            <aside className={cn(
+            <aside inert={!isRightSidebarExpanded} aria-hidden={!isRightSidebarExpanded} className={cn(
               'w-full shrink-0 overflow-hidden transition-all duration-300',
               isRightSidebarExpanded
-                ? 'mb-6 block max-h-[5000px] opacity-100 lg:mb-0 lg:ml-6 lg:w-[400px] lg:max-h-none'
-                : 'pointer-events-none mb-0 block max-h-0 opacity-0 lg:pointer-events-auto lg:ml-0 lg:w-0 lg:max-h-none'
+                ? 'mb-6 block max-h-none opacity-100 min-[1440px]:mb-0 min-[1440px]:ml-6 min-[1440px]:w-[400px]'
+                : 'pointer-events-none mb-0 block max-h-0 opacity-0 min-[1440px]:ml-0 min-[1440px]:w-0'
             )}>
               <div className={cn(
-                'w-full transition-opacity duration-200 lg:w-[400px]',
+                'w-full transition-opacity duration-200 min-[1440px]:w-[400px]',
                 isRightSidebarExpanded ? 'opacity-100' : 'opacity-0'
               )}>
                 <DashboardRightSidebar

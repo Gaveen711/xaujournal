@@ -1,7 +1,7 @@
 import { AppDialog } from './app/AppDialog';
 import { Button } from './ui/button';
 
-export function ProTermsModal({ onAccept, onClose, renderAcceptAction }) {
+export function ProTermsModal({ onAccept, onClose, renderAcceptAction, busy = false }) {
   return (
     <AppDialog
       open
@@ -11,6 +11,8 @@ export function ProTermsModal({ onAccept, onClose, renderAcceptAction }) {
       title="Pro terms"
       description="Review and accept before continuing to payment."
       size="lg"
+      dismissible={!busy}
+      showCloseButton={!busy}
       footer={
         renderAcceptAction
           ? renderAcceptAction(onAccept)
@@ -37,9 +39,9 @@ export function ProTermsModal({ onAccept, onClose, renderAcceptAction }) {
         </div>
 
         <div className="flex flex-col gap-1 border-t border-border pt-4">
-          <p className="font-medium text-foreground">3. Subscription &amp; refund policy</p>
+          <p className="font-medium text-foreground">3. Subscription &amp; payment policy</p>
           <p className="text-muted-foreground">
-            Your first Pro payment is covered by a 7-day money-back guarantee: if Pro is not for you, email info@xaujournal.com within 7 days of that first purchase for a full refund. Renewal charges are non-refundable, and no refunds are issued for partial months or unused periods. Cancel at any time from the billing portal; Pro stays active until the end of the paid period. Full details: www.xaujournal.com/refund-policy.
+            Pro is billed in USD through PayPal and renews automatically on the monthly or yearly billing date you select. You can cancel future renewals before the next billing date; access continues through the period already paid for. Refund eligibility follows the xaujournal payment policy.
           </p>
         </div>
 
@@ -51,7 +53,7 @@ export function ProTermsModal({ onAccept, onClose, renderAcceptAction }) {
         </div>
 
         <p className="border-t border-border pt-4 text-center font-mono text-[11px] text-muted-foreground">
-          Terms version 1.0.4 · XAU v1.0
+          Terms version 1.0.6 · XAU v1.0
         </p>
       </div>
     </AppDialog>

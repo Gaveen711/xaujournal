@@ -387,14 +387,14 @@ export function LiveMarketWidget({ onTickersUpdate, onIntervalChange }) {
   const getAssetColorClasses = (color) => {
     switch (color) {
       case 'slate-300':
-        return 'bg-slate-300/10 border-slate-300/20 text-slate-300';
+        return 'bg-slate-300/10 border-slate-300/20 text-muted-foreground';
       case 'slate-400':
-        return 'bg-slate-400/10 border-slate-400/20 text-slate-400';
+        return 'bg-slate-400/10 border-slate-400/20 text-muted-foreground';
       case 'slate-500':
-        return 'bg-slate-500/10 border-slate-500/20 text-slate-500';
+        return 'bg-slate-500/10 border-slate-500/20 text-muted-foreground';
       case 'amber-500':
       default:
-        return 'bg-amber-500/10 border-amber-500/20 text-amber-500';
+        return 'bg-amber-500/10 border-amber-500/20 text-primary';
     }
   };
 
@@ -405,7 +405,7 @@ export function LiveMarketWidget({ onTickersUpdate, onIntervalChange }) {
       <div className="apple-glass-panel rounded-3xl p-6 flex flex-col gap-4 relative overflow-hidden group min-h-[600px]">
 
         {/* Chart Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 relative z-10">
+        <div className="flex flex-wrap justify-between items-start sm:items-center gap-4 relative z-10">
           <div className="flex items-center gap-3">
             <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-bold text-sm border ${getAssetColorClasses(activeData.color)}`}>
               {activeData.symbol}
@@ -413,7 +413,7 @@ export function LiveMarketWidget({ onTickersUpdate, onIntervalChange }) {
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-base font-black text-foreground m-0">{activeData.name}</h2>
-                <span className={`flex items-center text-[10px] font-black px-2 py-0.5 rounded-full ${activeData.change >= 0 ? 'bg-green-500/10 text-green-500 border border-green-500/20' : 'bg-red-500/10 text-red-500 border border-red-500/20'}`}>
+                <span className={`flex items-center text-[10px] font-black px-2 py-0.5 rounded-full ${activeData.change >= 0 ? 'bg-green-500/10 text-win border border-green-500/20' : 'bg-red-500/10 text-loss border border-red-500/20'}`}>
                   {activeData.change >= 0 ? '+' : ''}{activeData.change}%
                 </span>
               </div>
@@ -433,10 +433,12 @@ export function LiveMarketWidget({ onTickersUpdate, onIntervalChange }) {
             </div>
 
             {/* Timeframe selector */}
-            <div className="flex bg-muted/40 p-0.5 rounded-xl border border-border/40 self-end sm:self-auto shrink-0 overflow-x-auto">
+            <div className="flex max-w-full flex-wrap bg-muted/40 p-0.5 rounded-xl border border-border/40 self-end sm:self-auto shrink-0 overflow-x-auto">
               {TIMEFRAMES.map((t) => (
                 <button
                   key={t.id}
+                  type="button"
+                  aria-pressed={interval === t.id}
                   onClick={() => setIntervalState(t.id)}
                   className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider hover:scale-[1.06] active:scale-[0.94] transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] cursor-pointer ${interval === t.id
                     ? 'bg-primary text-primary-foreground shadow-sm shadow-primary/25 scale-[1.02]'
@@ -473,15 +475,17 @@ export function LiveMarketWidget({ onTickersUpdate, onIntervalChange }) {
           const ticker = tickers[t.id];
           if (!ticker) return null;
           const isUp = ticker.change >= 0;
-          const strokeColor = isUp ? 'hsl(142, 70%, 45%)' : 'hsl(0, 84%, 60%)';
+          const strokeColor = isUp ? 'hsl(var(--win))' : 'hsl(var(--loss))';
           const path = getSparklinePath(ticker.history, 140, 36);
           const closedPath = getClosedSparklinePath(ticker.history, path, 140, 36);
 
           return (
-            <div 
+            <button
+              type="button"
+              aria-pressed={activeAsset === t.id}
               key={t.id} 
               onClick={() => setActiveAsset(t.id)}
-              className={`apple-glass-panel rounded-2xl p-4 flex items-center justify-between gap-4 group hover:scale-[1.03] active:scale-[0.98] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] relative overflow-hidden cursor-pointer ${activeAsset === t.id ? 'ring-2 ring-primary/50 bg-primary/5 shadow-lg shadow-primary/5' : 'hover:shadow-lg hover:shadow-foreground/5'}`}
+              className={`apple-glass-panel rounded-2xl p-4 flex min-w-0 flex-col items-stretch justify-between gap-3 text-left group hover:scale-[1.03] active:scale-[0.98] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] relative overflow-hidden cursor-pointer ${activeAsset === t.id ? 'ring-2 ring-primary/50 bg-primary/5 shadow-lg shadow-primary/5' : 'hover:shadow-lg hover:shadow-foreground/5'}`}
             >
               <div className="space-y-1 relative z-10">
                 <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground m-0">{t.name}</p>
@@ -489,17 +493,17 @@ export function LiveMarketWidget({ onTickersUpdate, onIntervalChange }) {
                   {t.prefix}{ticker.price.toLocaleString(undefined, { minimumFractionDigits: 3 })}{t.suffix}
                 </h4>
                 <div className="flex items-center gap-1">
-                  <span className={`inline-flex items-center text-[9px] font-black px-1.5 py-0.5 rounded-full ${isUp ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'
+                  <span className={`inline-flex items-center text-[9px] font-black px-1.5 py-0.5 rounded-full ${isUp ? 'bg-green-500/10 text-win' : 'bg-red-500/10 text-loss'
                     }`}>
                     {isUp ? <ArrowUpRight className="w-2.5 h-2.5 mr-0.5" /> : <ArrowDownRight className="w-2.5 h-2.5 mr-0.5" />}
                     {isUp ? '+' : ''}{ticker.change}%
                   </span>
-                  <span className="text-[8px] font-medium text-muted-foreground/60 uppercase tracking-widest leading-none mt-0.5">{t.desc}</span>
+                  <span className="text-[8px] font-medium text-muted-foreground uppercase tracking-widest leading-none mt-0.5">{t.desc}</span>
                 </div>
               </div>
 
               {/* Sparkline Canvas SVG */}
-              <div className="w-[140px] h-[36px] relative z-10 shrink-0 self-end">
+              <div className="w-full max-w-[140px] h-[36px] relative z-10 shrink-0 self-end">
                 <svg width="100%" height="100%" viewBox="0 0 140 36" className="overflow-visible">
                   <defs>
                     <linearGradient id={`grad-${t.id}`} x1="0" y1="0" x2="0" y2="1">
@@ -530,7 +534,7 @@ export function LiveMarketWidget({ onTickersUpdate, onIntervalChange }) {
 
               {/* Background Accent Lines */}
               <div className="absolute -bottom-8 -right-8 w-24 h-24 bg-primary/2 rounded-full blur-2xl pointer-events-none" />
-            </div>
+            </button>
           );
         })}
       </div>

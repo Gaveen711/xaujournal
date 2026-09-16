@@ -6,8 +6,27 @@ import { getEntitlements } from '../lib/entitlements.js';
 const FREE_SUBSCRIPTION = {
   plan: 'free', expiry: null, isTrial: false, isTrialExpired: false,
   totalTrades: 0, totalJournals: 0, analytics: null, agreedToTerms: false,
-  isFromCache: false,
+  isFromCache: false, paymentProvider: null, providerSubscriptionId: null,
+  subscriptionStatus: null,
 };
+
+const PAYPAL_AUTOPAY_URL = 'https://www.paypal.com/myaccount/autopay/';
+
+function newIdempotencyKey() {
+  return typeof globalThis.crypto?.randomUUID === 'function'
+    ? globalThis.crypto.randomUUID()
+    : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
+function isPayPalApprovalUrl(value) {
+  try {
+    const url = new URL(value);
+    return url.protocol === 'https:'
+      && (url.hostname === 'paypal.com' || url.hostname.endsWith('.paypal.com'));
+  } catch {
+    return false;
+  }
+}
 
 /** Maps subscription persistence into UI-ready entitlement state and actions. */
 export function useSubscription(user) {
@@ -50,6 +69,12 @@ export function useSubscription(user) {
         agreedToTerms: data.agreedToTerms || false,
         isLoading: false,
         isFromCache,
+        paymentProvider: data.paymentProvider || data.subscription?.provider || null,
+        providerSubscriptionId: data.providerSubscriptionId
+          || data.subscription?.providerSubscriptionId
+          || data.subscription?.subscriptionId
+          || null,
+        subscriptionStatus: data.subscriptionStatus || data.subscription?.status || null,
       };
       if (entitlements.isPaid) {
         setSubscription({
@@ -74,26 +99,40 @@ export function useSubscription(user) {
     const currentUser = auth.currentUser;
     if (!currentUser) {
       toast('You must be logged in to subscribe.', 'error');
-      return;
-    }
-    const baseUrl = planType === 'pro_yearly'
-      ? (import.meta.env.VITE_LEMON_SQUEEZY_CHECKOUT_URL_YEARLY || '')
-      : (import.meta.env.VITE_LEMON_SQUEEZY_CHECKOUT_URL_MONTHLY || '');
-    if (!baseUrl) {
-      toast('Checkout is currently unavailable. Please try again later.', 'info');
-      return;
+      return false;
     }
     try {
-      const checkoutUrl = new URL(baseUrl);
-      checkoutUrl.searchParams.set('checkout[custom][user_id]', currentUser.uid);
-      if (currentUser.email) checkoutUrl.searchParams.set('checkout[email]', currentUser.email);
-      window.location.href = checkoutUrl.toString();
+      const token = await currentUser.getIdToken();
+      const response = await fetch('/api/paypal/subscriptions/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ planId: planType, idempotencyKey: newIdempotencyKey() }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      const approvalUrl = payload.approvalUrl
+        || payload.approval_url
+        || payload.subscription?.approvalUrl
+        || payload.checkoutUrl;
+      if (!response.ok || !isPayPalApprovalUrl(approvalUrl)) {
+        throw new Error(payload.message || payload.error || 'PayPal checkout is currently unavailable.');
+      }
+      window.location.assign(approvalUrl);
+      return true;
     } catch (error) {
-      console.error('Failed to construct checkout URL:', error);
-      toast('Could not initiate checkout. Please contact support.', 'error');
+      console.error('Failed to start PayPal checkout:', error);
+      toast(error?.message || 'Could not open PayPal. Please try again.', 'error');
+      return false;
     }
   };
-  const openPortal = () => window.open('https://my.lemonsqueezy.com/billing', '_blank');
+  const openPortal = () => {
+    const opened = window.open(PAYPAL_AUTOPAY_URL, '_blank', 'noopener,noreferrer');
+    if (!opened) {
+      toast('Allow pop-ups to manage your recurring payment in PayPal.', 'info');
+    }
+  };
   const recordProAcceptance = async () => {
     try {
       await repository.recordProAcceptance(user.uid);

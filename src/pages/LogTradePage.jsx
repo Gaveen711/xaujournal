@@ -7,9 +7,8 @@ import { costOfBrokenRules } from '../lib/disciplineRules.js';
 // getTradeOutcome, not a bare `outcome` read: a broker-imported row stores no
 // outcome and would otherwise be counted as a loss.
 import { getTradeOutcome } from '../lib/tradeAnalytics.js';
-import { resolveChartTheme } from '../lib/chartTheme.js';
 import { DirectionCell } from '../components/app/DirectionCell';
-import { useAppTheme } from '../hooks/useAppTheme';
+import { useChartTheme } from '../hooks/useChartTheme';
 import { LiveMarketWidget } from '../components/LiveMarketWidget';
 import { StatCard } from '../components/app/StatCard';
 import { SectionCard } from '../components/app/SectionCard';
@@ -74,7 +73,6 @@ export function LogTradePage() {
     trades, walletBalance, isExpanded, setIsExpanded,
     disciplineViolations, enabledRuleIds,
   } = useOutletContext();
-  const { isLightMode, currentTemplate } = useAppTheme();
   const [equityPeriod, setEquityPeriod] = useState('all');
   const [activeTab, setActiveTab] = useState('history');
 
@@ -328,12 +326,7 @@ export function LogTradePage() {
 
   // Resolved once per theme/accent change and shared by the data and options
   // memos, so a recolor costs one style recalc instead of sixteen.
-  // Theme values are reactivity keys, not arguments — see resolveChartTheme.
-  const chartColors = useMemo(
-    () => resolveChartTheme(),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [isLightMode, currentTemplate],
-  );
+  const chartColors = useChartTheme();
 
   const chartVisibleTrades = useMemo(() => {
     if (equityPeriod === '30') {

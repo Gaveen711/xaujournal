@@ -7,17 +7,24 @@ import { PRO_MONTHLY_DISPLAY, PRO_YEARLY_DISPLAY, PRO_YEARLY_MONTHLY_DISPLAY, PR
 
 export function PricingModal({ plan, expiry, onSubscribe, onClose, recordProAcceptance }) {
   const [showTerms, setShowTerms] = useState(false);
+  const [billing, setBilling] = useState('monthly');
+  const [checkoutStarting, setCheckoutStarting] = useState(false);
 
   const handleProClick = () => {
     setShowTerms(true);
   };
 
   const handleAcceptTerms = async () => {
-    const success = await recordProAcceptance();
-    if (success) {
-      setShowTerms(false);
-      onSubscribe();
+    if (checkoutStarting) return;
+    setCheckoutStarting(true);
+    const accepted = await recordProAcceptance();
+    if (!accepted) {
+      setCheckoutStarting(false);
+      return;
     }
+    const started = await onSubscribe(billing === 'yearly' ? 'pro_yearly' : 'pro_monthly');
+    if (started) setShowTerms(false);
+    setCheckoutStarting(false);
   };
 
   const FREE_FEATS = [
@@ -88,15 +95,42 @@ export function PricingModal({ plan, expiry, onSubscribe, onClose, recordProAcce
                 <span className="font-mono text-[11px] text-muted-foreground">Current plan</span>
               )}
             </div>
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col gap-2">
               <div className="flex items-baseline gap-1.5">
-                <span className="figure text-2xl font-medium text-foreground">{PRO_MONTHLY_DISPLAY}</span>
+                <span className="figure text-2xl font-medium text-foreground">
+                  {billing === 'yearly' ? PRO_YEARLY_MONTHLY_DISPLAY : PRO_MONTHLY_DISPLAY}
+                </span>
                 <span className="font-mono text-[11px] text-muted-foreground">/ month</span>
               </div>
               <p className="text-xs text-muted-foreground">
-                or {PRO_YEARLY_DISPLAY}/year ({PRO_YEARLY_MONTHLY_DISPLAY}/mo) — save ${PRO_YEARLY_SAVINGS}
+                {billing === 'yearly'
+                  ? `${PRO_YEARLY_DISPLAY} billed yearly — save $${PRO_YEARLY_SAVINGS}`
+                  : `${PRO_MONTHLY_DISPLAY} billed monthly`}
               </p>
-              <p className="text-xs text-muted-foreground">Cancel anytime from billing.</p>
+              <fieldset className="grid grid-cols-2 gap-2 pt-1" aria-label="Billing cycle">
+                <legend className="sr-only">Billing cycle</legend>
+                {['monthly', 'yearly'].map((cycle) => (
+                  <label
+                    key={cycle}
+                    className={`flex min-h-10 cursor-pointer items-center justify-center rounded-md border px-3 text-xs font-medium transition-colors focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 ${
+                      billing === cycle
+                        ? 'border-foreground bg-foreground text-background'
+                        : 'border-border bg-background text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    <input
+                      className="sr-only"
+                      type="radio"
+                      name="pricing-modal-billing"
+                      value={cycle}
+                      checked={billing === cycle}
+                      onChange={() => setBilling(cycle)}
+                    />
+                    {cycle === 'monthly' ? 'Monthly' : 'Yearly'}
+                  </label>
+                ))}
+              </fieldset>
+              <p className="text-xs text-muted-foreground">Renews automatically through PayPal until cancelled.</p>
             </div>
             <ul className="flex flex-1 flex-col gap-2">
               {PRO_FEATS.map((feature) => (
@@ -113,7 +147,7 @@ export function PricingModal({ plan, expiry, onSubscribe, onClose, recordProAcce
                 </Button>
                 {expiry && (
                   <p className="text-center font-mono text-[11px] text-muted-foreground">
-                    Renews {new Date(expiry).toLocaleDateString()}
+                    Next billing {new Date(expiry).toLocaleDateString()}
                   </p>
                 )}
               </div>
@@ -126,12 +160,23 @@ export function PricingModal({ plan, expiry, onSubscribe, onClose, recordProAcce
         </div>
 
         <p className="text-center text-xs text-muted-foreground">
-          Prices in USD · Cancel anytime · All data encrypted
+          Prices in USD · PayPal checkout only · Cancel future renewals anytime
         </p>
       </div>
 
       {showTerms && (
-        <ProTermsModal onAccept={handleAcceptTerms} onClose={() => setShowTerms(false)} />
+        <ProTermsModal
+          onAccept={handleAcceptTerms}
+          onClose={() => {
+            if (!checkoutStarting) setShowTerms(false);
+          }}
+          busy={checkoutStarting}
+          renderAcceptAction={(onAccept) => (
+            <Button className="w-full" onClick={onAccept} disabled={checkoutStarting} aria-busy={checkoutStarting}>
+              {checkoutStarting ? 'Opening PayPal…' : 'Accept and continue to PayPal'}
+            </Button>
+          )}
+        />
       )}
     </AppDialog>
   );

@@ -848,10 +848,18 @@ textarea.xj-input { resize: vertical; min-height: 130px; }
 
 .xj-nav {
   position: fixed;
-  inset: 0 0 auto;
+  top: max(12px, env(safe-area-inset-top));
+  left: 50%;
   z-index: 60;
-  border-bottom: 1px solid transparent;
-  transition: background-color 200ms ease, border-color 200ms ease, backdrop-filter 200ms ease;
+  width: min(100% - (var(--xj-gutter) * 2), 1200px);
+  border: 1px solid var(--xj-glass-line);
+  border-radius: 999px;
+  background: var(--xj-glass-fill);
+  -webkit-backdrop-filter: blur(18px) saturate(1.15);
+  backdrop-filter: blur(18px) saturate(1.15);
+  box-shadow: inset 0 1px 0 var(--xj-glass-highlight), var(--xj-glass-shadow);
+  transform: translateX(-50%);
+  transition: transform 220ms ease, background-color 200ms ease, border-color 200ms ease, backdrop-filter 200ms ease;
 }
 
 /* Once content slides beneath it, the nav becomes another pane of glass. */
@@ -863,13 +871,15 @@ textarea.xj-input { resize: vertical; min-height: 130px; }
   box-shadow: inset 0 1px 0 var(--xj-glass-highlight), var(--xj-glass-shadow);
 }
 
+.xj-nav.is-hidden { transform: translate(-50%, calc(-100% - 18px)); }
+
 .xj-nav-inner {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  width: min(100% - (var(--xj-gutter) * 2), 1200px);
-  margin-inline: auto;
+  width: 100%;
+  padding-inline: 12px;
   height: 66px;
 }
 
@@ -945,6 +955,10 @@ textarea.xj-input { resize: vertical; min-height: 130px; }
   color: var(--xj-bone);
   cursor: pointer;
   transition: border-color 150ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .xj-nav { transition: none; }
 }
 
 .xj-burger:hover { border-color: var(--xj-bone); }

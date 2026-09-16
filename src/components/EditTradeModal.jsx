@@ -308,13 +308,15 @@ export function EditTradeModal({
               <div className="flex bg-muted rounded-xl p-1 gap-1 border border-border/50 h-11">
                 <button
                   type="button"
+                  aria-pressed={direction === 'BUY'}
                   onClick={() => setDirection('BUY')}
-                  className={`flex-1 rounded-lg text-xs font-black transition-all ${direction === 'BUY' ? 'bg-green-500 text-white shadow-lg' : 'hover:bg-background text-muted-foreground hover:text-foreground'}`}
+                  className={`flex-1 rounded-lg text-xs font-black transition-all ${direction === 'BUY' ? 'bg-win/15 text-win ring-1 ring-inset ring-win/40' : 'hover:bg-background text-muted-foreground hover:text-foreground'}`}
                 >BUY</button>
                 <button
                   type="button"
+                  aria-pressed={direction === 'SELL'}
                   onClick={() => setDirection('SELL')}
-                  className={`flex-1 rounded-lg text-xs font-black transition-all ${direction === 'SELL' ? 'bg-red-500 text-white shadow-lg' : 'hover:bg-background text-muted-foreground hover:text-foreground'}`}
+                  className={`flex-1 rounded-lg text-xs font-black transition-all ${direction === 'SELL' ? 'bg-loss/15 text-loss ring-1 ring-inset ring-loss/40' : 'hover:bg-background text-muted-foreground hover:text-foreground'}`}
                 >SELL</button>
               </div>
             </div>
@@ -426,7 +428,7 @@ export function EditTradeModal({
                         <button
                           type="button"
                           onClick={() => removeScreenshot(i)}
-                          className="absolute top-1 right-1 w-5 h-5 rounded-full bg-destructive/85 text-white flex items-center justify-center opacity-0 group-hover/thumb:opacity-100 transition-opacity shadow active:scale-90"
+                          className="absolute top-1 right-1 min-h-7 min-w-7 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center opacity-100 transition-opacity shadow active:scale-90"
                           title="Delete screenshot"
                         >
                           <Trash className="w-3 h-3" />

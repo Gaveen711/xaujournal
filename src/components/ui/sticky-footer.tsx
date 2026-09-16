@@ -77,7 +77,7 @@ const footerLinkGroups: FooterLinkGroup[] = [
     links: [
       { title: "Privacy policy", href: "/privacy", icon: LockKeyholeIcon },
       { title: "Terms of service", href: "/terms-and-conditions", icon: ScaleIcon },
-      { title: "Refund policy", href: "/refund-policy", icon: FileTextIcon },
+      { title: "Payment & cancellation", href: "/refund-policy", icon: FileTextIcon },
     ],
   },
 ]

@@ -46,7 +46,7 @@ export function FloatingDockNavigation({ items, visible = true, ariaLabel = 'Das
                   : 'text-muted-foreground hover:bg-muted/70 hover:text-foreground'
               )}
               style={{
-                transform: `scale(${getScale(index)})`,
+                '--dock-scale': getScale(index),
                 transformOrigin: 'bottom',
               }}
             >

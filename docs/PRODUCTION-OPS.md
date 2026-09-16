@@ -16,13 +16,50 @@ The application utilizes the following credentials:
 |-------------|----------|---------|-------------------|
 | `METAAPI_TOKEN` | Vercel & Firebase | Broker Sync API & Cloud Functions | Annually / On compromise |
 | `RESEND_API_KEY` | Vercel | Hono API (emails/alerts) | 6 Months |
-| `LEMON_SQUEEZY_API_KEY` | Vercel | Hono API (billing webhook/API) | 6 Months |
+| `PAYPAL_CLIENT_ID` | Vercel | PayPal REST app identification | When the REST app changes |
+| `PAYPAL_CLIENT_SECRET` | Vercel | Hono API (PayPal subscriptions and webhook verification) | 6 Months / On compromise |
+| `PAYPAL_WEBHOOK_ID` | Vercel | Verification of PayPal webhook deliveries | When the webhook changes |
+| `PAYPAL_ENV` | Vercel | Selects Sandbox or Live PayPal API | Change only during release promotion |
+| `PAYPAL_MONTHLY_PLAN_ID` | Vercel | Monthly Pro subscription plan | When monthly pricing/plan changes |
+| `PAYPAL_YEARLY_PLAN_ID` | Vercel | Yearly Pro subscription plan | When yearly pricing/plan changes |
 | `FIREBASE_TOKEN` | GitHub Secrets | CI/CD (Firebase deployments) | 3 Months |
 | `VERCEL_TOKEN` | GitHub Secrets | CI/CD (Vercel deployments) | 3 Months |
 | `VERCEL_ORG_ID` | GitHub Secrets | CI/CD (Vercel build linking) | Permanent |
 | `VERCEL_PROJECT_ID` | GitHub Secrets | CI/CD (Vercel build linking) | Permanent |
 
 ### 🔄 Rotation Steps
+
+#### PayPal subscription setup and release
+
+1. In the PayPal Developer Dashboard, create or select a **Sandbox** REST app.
+2. Create one USD subscription product with two active plans whose prices match
+   `src/lib/pricing.js`: **$22.99 monthly** and **$228.99 yearly**. Copy their
+   `P-...` IDs into `PAYPAL_MONTHLY_PLAN_ID` and `PAYPAL_YEARLY_PLAN_ID`.
+3. Add an HTTPS webhook for
+   `https://www.xaujournal.com/api/webhooks/paypal` and subscribe it to:
+   - `PAYMENT.SALE.COMPLETED`
+   - `PAYMENT.SALE.REFUNDED`
+   - `PAYMENT.SALE.REVERSED`
+   - `BILLING.SUBSCRIPTION.CREATED`
+   - `BILLING.SUBSCRIPTION.ACTIVATED`
+   - `BILLING.SUBSCRIPTION.UPDATED`
+   - `BILLING.SUBSCRIPTION.CANCELLED`
+   - `BILLING.SUBSCRIPTION.SUSPENDED`
+   - `BILLING.SUBSCRIPTION.EXPIRED`
+   - `BILLING.SUBSCRIPTION.PAYMENT.FAILED`
+4. Set `PAYPAL_ENV=sandbox`, the REST app client ID and secret, the webhook ID,
+   and both plan IDs in Vercel. Deploy the API and Firestore rules together.
+5. Complete one small Sandbox monthly subscription and verify all three views:
+   PayPal shows the subscription, the customer receives Pro only after the
+   completed-sale webhook, and the admin Payments/Subscriptions pages show the
+   same IDs, amount, payer, and next billing date.
+6. For production, create separate **Live** plans and a Live webhook, then
+   replace every PayPal value together and set `PAYPAL_ENV=live`. Never combine
+   Sandbox credentials, webhook IDs, or plan IDs with Live values.
+
+PayPal's webhook simulator can check listener reachability, but its mock events
+do not support the postback-verification path used by this application. The
+release check therefore requires one real Sandbox subscription.
 
 #### A. Firebase Admin SDK / Service Account Rotation
 If you suspect the Firebase deployment key is compromised:
@@ -79,9 +116,10 @@ Create alert notifications (via Email or Slack) in Google Cloud and Vercel dashb
 * **Rollbacks**: If a bug is detected in production, go to Vercel dashboard → **Deployments** → Locate the previous working build → Click **Rollback**. The change is instant (takes less than 1 second) and requires no rebuilding.
 
 ### 🛡️ Third-Party API Circuit Breakers
-If external APIs (MetaApi, Resend, Lemon Squeezy) experience an outage:
+If external APIs (MetaApi, Resend, PayPal) experience an outage:
 * **Resend email alerts**: If Resend fails, we log the error but allow the user login flow to succeed (avoiding blocking the user due to email server issues).
 * **MetaApi Broker Sync**: Sync failures do not block the user interface. If a sync fails, we mark `lastSyncStatus = "failed"` in Firestore and output a helpful message in the UI, allowing the user to retry manually.
+* **PayPal subscriptions**: Do not grant, renew, or revoke Pro access from a browser return alone. Queue/retry reconciliation and use verified PayPal subscription and payment state when webhook delivery is delayed.
 
 ---
 

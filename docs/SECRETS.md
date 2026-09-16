@@ -13,7 +13,12 @@ check the function logs after a deploy or a rotation.
 |---|---|---|
 | `FIREBASE_SERVICE_ACCOUNT` | all Firestore access | API cannot reach the database |
 | `CRON_SECRET` | `/api/cron/*` | **Cron routes refuse to run (503).** Must be ≥32 characters |
-| `LEMON_SQUEEZY_WEBHOOK_SECRET` | `/api/lemon-squeezy-webhook` | Webhook returns 500; subscriptions stop updating |
+| `PAYPAL_CLIENT_ID` | PayPal REST app identification | PayPal checkout cannot initialize |
+| `PAYPAL_CLIENT_SECRET` | PayPal OAuth and subscription API | Server-to-server PayPal requests refuse to run |
+| `PAYPAL_WEBHOOK_ID` | PayPal webhook verification | Subscription events cannot be trusted or applied |
+| `PAYPAL_ENV` | PayPal API selection (`sandbox` or `live`) | PayPal integration refuses to start |
+| `PAYPAL_MONTHLY_PLAN_ID` | monthly Pro checkout | Monthly subscription creation is disabled |
+| `PAYPAL_YEARLY_PLAN_ID` | yearly Pro checkout | Yearly subscription creation is disabled |
 | `METAAPI_TOKEN` | broker sync | Broker connect and sync fail |
 | `RESEND_API_KEY` | transactional mail | Mail silently fails (errors are logged) |
 
@@ -30,11 +35,16 @@ check the function logs after a deploy or a rotation.
 
 `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_AUTH_DOMAIN`, `VITE_FIREBASE_PROJECT_ID`,
 `VITE_FIREBASE_MESSAGING_SENDER_ID`, `VITE_FIREBASE_APP_ID`,
-`VITE_LEMON_SQUEEZY_CHECKOUT_URL_MONTHLY`, `VITE_LEMON_SQUEEZY_CHECKOUT_URL_YEARLY`,
 `VITE_GA_MEASUREMENT_ID`.
 
 Firebase web config values are public by design — access control is enforced by
 `firestore.rules` and `storage.rules`, not by hiding the API key.
+
+The PayPal client ID, webhook ID, and plan IDs are identifiers rather than
+passwords, but this application keeps them in server configuration so Sandbox
+and Live resources cannot be mixed accidentally. `PAYPAL_CLIENT_SECRET` must
+never be exposed to the browser. Each plan ID must belong to the REST app and
+environment selected by `PAYPAL_ENV`.
 
 ## Rotation
 

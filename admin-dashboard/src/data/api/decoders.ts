@@ -9,6 +9,7 @@ import type {
   Coupon,
   Overview,
   Payment,
+  PayPalBillingCycle,
   Report,
   Subscription,
   SystemSettings,
@@ -143,11 +144,27 @@ export function decodeAdminHealth(value: unknown, path = 'data'): AdminHealth {
 function normalizedPaymentStatus(value: unknown, path: string): Payment['status'] {
   if (typeof value !== 'string') return enumValue(value, PAYMENT_STATUSES, path);
   const normalized = value.toLowerCase();
-  if (['paid', 'completed', 'succeeded', 'success'].includes(normalized)) return 'SUCCESS';
-  if (normalized === 'failed') return 'FAILED';
-  if (normalized === 'refunded') return 'REFUNDED';
-  if (['pending', 'processing'].includes(normalized)) return 'PENDING';
+  if (['captured', 'paid', 'completed', 'succeeded', 'success'].includes(normalized)) return 'SUCCESS';
+  if (['failed', 'declined', 'denied', 'voided', 'expired', 'cancelled', 'canceled'].includes(normalized)) return 'FAILED';
+  if (['refunded', 'partially_refunded', 'reversed'].includes(normalized)) return 'REFUNDED';
+  if (['pending', 'created', 'approved', 'payer_action_required'].includes(normalized)) return 'PENDING';
   return enumValue(value, PAYMENT_STATUSES, path);
+}
+
+function decodePayPalBillingCycles(value: unknown, path: string): PayPalBillingCycle[] {
+  return optionalArray(value, path, (entry, entryPath) => {
+    const cycle = record(entry, entryPath);
+    const rawTenureType = optionalString(first(cycle, 'tenureType', 'tenure_type'), `${entryPath}.tenureType`);
+    return {
+      tenureType: rawTenureType === undefined
+        ? undefined
+        : enumValue(rawTenureType, ['REGULAR', 'TRIAL'] as const, `${entryPath}.tenureType`),
+      sequence: optionalNumber(cycle.sequence, `${entryPath}.sequence`),
+      cyclesCompleted: optionalNumber(first(cycle, 'cyclesCompleted', 'cycles_completed'), `${entryPath}.cyclesCompleted`),
+      cyclesRemaining: optionalNumber(first(cycle, 'cyclesRemaining', 'cycles_remaining'), `${entryPath}.cyclesRemaining`),
+      totalCycles: optionalNumber(first(cycle, 'totalCycles', 'total_cycles'), `${entryPath}.totalCycles`),
+    };
+  });
 }
 
 function normalizedReportStatus(value: unknown, path: string): Report['status'] {
@@ -161,6 +178,8 @@ function normalizedSubscriptionStatus(value: unknown, path: string): Subscriptio
     const normalized = value.toLowerCase();
     if (['cancelled', 'canceled'].includes(normalized)) return 'CANCELED';
     if (['past_due', 'past-due'].includes(normalized)) return 'PAST_DUE';
+    if (normalized === 'suspended') return 'PAUSED';
+    if (['approval_pending', 'approved'].includes(normalized)) return 'UNKNOWN';
   }
   return enumValue(value, SUBSCRIPTION_STATUSES, path, 'UNKNOWN');
 }
@@ -176,14 +195,39 @@ export function decodeUser(value: unknown, path = 'data'): User {
   const source = record(value, path);
   const uid = string(first(source, 'uid', 'id'), `${path}.uid`);
   const subscriptionValue = source.subscription;
-  const subscription = subscriptionValue === undefined || subscriptionValue === null
+  const nestedSubscription = subscriptionValue !== undefined && subscriptionValue !== null;
+  const subscriptionSource = nestedSubscription
+    ? record(subscriptionValue, `${path}.subscription`)
+    : source;
+  const subscriptionId = optionalString(
+    first(subscriptionSource, 'paypalSubscriptionId', 'subscriptionId', 'providerSubscriptionId'),
+    `${path}.subscription.subscriptionId`,
+  );
+  const hasSubscription = nestedSubscription || subscriptionId !== undefined
+    || first(source, 'subscriptionStatus', 'paypalStatus', 'nextBillingAt', 'nextBillingTime') !== undefined;
+  const subscription = !hasSubscription
     ? undefined
     : (() => {
-      const item = record(subscriptionValue, `${path}.subscription`);
+      const item = subscriptionSource;
+      const rawStatus = optionalString(
+        nestedSubscription
+          ? first(item, 'status', 'subscriptionStatus', 'paypalStatus')
+          : first(item, 'subscriptionStatus', 'paypalStatus', 'paymentStatus'),
+        `${path}.subscription.status`,
+      );
       return {
-        stripeCustomerId: optionalString(first(item, 'stripeCustomerId', 'customerId'), `${path}.subscription.stripeCustomerId`),
-        subscriptionId: optionalString(first(item, 'subscriptionId', 'providerSubscriptionId'), `${path}.subscription.subscriptionId`),
-        autoRenew: optionalBoolean(item.autoRenew, `${path}.subscription.autoRenew`) ?? true,
+        provider: 'paypal' as const,
+        subscriptionId,
+        planId: optionalString(first(item, 'paypalPlanId', 'planId'), `${path}.subscription.planId`),
+        payerEmail: optionalString(first(item, 'payerEmail', 'paypalPayerEmail', 'subscriberEmail'), `${path}.subscription.payerEmail`),
+        customerId: optionalString(first(item, 'paypalPayerId', 'payerId', 'customerId'), `${path}.subscription.customerId`),
+        status: rawStatus,
+        autoRenew: optionalBoolean(item.autoRenew, `${path}.subscription.autoRenew`)
+          ?? !['CANCELLED', 'CANCELED', 'EXPIRED'].includes(rawStatus?.toUpperCase() ?? ''),
+        billingCycles: decodePayPalBillingCycles(first(item, 'billingCycles', 'cycleExecutions'), `${path}.subscription.billingCycles`),
+        nextBillingAt: optionalDateString(first(item, 'nextBillingAt', 'nextBillingTime', 'nextBillingDate'), `${path}.subscription.nextBillingAt`),
+        latestCaptureId: optionalString(first(item, 'latestCaptureId', 'captureId'), `${path}.subscription.latestCaptureId`),
+        latestOrderId: optionalString(first(item, 'latestOrderId', 'orderId'), `${path}.subscription.latestOrderId`),
         expiresAt: optionalDateString(first(item, 'expiresAt', 'currentPeriodEnd'), `${path}.subscription.expiresAt`),
         startedAt: optionalDateString(first(item, 'startedAt', 'currentPeriodStart'), `${path}.subscription.startedAt`),
       };
@@ -239,26 +283,35 @@ export function decodeSubscription(value: unknown, path = 'data'): Subscription 
   const source = record(value, path);
   const userId = string(first(source, 'userId', 'uid', 'id'), `${path}.userId`);
   const providerSubscriptionId = optionalString(
-    first(source, 'providerSubscriptionId', 'subscriptionId', 'lemonSqueezySubscriptionId'),
+    first(source, 'paypalSubscriptionId', 'subscriptionId', 'providerSubscriptionId'),
     `${path}.providerSubscriptionId`,
   );
-  const status = normalizedSubscriptionStatus(first(source, 'status', 'lemonSqueezyStatus'), `${path}.status`);
-  return {
+  const paypalStatus = optionalString(first(source, 'paypalStatus', 'subscriptionStatus', 'paymentStatus', 'status'), `${path}.paypalStatus`);
+  const status = normalizedSubscriptionStatus(paypalStatus, `${path}.status`);
+  const decoded = {
     id: providerSubscriptionId ?? userId,
     userId,
-    userEmail: optionalString(first(source, 'userEmail', 'email'), `${path}.userEmail`),
+    userEmail: optionalString(first(source, 'userEmail', 'email', 'payerEmail', 'paypalPayerEmail'), `${path}.userEmail`),
     userName: optionalString(first(source, 'userName', 'displayName'), `${path}.userName`),
     plan: enumValue(source.plan, USER_PLANS, `${path}.plan`, 'PRO'),
     status,
     autoRenew: optionalBoolean(source.autoRenew, `${path}.autoRenew`) ?? !['CANCELED', 'EXPIRED'].includes(status),
-    customerId: optionalString(first(source, 'customerId', 'stripeCustomerId'), `${path}.customerId`),
+    customerId: optionalString(first(source, 'paypalPayerId', 'payerId', 'customerId'), `${path}.customerId`),
     providerSubscriptionId,
+    planId: optionalString(first(source, 'paypalPlanId', 'planId'), `${path}.planId`),
+    payerEmail: optionalString(first(source, 'payerEmail', 'paypalPayerEmail', 'subscriberEmail'), `${path}.payerEmail`),
+    paypalStatus,
+    billingCycles: decodePayPalBillingCycles(first(source, 'billingCycles', 'cycleExecutions'), `${path}.billingCycles`),
+    nextBillingAt: optionalDateString(first(source, 'nextBillingAt', 'nextBillingTime', 'nextBillingDate'), `${path}.nextBillingAt`),
+    latestCaptureId: optionalString(first(source, 'latestCaptureId', 'captureId'), `${path}.latestCaptureId`),
+    latestOrderId: optionalString(first(source, 'latestOrderId', 'orderId'), `${path}.latestOrderId`),
     currentPeriodStart: optionalDateString(first(source, 'currentPeriodStart', 'startedAt'), `${path}.currentPeriodStart`),
     currentPeriodEnd: optionalDateString(first(source, 'currentPeriodEnd', 'expiresAt', 'planExpiry'), `${path}.currentPeriodEnd`),
     canceledAt: optionalDateString(source.canceledAt, `${path}.canceledAt`),
     createdAt: optionalDateString(source.createdAt, `${path}.createdAt`),
     updatedAt: optionalDateString(source.updatedAt, `${path}.updatedAt`),
   };
+  return decoded;
 }
 
 export function decodePayment(value: unknown, path = 'data'): Payment {
@@ -270,13 +323,17 @@ export function decodePayment(value: unknown, path = 'data'): Payment {
     userEmail: optionalString(first(source, 'userEmail', 'email'), `${path}.userEmail`),
     amount: number(source.amount, `${path}.amount`),
     currency: optionalString(source.currency, `${path}.currency`) ?? 'USD',
-    status: normalizedPaymentStatus(source.status, `${path}.status`),
+    status: normalizedPaymentStatus(first(source, 'status', 'paymentStatus'), `${path}.status`),
     date: dateString(first(source, 'date', 'paidAt', 'createdAt'), `${path}.date`),
-    stripeInvoiceId: optionalString(first(source, 'stripeInvoiceId', 'orderId'), `${path}.stripeInvoiceId`),
-    providerPaymentId: optionalString(first(source, 'providerPaymentId', 'paymentId'), `${path}.providerPaymentId`),
-    provider: optionalString(source.provider, `${path}.provider`),
-    subscriptionId: optionalString(source.subscriptionId, `${path}.subscriptionId`),
-    orderId: optionalString(source.orderId, `${path}.orderId`),
+    subscriptionId: optionalString(first(source, 'paypalSubscriptionId', 'subscriptionId'), `${path}.subscriptionId`),
+    planId: optionalString(first(source, 'paypalPlanId', 'planId'), `${path}.planId`),
+    payerEmail: optionalString(first(source, 'payerEmail', 'paypalPayerEmail', 'subscriberEmail'), `${path}.payerEmail`),
+    customerId: optionalString(first(source, 'paypalPayerId', 'payerId', 'customerId'), `${path}.customerId`),
+    billingCycles: decodePayPalBillingCycles(first(source, 'billingCycles', 'cycleExecutions'), `${path}.billingCycles`),
+    nextBillingAt: optionalDateString(first(source, 'nextBillingAt', 'nextBillingTime', 'nextBillingDate'), `${path}.nextBillingAt`),
+    latestCaptureId: optionalString(first(source, 'latestCaptureId', 'captureId'), `${path}.latestCaptureId`),
+    latestOrderId: optionalString(first(source, 'latestOrderId', 'orderId'), `${path}.latestOrderId`),
+    paymentStatus: optionalString(first(source, 'paypalStatus', 'paymentStatus'), `${path}.paymentStatus`),
     refundedAmount: optionalNumber(source.refundedAmount, `${path}.refundedAmount`),
     type: optionalString(source.type, `${path}.type`),
     createdAt: optionalDateString(source.createdAt, `${path}.createdAt`),

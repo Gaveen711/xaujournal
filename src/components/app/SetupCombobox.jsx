@@ -174,6 +174,7 @@ export function SetupCombobox({
   return (
     <Popover open={open} onOpenChange={(next) => (next ? setOpen(true) : close())}>
       <PopoverTrigger
+        data-slot="setup-combobox-trigger"
         id={id}
         type="button"
         disabled={disabled}

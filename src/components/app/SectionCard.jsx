@@ -52,7 +52,7 @@ export function SectionCard({
   if (!surface) {
     return (
       <As aria-labelledby={headingId} className={cn('border-t border-border pt-3', className)}>
-        <div className="flex items-baseline justify-between gap-4 pb-3">
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 pb-3">
           <div className="min-w-0">
             <h2 id={headingId} className="text-sm font-medium text-foreground">
               {title}
@@ -62,7 +62,7 @@ export function SectionCard({
             )}
           </div>
           {(metaNode != null || actions != null) && (
-            <div className="flex shrink-0 items-baseline gap-3">
+            <div className="flex min-w-0 flex-wrap items-center gap-3">
               {metaNode}
               {actions}
             </div>
@@ -84,7 +84,7 @@ export function SectionCard({
             <CardDescription className="text-xs">{description}</CardDescription>
           )}
           {(metaNode != null || actions != null) && (
-            <CardAction className="flex items-baseline gap-3">
+            <CardAction className="flex flex-wrap items-center gap-3">
               {metaNode}
               {actions}
             </CardAction>

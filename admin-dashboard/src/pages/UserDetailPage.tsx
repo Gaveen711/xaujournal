@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { ArrowLeft, BadgeCheck, CalendarDays, CreditCard, KeyRound, Mail, MapPin, ShieldAlert, Trash2, UserRound, WalletCards } from 'lucide-react';
+import { ArrowLeft, BadgeCheck, CalendarClock, CalendarDays, CreditCard, KeyRound, Mail, MapPin, ShieldAlert, Trash2, UserRound, WalletCards } from 'lucide-react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { UserAccessEditor } from '../components/users/UserAccessEditor';
 import { UserAnalyticsSection } from '../components/users/UserAnalyticsSection';
@@ -139,6 +139,10 @@ export function UserDetailPage() {
           <RecordField icon={<CalendarDays />} label="Joined">{formatDate(user.createdAt ?? user.joinedDate, true)}</RecordField>
           <RecordField icon={<UserRound />} label="Last login">{formatDate(user.lastLogin ?? user.lastSignInAt, true)}</RecordField>
           <RecordField icon={<WalletCards />} label="Plan expiry">{formatDate(user.planExpiry ?? user.subscription?.expiresAt, true)}</RecordField>
+          <RecordField icon={<CreditCard />} label="PayPal subscription"><code>{user.subscription?.subscriptionId ?? 'Not connected'}</code></RecordField>
+          <RecordField icon={<KeyRound />} label="PayPal plan"><code>{user.subscription?.planId ?? 'Not connected'}</code></RecordField>
+          <RecordField icon={<Mail />} label="PayPal payer">{user.subscription?.payerEmail ?? 'Not recorded'}{user.subscription?.customerId ? ` · ${user.subscription.customerId}` : ''}</RecordField>
+          <RecordField icon={<CalendarClock />} label="Next PayPal billing">{formatDate(user.subscription?.nextBillingAt, true)}</RecordField>
           <RecordField icon={<Trash2 />} label="Deletion workflow">{user.deletionState === 'PENDING' ? `Pending since ${formatDate(user.deletionRequestedAt, true)}` : 'Not requested'}</RecordField>
         </dl>
       </Panel>
@@ -158,7 +162,7 @@ export function UserDetailPage() {
             ? <ErrorState title={paymentError.title} message={paymentError.message} onRetry={() => void paymentState.refresh()} />
             : payments.length === 0
               ? <EmptyState icon={<CreditCard />} title="No payment records" message="Verified billing events for this customer will appear here." />
-              : <div className="space-y-2">{payments.slice(0, 10).map((payment) => <div className="activity-row" key={payment.id}><span className="activity-row__icon"><CreditCard size={15} /></span><div className="flex-1"><strong>{payment.stripeInvoiceId ?? payment.orderId ?? payment.id}</strong><small>{formatDate(payment.date ?? payment.createdAt, true)}</small></div><b>{formatMoney(payment.amount, payment.currency)}</b><StatusBadge tone={payment.status === 'SUCCESS' ? 'success' : payment.status === 'FAILED' ? 'danger' : 'warning'}>{payment.status}</StatusBadge></div>)}</div>}
+              : <div className="space-y-2">{payments.slice(0, 10).map((payment) => <div className="activity-row" key={payment.id}><span className="activity-row__icon"><CreditCard size={15} /></span><div className="flex-1"><strong>{payment.latestCaptureId ?? payment.latestOrderId ?? payment.id}</strong><small>{formatDate(payment.date ?? payment.createdAt, true)} · {payment.subscriptionId ? `PayPal subscription ${payment.subscriptionId}` : 'PayPal payment'}</small></div><b>{formatMoney(payment.amount, payment.currency)}</b><StatusBadge tone={payment.status === 'SUCCESS' ? 'success' : payment.status === 'FAILED' ? 'danger' : 'warning'}>{payment.paymentStatus ?? payment.status}</StatusBadge></div>)}</div>}
       </Panel>
     </div>
 

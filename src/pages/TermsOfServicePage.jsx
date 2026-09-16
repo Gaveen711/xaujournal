@@ -35,11 +35,11 @@ We reserve the right to suspend or terminate accounts that violate these Terms, 
   {
     id: 'subscriptions',
     title: '4. Subscriptions & billing',
-    content: `Pro subscriptions are available on a monthly or a yearly billing cycle, at the rate displayed at the time of purchase. A yearly subscription is charged in full at the start of each 12-month period. All prices are in USD. Payments are processed securely via our payment processor.
+    content: `Pro subscriptions are available on a monthly or yearly billing cycle at the price displayed when you subscribe. A yearly subscription is charged in full at the start of each 12-month period. All prices are shown and charged in USD. Payments and recurring billing are processed by PayPal under PayPal's applicable terms.
 
-Subscriptions auto-renew each billing cycle unless cancelled before the renewal date. You may cancel at any time via the billing portal in your account settings. Cancellation takes effect at the end of the current billing period — you retain Pro access until then.
+Your Pro subscription renews automatically each month or year, depending on the plan you choose, until you cancel it. You authorise PayPal to charge your selected payment method for each renewal. You may cancel before the next billing date through the available subscription-management flow. Cancellation stops future renewals; it does not automatically refund a completed payment. Pro access continues through the end of the period already paid for, unless a payment is reversed, refunded, disputed, or otherwise invalidated.
 
-xaujournal offers a 7-day money-back guarantee on your first Pro subscription payment. If you are not satisfied within 7 days of your initial purchase, contact us at info@xaujournal.com for a full refund. Renewal charges are non-refundable. Please refer to our full Refund Policy at www.xaujournal.com/refund-policy for complete details.`,
+Subscription payments are generally non-refundable except where required by law. If you believe you were charged more than once or charged incorrectly, contact info@xaujournal.com. We may review a refund request, but review does not guarantee a refund. See the Payment & Cancellation Policy at www.xaujournal.com/refund-policy for details.`,
   },
   {
     id: 'acceptable-use',
@@ -123,7 +123,7 @@ export function TermsOfServicePage() {
       title="Terms of"
       accent="Service"
       lede="Our commitment to transparency and fairness in providing the best trading journal experience."
-      summary="Use xaujournal responsibly. Your data is yours. We don't give financial advice. Connect your broker securely via Meta API. Pro subscriptions auto-renew each monthly or yearly cycle and include a 7-day money-back guarantee on the first payment."
+      summary="Use xaujournal responsibly. Your data is yours. We don't give financial advice. Connect your broker securely via Meta API. Pro subscriptions are billed in USD through PayPal and renew automatically each month or year until cancelled."
       sections={SECTIONS}
     />
   );

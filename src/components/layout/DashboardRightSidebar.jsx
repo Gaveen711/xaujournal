@@ -629,7 +629,7 @@ export function DashboardRightSidebar({
             {/* Session / Setup */}
             <div className="dashboard-trade-field-grid grid grid-cols-2 gap-3">
               <Field>
-                <div className="flex items-center justify-between gap-1">
+                <div className="flex min-h-[18px] min-w-0 items-center justify-between gap-1">
                   <FieldLabel htmlFor="trade-session" className="truncate text-xs text-muted-foreground">
                     Session
                   </FieldLabel>
@@ -638,7 +638,7 @@ export function DashboardRightSidebar({
                   {autoSessionCode && (
                     <span
                       title="Derived from your clock — stored with the trade"
-                      className="inline-flex h-[18px] shrink-0 items-center rounded-sm border border-border px-1.5 font-mono text-[11px] leading-none text-muted-foreground"
+                      className="block min-w-0 truncate rounded-sm border border-border px-1.5 font-mono text-[10px] leading-4 text-muted-foreground"
                     >
                       AUTO · {autoSessionCode}
                     </span>

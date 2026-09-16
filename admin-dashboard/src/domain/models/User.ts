@@ -4,10 +4,26 @@ export type UserPlan = 'FREE' | 'PRO' | 'GRACE';
 export type UserStatus = 'ACTIVE' | 'SUSPENDED';
 export type UserDeletionState = 'PENDING';
 
+export interface PayPalBillingCycle {
+  tenureType?: 'REGULAR' | 'TRIAL';
+  sequence?: number;
+  cyclesCompleted?: number;
+  cyclesRemaining?: number;
+  totalCycles?: number;
+}
+
 export interface SubscriptionDetails {
-  stripeCustomerId?: string;
+  provider?: 'paypal';
   subscriptionId?: string;
+  planId?: string;
+  payerEmail?: string;
+  customerId?: string;
+  status?: string;
   autoRenew: boolean;
+  billingCycles: PayPalBillingCycle[];
+  nextBillingAt?: IsoDateString;
+  latestCaptureId?: string;
+  latestOrderId?: string;
   expiresAt?: IsoDateString;
   startedAt?: IsoDateString;
 }

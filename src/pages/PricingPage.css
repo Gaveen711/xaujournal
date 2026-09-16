@@ -321,6 +321,18 @@
 .xpr-terms-action,
 .xpr-terms-action .xj-cta { width: 100%; }
 
+.xpr-checkout-status {
+  display: block;
+  min-height: 1.35em;
+  margin-top: 8px;
+  color: var(--xj-faint);
+  font-family: var(--xj-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.03em;
+  line-height: 1.45;
+  text-align: center;
+}
+
 .xpr-plate-foot {
   margin: 0;
   padding: 14px var(--xpr-pad) var(--xpr-pad);

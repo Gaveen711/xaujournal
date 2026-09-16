@@ -359,6 +359,18 @@ service cloud.firestore {
     match /webhookEvents/{eventId} {
       allow read, write: if false;
     }
+    // PayPal checkout ownership, idempotency and provider subscription
+    // mappings are server-only. The browser receives only a hosted approval
+    // URL and cannot forge or reassign these records.
+    match /paypalCheckoutAttempts/{id} {
+      allow read, write: if false;
+    }
+    match /paypalCheckoutRequests/{id} {
+      allow read, write: if false;
+    }
+    match /paypalSubscriptions/{id} {
+      allow read, write: if false;
+    }
     // Contact form submissions are written by the server with the Admin SDK.
     match /contactMessages/{messageId} {
       allow read, write: if false;

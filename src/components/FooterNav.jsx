@@ -18,7 +18,7 @@ const ACCOUNT_LINKS = [
 const POLICY_LINKS = [
   { to: '/privacy', label: 'Privacy policy' },
   { to: '/terms-and-conditions', label: 'Terms of service' },
-  { to: '/refund-policy', label: 'Refund policy' },
+  { to: '/refund-policy', label: 'Payment & cancellation' },
 ];
 
 const SOCIAL_LINKS = [

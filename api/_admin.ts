@@ -17,6 +17,16 @@ const DEFAULT_PAGE_SIZE = 50
 const MAX_PAGE_SIZE = 100
 const MAX_BODY_BYTES = 32 * 1024
 
+const PAYPAL_SUBSCRIPTION_DETAIL_FIELDS = [
+  'subscriptionId', 'paypalSubscriptionId', 'planId', 'paypalPlanId',
+  'payerEmail', 'paypalPayerEmail', 'customerId', 'payerId', 'paypalPayerId',
+  'status', 'paypalStatus', 'subscriptionStatus', 'autoRenew',
+  'billingCycles', 'cycleExecutions', 'nextBillingAt', 'nextBillingTime', 'nextBillingDate',
+  'latestCaptureId', 'captureId', 'latestOrderId', 'orderId',
+  'currentPeriodStart', 'currentPeriodEnd', 'startedAt', 'expiresAt', 'canceledAt',
+  'createdAt', 'updatedAt',
+] as const
+
 type AdminActor = { uid: string; email: string; authTime: number; secondFactor?: string }
 
 export type AdminDependencies = {
@@ -37,21 +47,31 @@ const USER_FIELDS = [
   'firstName', 'lastName', 'displayName', 'photoURL', 'country', 'plan',
   'isTrial', 'planExpiry', 'graceUntil', 'graceReason', 'mt5SyncEnabled',
   'totalTradesLogged', 'totalJournalsLogged', 'analyticsBackfillState',
-  'requiresEmailVerification', 'lemonSqueezySubscriptionId',
-  'lemonSqueezyStatus', 'createdAt', 'updatedAt', 'lastTradeTime',
+  'requiresEmailVerification', 'paypalSubscriptionId', 'subscriptionId', 'paypalPlanId', 'planId',
+  'payerEmail', 'paypalPayerEmail', 'paypalPayerId', 'payerId', 'customerId',
+  'subscriptionStatus', 'paypalStatus', 'paymentStatus', 'autoRenew', 'billingCycles', 'cycleExecutions',
+  'nextBillingAt', 'nextBillingTime', 'nextBillingDate', 'latestCaptureId', 'captureId',
+  'latestOrderId', 'orderId', 'currentPeriodStart', 'currentPeriodEnd', 'createdAt', 'updatedAt', 'lastTradeTime',
   'deletionState', 'deletionRequestedAt',
 ] as const
 
 const SUBSCRIPTION_FIELDS = [
   'plan', 'isTrial', 'planExpiry', 'graceUntil', 'graceReason',
-  'lemonSqueezySubscriptionId', 'lemonSqueezyStatus', 'mt5SyncEnabled',
+  'subscription', 'paypalSubscriptionId', 'subscriptionId', 'paypalPlanId', 'planId',
+  'payerEmail', 'paypalPayerEmail', 'paypalPayerId', 'payerId', 'customerId',
+  'subscriptionStatus', 'paypalStatus', 'paymentStatus', 'autoRenew', 'billingCycles', 'cycleExecutions',
+  'nextBillingAt', 'nextBillingTime', 'nextBillingDate', 'latestCaptureId', 'captureId',
+  'latestOrderId', 'orderId', 'currentPeriodStart', 'currentPeriodEnd', 'mt5SyncEnabled',
   'createdAt', 'updatedAt',
 ] as const
 
 const PAYMENT_FIELDS = [
-  'userId', 'email', 'provider', 'subscriptionId', 'providerPaymentId',
-  'orderId', 'amount', 'refundedAmount', 'currency', 'status', 'type',
-  'description', 'createdAt', 'updatedAt', 'paidAt', 'refundedAt',
+  'userId', 'userName', 'userEmail', 'email', 'paypalSubscriptionId', 'subscriptionId',
+  'paypalPlanId', 'planId', 'payerEmail', 'paypalPayerEmail', 'paypalPayerId', 'payerId', 'customerId',
+  'billingCycles', 'cycleExecutions', 'nextBillingAt', 'nextBillingTime', 'nextBillingDate',
+  'latestCaptureId', 'captureId', 'latestOrderId', 'orderId',
+  'amount', 'refundedAmount', 'currency', 'status', 'paypalStatus', 'paymentStatus',
+  'type', 'description', 'createdAt', 'updatedAt', 'paidAt', 'refundedAt',
 ] as const
 
 const REPORT_FIELDS = [
@@ -110,6 +130,9 @@ function publicDocument(doc: any, fields: readonly string[]): Record<string, any
 }
 
 function publicAuthUser(user: any, userData: Record<string, any> = {}): Record<string, any> {
+  const subscription = isRecord(userData.subscription)
+    ? pickFields(userData.subscription, PAYPAL_SUBSCRIPTION_DETAIL_FIELDS)
+    : undefined
   return {
     id: user.uid,
     uid: user.uid,
@@ -125,6 +148,7 @@ function publicAuthUser(user: any, userData: Record<string, any> = {}): Record<s
     lastSignInAt: user.metadata?.lastSignInTime || null,
     isAdmin: user.customClaims?.admin === true,
     ...pickFields(userData, USER_FIELDS),
+    ...(subscription ? { subscription } : {}),
   }
 }
 
@@ -733,12 +757,20 @@ export function createAdminApi(deps: AdminDependencies) {
     else filters.push(['plan', 'in', ['pro', 'grace']])
     const response = await listDocuments(c, deps, 'users', SUBSCRIPTION_FIELDS, filters)
     const authUsers = await Promise.all(response.data.map((entry) => deps.admin.auth().getUser(entry.id).catch(() => null)))
-    response.data = response.data.map((entry, index) => ({
-      ...entry,
-      uid: entry.id,
-      email: authUsers[index]?.email || null,
-      displayName: authUsers[index]?.displayName || null,
-    }))
+    response.data = response.data.map((entry, index) => {
+      const nestedSubscription = isRecord(entry.subscription)
+        ? pickFields(entry.subscription, PAYPAL_SUBSCRIPTION_DETAIL_FIELDS)
+        : {}
+      const safeEntry = Object.fromEntries(Object.entries(entry).filter(([key]) => key !== 'subscription'))
+      return {
+        ...safeEntry,
+        ...nestedSubscription,
+        uid: entry.id,
+        userId: entry.id,
+        email: authUsers[index]?.email || null,
+        displayName: authUsers[index]?.displayName || null,
+      }
+    })
     return c.json(response)
   })
 
@@ -752,7 +784,17 @@ export function createAdminApi(deps: AdminDependencies) {
     const status = c.req.query('status')
     const userId = c.req.query('userId')
     const filters: Array<[string, FirebaseFirestore.WhereFilterOp, any]> = []
-    if (status) filters.push(['status', '==', boundedString(status, 'status', 40)])
+    if (status) {
+      const normalized = (boundedString(status, 'status', 40) as string).toLowerCase()
+      const aliases: Record<string, string[]> = {
+        succeeded: ['completed', 'COMPLETED', 'paid', 'PAID', 'succeeded', 'SUCCESS'],
+        failed: ['failed', 'FAILED', 'declined', 'DECLINED', 'denied', 'DENIED', 'voided', 'VOIDED'],
+        refunded: ['refunded', 'REFUNDED', 'partially_refunded', 'PARTIALLY_REFUNDED', 'reversed', 'REVERSED'],
+        pending: ['pending', 'PENDING', 'created', 'CREATED', 'approved', 'APPROVED', 'payer_action_required', 'PAYER_ACTION_REQUIRED'],
+      }
+      const acceptedStatuses = aliases[normalized] ?? [normalized]
+      filters.push(['status', acceptedStatuses.length === 1 ? '==' : 'in', acceptedStatuses.length === 1 ? acceptedStatuses[0] : acceptedStatuses])
+    }
     if (userId) filters.push(['userId', '==', assertIdentifier(userId, 'user id')])
     return c.json(await listDocuments(c, deps, 'payments', PAYMENT_FIELDS, filters))
   })
@@ -766,7 +808,7 @@ export function createAdminApi(deps: AdminDependencies) {
     const snapshot = await ref.get()
     if (!snapshot.exists) throw new AdminHttpError(404, 'Payment not found')
     const paymentStatus = normalizedPaymentStatus(snapshot.get('status'))
-    if (isSettledPaymentStatus(paymentStatus) || paymentStatus === 'refunded') {
+    if (isSettledPaymentStatus(paymentStatus) || ['refunded', 'partially_refunded', 'reversed'].includes(paymentStatus)) {
       throw new AdminHttpError(409, 'Settled payment records cannot be deleted')
     }
     const batch = deps.db.batch()

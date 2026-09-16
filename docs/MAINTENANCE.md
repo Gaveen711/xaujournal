@@ -22,13 +22,14 @@ Before scaling to real users, you MUST set up budget alerts to prevent unexpecte
 ---
 
 ## 2. 🔑 API Key Rotation Plan
-If you ever committed secrets (like Stripe Private Keys or Firebase Service Accounts) to Git history, they are considered compromised.
+If you ever committed secrets (like a PayPal client secret or Firebase Service Account) to Git history, they are considered compromised.
 
 ### Steps to Rotate:
-1. **Payments (Lemon Squeezy / provider keys)**:
-   - Go to your payment provider's developer dashboard (e.g., Lemon Squeezy Dashboard) and locate your client/API keys and secrets.
-   - Create new credentials if you suspect compromise.
-   - Update the corresponding environment variables in Vercel (e.g., `LEMON_SQUEEZY_API_KEY`, etc. once integrated).
+1. **Payments (PayPal credentials)**:
+   - Go to the PayPal Developer Dashboard and rotate the REST app secret if you suspect compromise.
+   - Update `PAYPAL_CLIENT_ID` and `PAYPAL_CLIENT_SECRET` in Vercel, then redeploy.
+   - If you replace the PayPal REST app or webhook, update `PAYPAL_WEBHOOK_ID` and confirm the monthly and yearly plan IDs still belong to that app.
+   - Keep Sandbox and Live credentials separate; never test production billing with Sandbox plan IDs.
    - Ensure no legacy payment-provider secrets remain configured in Vercel.
 
 

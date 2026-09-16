@@ -1,68 +1,68 @@
-# Graph Report - xaujournal  (2026-08-29)
+# Graph Report - xaujournal  (2026-09-16)
 
 ## Corpus Check
-- 398 files · ~540,018 words
+- 424 files · ~551,129 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 2787 nodes · 6049 edges · 175 communities (119 shown, 56 thin omitted)
+- 3048 nodes · 6666 edges · 203 communities (146 shown, 57 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 46 edges (avg confidence: 0.59)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `716c8bbc`
+- Built from commit: `a3f8f850`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
 - disciplineRules.js
 - BrokerSync.jsx
-- button.tsx
+- src/components/ui/button.tsx
 - scripts
 - cn
 - devDependencies
 - PublicSite.jsx
-- clone
+- inMemoryRepositories.js
 - _metaapi-broker.js
-- overrides
+- admin-dashboard/src/components/ui/sidebar.tsx
 - ContactPage.jsx
 - Hero.jsx
-- AppRoutes.jsx
+- PricingPage.jsx
 - HistoryPage.jsx
 - compilerOptions
-- PricingPage.jsx
+- LandingPage.jsx
 - _shared.tsx
 - components.json
-- FooterNav.jsx
+- goldSessions.js
 - tradeAnalytics.js
-- goldContract.js
+- firebaseTradeRepository.test.js
 - DataTable.jsx
 - FirebaseBrokerRepository.js
 - AnalyticsPage.jsx
 - components/index.ts
 - sessionEngine.js
 - MEDIUM
-- lib/utils.ts
+- LogTradePage.jsx
 - BlogsPage.jsx
 - firebase.js
 - _admin.ts
 - MT4/MT5 Broker Login Sync Implementation
-- _firebase.js
+- grant-admin.mjs
 - compilerOptions
 - JournalRepository
 - ShowcaseApp.jsx
 - class-variance-authority
 - compilerOptions
-- DashboardLayout.jsx
+- demoData.js
 - 2. Wrappers — `src/components/app/*.jsx`
-- firebase-admin
-- SectionCard.jsx
-- EmptyState.jsx
+- client.ts
+- src/lib/utils.ts
+- _paypal.ts
 - AnalyticsPage.tsx
 - check-bundle-budget.mjs
 - vite.config.js
 - sticky-footer.tsx
-- demoData.js
+- capture-shots.mjs
 - vercel.json
 - firebase.d.ts
 - tradeConfig.js
@@ -72,29 +72,29 @@
 - dependencies
 - firebase
 - decoders.ts
-- _security.ts
+- api/[...route].ts
 - App.jsx
 - Production Operations & Maintenance Guide — xaujournal
 - @google-cloud/storage
-- hono
-- lucide-react
-- @radix-ui/react-slot
+- SettingsPage.tsx
+- UserDetailPage.tsx
+- overrides
 - XAU Journal × MetaApi — Architecture
-- useUsers.ts
+- _tradeService.ts
 - react-chartjs-2
 - react-dom
 - react-router-dom
 - resend
-- tailwind-merge
+- dependencies
 - tw-animate-css
 - @vercel/analytics
-- @vercel/kv
+- admin-dashboard/components.json
 - @vercel/speed-insights
 - hooks/index.ts
 - HIGH
 - compilerOptions
-- migrate-broker-credential-privacy.mjs
-- DashboardRightSidebar.jsx
+- _firebase.js
+- marketData.test.js
 - SECURITY-AUDIT-2026-08.md
 - Run xaujournal (dev)
 - Run xaujournal (dev)
@@ -104,49 +104,49 @@
 - _adminAnalytics.ts
 - useBrokerAccounts.js
 - marketData.js
-- EditTradeModal.jsx
-- AnalyticsPage.disciplineLock.test.jsx
+- DashboardRightSidebar.jsx
+- migrate-performance-data.mjs
 - rules/graphify.md
 - workflows/graphify.md
 - C-01 — Broker MT4/MT5 passwords stored in plaintext `localStorage`, never cleared at sign-out
 - H-01 — Cron routes authenticate successfully against `"Bearer undefined"` when `CRON_SECRET` is unset
-- _tradeService.ts
+- FirebaseTradeRepository.js
 - html2canvas
 - H-04 — Unauthenticated `/api/contact` writes to Firestore, sends email, and injects raw HTML into the ops inbox
 - metaapi.cloud-sdk
 - H-03 — Rate limiting keys on a client-suppliable header
 - M-03 — Lemon Squeezy webhook: non-constant-time signature check, no replay protection
 - app/AuthenticatedApp.jsx
-- @fontsource-variable/newsreader
-- @google-cloud/firestore
+- WalletRepository
+- admin-dashboard/src/components/ui/dropdown-menu.tsx
 - @google-cloud/recaptcha-enterprise
 - react
 - @fontsource-variable/geist
-- framer-motion
+- useMutationConfirmation.ts
 - react-bootstrap-icons
-- package.json
-- sidebar.tsx
+- DashboardLayout.jsx
 - LogTradePage.discipline.test.jsx
 - Admin Dashboard Adversarial Security Review — 2026-08-29
 - ErrorBoundary.jsx
 - HistoryPage.setupWiring.test.jsx
-- useMutationConfirmation.ts
-- DashboardLayout.sidebarWiring.test.js
 - models/index.ts
-- clsx
+- DashboardLayout.sidebarWiring.test.js
+- IsoDateString
+- devDependencies
 - eslint-plugin-react-hooks
-- admin-dashboard/package.json
+- scripts
 - AuthContext.tsx
-- capture-shots.mjs
+- getPlatformAnalytics
 - compilerOptions
-- inMemoryRepositories.js
+- createAppServices.js
 - useAppServices
 - BlogArticlePage.jsx
 - smoke-local.mjs
-- api/[...route].ts
-- _middleware.ts
+- consolidateBrokerConnect
+- PayPalSubscriptionStatus.jsx
 - pages/index.ts
 - TradeRepository
+- _admin.security.test.js
 - build-og.mjs
 - dev-admin.mjs
 - useTrades.editTrade.test.jsx
@@ -156,7 +156,7 @@
 - useAnnouncements.ts
 - useBrokerAccounts.adopt.test.jsx
 - useSetups.js
-- PricingPage.test.jsx
+- _paypalSubscriptions.ts
 - vitest
 - shots/README.md
 - EditTradeModal.submit.test.jsx
@@ -164,136 +164,161 @@
 - InMemoryJournalRepository
 - dev-admin-api.mjs
 - admin-dashboard/README.md
-- FirebaseJournalRepository
+- package.json
 - admin-dashboard/vercel.json
 - Admin console operations
 - deploy-both.mjs
-- InMemorySubscriptionRepository
-- postcss
-- terser
-- admin-dashboard/tsconfig.json
+- admin-dashboard/package.json
+- LiveMarketWidget.jsx
+- SettingsPage.resetTerminal.test.jsx
+- compilerOptions
 - firebase-functions
-- @types/node
-- @testing-library/user-event
+- cn
+- firebase
 - @types/react-dom
 - vite.config.ts
 - vercel
-- SettingsPage.resetTerminal.test.jsx
-- @vitejs/plugin-react
+- _adminUsers.ts
+- couponPatch
 - tailwindcss
+- admin-dashboard/src/components/ui/sheet.tsx
+- LiveMarketWidget.test.jsx
+- lucide-react
+- _adminErrors.ts
+- _admin.test.js
+- react-dom
+- useAppTheme
+- chart.js
+- ManageSetupsDialog.test.jsx
+- useChartTheme
+- admin-dashboard/src/lib/utils.ts
+- dotenv
+- firebase-admin
+- @firecms/neat
+- framer-motion
+- @google-cloud/firestore
+- @testing-library/jest-dom
+- hono
+- clsx
+- lucide-react
+- vite
+- tailwind-merge
+- sharp
+- terser
+- @vitejs/plugin-react
 
 ## God Nodes (most connected - your core abstractions)
 1. `cn()` - 211 edges
-2. `createAdminApi()` - 41 edges
-3. `Button()` - 32 edges
+2. `cn()` - 106 edges
+3. `createAdminApi()` - 42 edges
 4. `IsoDateString` - 31 edges
-5. `cx()` - 29 edges
-6. `formatDate()` - 24 edges
-7. `useToast()` - 23 edges
-8. `AnalyticsPage()` - 23 edges
-9. `record()` - 22 edges
+5. `Button()` - 31 edges
+6. `cx()` - 29 edges
+7. `formatDate()` - 24 edges
+8. `record()` - 23 edges
+9. `useToast()` - 23 edges
 10. `scripts` - 22 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `timeSeries()` --indirect_call--> `isTradeAnalyticsEligible()`  [INFERRED]
-  api/_adminAnalytics.ts → src/lib/tradeAnalytics.js
-- `getUserAnalytics()` --indirect_call--> `isTradeAnalyticsEligible()`  [INFERRED]
-  api/_adminAnalytics.ts → src/lib/tradeAnalytics.js
 - `publicRecentTrade()` --calls--> `getTradeSessionCode()`  [EXTRACTED]
   api/_adminAnalytics.ts → src/lib/tradeAnalytics.js
 - `aggregateSummary()` --calls--> `analyticsDeltaForTrades()`  [EXTRACTED]
   api/_adminAnalytics.ts → src/lib/tradeAnalytics.js
-- `getUserAnalytics()` --calls--> `deriveSessionStats()`  [EXTRACTED]
+- `timeSeries()` --indirect_call--> `isTradeAnalyticsEligible()`  [INFERRED]
+  api/_adminAnalytics.ts → src/lib/tradeAnalytics.js
+- `getUserAnalytics()` --calls--> `getTradeSessionCode()`  [EXTRACTED]
+  api/_adminAnalytics.ts → src/lib/tradeAnalytics.js
+- `getUserAnalytics()` --calls--> `getTradeSetupKey()`  [EXTRACTED]
   api/_adminAnalytics.ts → src/lib/tradeAnalytics.js
 
 ## Import Cycles
 - None detected.
 
-## Communities (175 total, 56 thin omitted)
+## Communities (203 total, 57 thin omitted)
 
 ### Community 0 - "disciplineRules.js"
-Cohesion: 0.09
-Nodes (22): sameRules(), useDisciplineSettings(), clampRuleValue(), dayKeyMidnightMs(), DEFAULT_DISCIPLINE_RULES, DISCIPLINE_RULES_VERSION, normalizeDisciplineRules(), ORDINAL_SUFFIXES (+14 more)
+Cohesion: 0.08
+Nodes (23): sameRules(), useDisciplineSettings(), earliestDayKey(), EMPTY_TRADES, useDisciplineViolations(), clampRuleValue(), dayKeyMidnightMs(), DEFAULT_DISCIPLINE_RULES (+15 more)
 
 ### Community 1 - "BrokerSync.jsx"
-Cohesion: 0.08
-Nodes (29): BrokerLogo(), BrokerSync(), handleConnect(), handleManualSync(), handleRemove(), BrokerWall(), PLATFORMS, BROKER_CHIP_MARKS (+21 more)
+Cohesion: 0.09
+Nodes (28): BrokerLogo(), BrokerSync(), handleConnect(), handleManualSync(), handleRemove(), BrokerWall(), PLATFORMS, BROKER_CHIP_MARKS (+20 more)
 
-### Community 2 - "button.tsx"
-Cohesion: 0.08
-Nodes (27): AuthenticatedOverlays(), AppDialog(), SIZE_CLASS, VETO_REASONS, toast, ConsentModal(), OnboardingModal(), PricingModal() (+19 more)
+### Community 2 - "src/components/ui/button.tsx"
+Cohesion: 0.07
+Nodes (34): AuthenticatedOverlays(), AppDialog(), SIZE_CLASS, VETO_REASONS, ConsentModal(), PLAN_LINES, OnboardingModal(), PricingModal() (+26 more)
 
 ### Community 3 - "scripts"
 Cohesion: 0.09
 Nodes (22): scripts, admin:build, admin:dev, admin:grant, admin:list, build, build:budget, deploy (+14 more)
 
 ### Community 4 - "cn"
-Cohesion: 0.06
-Nodes (44): Alert(), AlertAction(), AlertDescription(), AlertTitle(), alertVariants, AlertDialogMedia(), AlertDialogOverlay(), Avatar() (+36 more)
+Cohesion: 0.05
+Nodes (57): Alert(), AlertAction(), AlertDescription(), AlertTitle(), alertVariants, AlertDialogMedia(), AlertDialogOverlay(), Avatar() (+49 more)
 
 ### Community 5 - "devDependencies"
 Cohesion: 0.07
 Nodes (27): autoprefixer, @eslint/js, eslint-plugin-react-refresh, globals, jsdom, devDependencies, autoprefixer, @eslint/js (+19 more)
 
 ### Community 6 - "PublicSite.jsx"
-Cohesion: 0.17
-Nodes (12): NAV_LINKS, PublicNavbar(), ArrowOut(), CTAButton(), Panel(), Shot(), Wordmark(), SHOT_HEIGHT (+4 more)
+Cohesion: 0.18
+Nodes (12): FAQ(), ArrowOut(), Panel(), SectionHead(), Shot(), TextLink(), SHOT_HEIGHT, SHOT_WIDTH (+4 more)
 
-### Community 7 - "clone"
-Cohesion: 0.10
-Nodes (7): byDateDesc(), clone(), docSnapshot(), InMemoryBrokerRepository, InMemorySetupRepository, InMemoryTradeRepository, querySnapshot()
+### Community 7 - "inMemoryRepositories.js"
+Cohesion: 0.09
+Nodes (11): byDateDesc(), channel(), clone(), createInMemoryRepositories(), createShowcaseStore(), docSnapshot(), InMemoryBrokerRepository, InMemorySetupRepository (+3 more)
 
 ### Community 8 - "_metaapi-broker.js"
-Cohesion: 0.26
-Nodes (14): combineEntryDeals(), deleteMetaApiAccount(), fetchBrokerTrades(), fetchMetaApiDeals(), finiteNumber(), getApi(), isBuyDeal(), isTradeDeal() (+6 more)
+Cohesion: 0.17
+Nodes (19): combineEntryDeals(), deleteMetaApiAccount(), fetchBrokerTrades(), fetchMetaApiDeals(), finiteNumber(), getApi(), isBuyDeal(), isTradeDeal() (+11 more)
 
-### Community 9 - "overrides"
-Cohesion: 0.11
-Nodes (18): overrides, axios, braces, cross-spawn, crypto-js, elliptic, esbuild, fast-xml-parser (+10 more)
+### Community 9 - "admin-dashboard/src/components/ui/sidebar.tsx"
+Cohesion: 0.07
+Nodes (33): Separator(), Sidebar(), SidebarContent(), SidebarContext, SidebarContextProps, SidebarFooter(), SidebarGroup(), SidebarGroupAction() (+25 more)
 
 ### Community 10 - "ContactPage.jsx"
-Cohesion: 0.14
-Nodes (19): BROKER_COUNTS, buildPayload(), COMING_SOON_NAMES, ContactPage(), describedBy(), EMPTY_FORM, FIELD_IDS, FIELD_ORDER (+11 more)
+Cohesion: 0.13
+Nodes (20): ContactPage, BROKER_COUNTS, buildPayload(), COMING_SOON_NAMES, ContactPage(), describedBy(), EMPTY_FORM, FIELD_IDS (+12 more)
 
 ### Community 11 - "Hero.jsx"
 Cohesion: 0.09
-Nodes (29): Chapters, DESK_NAMES, initialRailId(), RAIL, RAIL_TO_DESK, ReadChapterRail(), SessionFigures(), SessionRail() (+21 more)
+Nodes (28): Chapters, DESK_NAMES, initialRailId(), RAIL, RAIL_TO_DESK, ReadChapterRail(), SessionFigures(), signClass() (+20 more)
 
-### Community 12 - "AppRoutes.jsx"
-Cohesion: 0.08
-Nodes (23): AppRoutes(), BlogArticlePage, BlogsPage, ContactPage, isShowcaseRequested(), LandingPage, Login, NotFoundPage (+15 more)
+### Community 12 - "PricingPage.jsx"
+Cohesion: 0.07
+Nodes (28): AppRoutes(), isShowcaseRequested(), LandingPage, Login, PricingPage, PrivacyPolicyPage, PUBLIC_NAVBAR_PATHS, RefundPolicyPage (+20 more)
 
 ### Community 13 - "HistoryPage.jsx"
-Cohesion: 0.08
-Nodes (41): AnalyticsPage, BrokerSync, CalendarPage, CheckoutCancel, CheckoutSuccess, HistoryPage, JournalPage, LogTradePage (+33 more)
+Cohesion: 0.07
+Nodes (42): useSessionBrokerAccounts(), useSessionWallet(), AnalyticsPage, BrokerSync, CalendarPage, HistoryPage, JournalPage, LogTradePage (+34 more)
 
 ### Community 14 - "compilerOptions"
-Cohesion: 0.08
-Nodes (23): compilerOptions, allowImportingTsExtensions, jsx, lib, module, moduleDetection, moduleResolution, noEmit (+15 more)
+Cohesion: 0.07
+Nodes (26): compilerOptions, allowImportingTsExtensions, baseUrl, ignoreDeprecations, jsx, lib, module, moduleDetection (+18 more)
 
-### Community 15 - "PricingPage.jsx"
-Cohesion: 0.06
-Nodes (46): FAQ(), PLAN_LINES, PricingBridge(), Proof(), STEPS, PageSEO(), CTALink(), TextLink() (+38 more)
+### Community 15 - "LandingPage.jsx"
+Cohesion: 0.10
+Nodes (33): PricingBridge(), Proof(), STEPS, PageSEO(), useDeskReveal(), PRO_MONTHLY_PRICE, PRO_YEARLY_PRICE, applyArticleSEO() (+25 more)
 
 ### Community 16 - "_shared.tsx"
-Cohesion: 0.09
-Nodes (52): AdminErrorDescription, canonicalUserId(), describeAdminError(), displayUserName(), BreakdownTable(), percent(), pointWinRate(), UserAnalyticsSection() (+44 more)
+Cohesion: 0.14
+Nodes (31): useAdminHealth(), useAnnouncements(), useOverview(), AnnouncementRecord, AnnouncementsPage(), blankCoupon, CouponRecord, OverviewPage() (+23 more)
 
 ### Community 17 - "components.json"
 Cohesion: 0.09
 Nodes (21): aliases, components, hooks, lib, ui, utils, iconLibrary, menuAccent (+13 more)
 
-### Community 18 - "FooterNav.jsx"
+### Community 18 - "goldSessions.js"
 Cohesion: 0.11
-Nodes (31): listCities(), normalizeSession(), RAIL_FILL, segmentState(), SessionGlyph(), SessionRail(), SATURDAY_1200_UTC, TUESDAY_0800_UTC (+23 more)
+Nodes (34): listCities(), normalizeSession(), RAIL_FILL, segmentState(), SessionGlyph(), SessionRail(), SATURDAY_1200_UTC, TUESDAY_0800_UTC (+26 more)
 
 ### Community 19 - "tradeAnalytics.js"
-Cohesion: 0.09
-Nodes (39): apply, args, main(), maxUsers, migrateAnalytics(), migrateBrokerJobs(), mode, startAfterBrokerPath (+31 more)
+Cohesion: 0.13
+Nodes (24): DirectionCell(), CLOSE_FIELDS, emptySessionAnalytics(), emptySessionBucket(), emptySessionDelta(), ENTRY_FIELDS, finiteOrNull(), followMerge() (+16 more)
 
-### Community 20 - "goldContract.js"
-Cohesion: 0.10
-Nodes (10): TradeEntity, LogTradeUseCase, computePips(), isGoldSymbol(), OUTCOME_EPSILON, XAUUSD_OZ_PER_LOT, XAUUSD_PIP_SIZE, fake (+2 more)
+### Community 20 - "firebaseTradeRepository.test.js"
+Cohesion: 0.18
+Nodes (3): fake, logTrade, repository
 
 ### Community 21 - "DataTable.jsx"
 Cohesion: 0.18
@@ -304,76 +329,80 @@ Cohesion: 0.27
 Nodes (6): FirebaseBrokerRepository, adoptBrokerCallable(), callBrokerApi(), connectBrokerCallable(), disconnectBrokerCallable(), syncBrokerTradesCallable()
 
 ### Community 23 - "AnalyticsPage.jsx"
-Cohesion: 0.08
-Nodes (43): DirectionCell(), StatCard(), TradeShareCard, useMonthTrades(), readTokens(), resolveChartTheme(), seriesColor(), TOKEN_NAMES (+35 more)
+Cohesion: 0.07
+Nodes (47): StatCard(), TradeShareCard, useMonthTrades(), PRIMARY_SESSIONS, primarySessionForCode(), SESSION_LABELS, getTradeStrategyTags(), isShortDirection() (+39 more)
 
 ### Community 24 - "components/index.ts"
-Cohesion: 0.08
-Nodes (48): AdminNavItem, AdminShell(), AdminShellProps, defaultAdminNavigation, routeIsActive(), Button, ButtonProps, ButtonSize (+40 more)
+Cohesion: 0.07
+Nodes (56): AdminNavItem, AdminShell(), AdminShellProps, defaultAdminNavigation, routeIsActive(), Button, ButtonProps, ButtonSize (+48 more)
 
 ### Community 25 - "sessionEngine.js"
-Cohesion: 0.11
-Nodes (27): baseTrade, pad(), sessionHours(), CODE_HUBS, EMPTY, HUB_ORDER, HUB_PRIORITY, hubWindowMs() (+19 more)
+Cohesion: 0.10
+Nodes (26): baseTrade, TradeEntity, LogTradeUseCase, CODE_HUBS, EMPTY, HUB_ORDER, HUB_PRIORITY, hubWindowMs() (+18 more)
 
 ### Community 26 - "MEDIUM"
 Cohesion: 0.12
 Nodes (16): Fix, Fix, Fix, Fix, Fix, Fix, Fix, M-01 — CSP permits `'unsafe-inline'` and `'unsafe-eval'` (+8 more)
 
-### Community 27 - "lib/utils.ts"
+### Community 27 - "LogTradePage.jsx"
 Cohesion: 0.15
 Nodes (13): SQUARE_STATE, StatusSquare(), Tabs(), TabsContent(), TabsList(), tabsListVariants, TabsTrigger(), ToggleGroup() (+5 more)
 
 ### Community 28 - "BlogsPage.jsx"
-Cohesion: 0.11
-Nodes (15): Arrow(), articles, articles, studyArticles, studyCategories, articles, COUNTS, FeaturedNote() (+7 more)
+Cohesion: 0.10
+Nodes (16): BlogsPage, Arrow(), articles, articles, studyArticles, studyCategories, articles, COUNTS (+8 more)
 
 ### Community 29 - "firebase.js"
-Cohesion: 0.12
-Nodes (11): ResetTradesUseCase, FirebaseSubscriptionRepository, FirebaseWalletRepository, db, app, auth, facebookProvider, firebaseConfig (+3 more)
+Cohesion: 0.29
+Nodes (8): db, app, auth, facebookProvider, firebaseConfig, googleProvider, fetchCountry(), Login()
 
 ### Community 30 - "_admin.ts"
-Cohesion: 0.05
-Nodes (74): actorFrom(), AdminActor, adminActorRateLimit(), AdminDependencies, ANNOUNCEMENT_FIELDS, announcementPatch(), assertIdentifier(), assertOnlyFields() (+66 more)
+Cohesion: 0.13
+Nodes (33): actorFrom(), AdminActor, adminActorRateLimit(), ANNOUNCEMENT_FIELDS, assertIdentifier(), auditData(), auditDataFor(), auditSensitiveRead() (+25 more)
 
 ### Community 31 - "MT4/MT5 Broker Login Sync Implementation"
 Cohesion: 0.04
 Nodes (45): 1. **Broker Service** (`api/_metaapi-broker.js`), 1. **MT5SyncSetup** (`src/components/MT5SyncSetup.jsx`), 2. **API Endpoint** (`api/broker-login-sync.js`), 2. **BrokerLoginSync** (`src/components/BrokerLoginSync.jsx`), 3. **Cron Job** (`api/cron/broker-sync-poller.js`), 3. **useBrokerAccounts Hook** (`src/hooks/useBrokerAccounts.js`), Add Broker Account, API Authentication (+37 more)
 
-### Community 32 - "_firebase.js"
-Cohesion: 0.21
-Nodes (8): db, isDbReady(), app, mockKvStore, args, identity, list, revoke
+### Community 32 - "grant-admin.mjs"
+Cohesion: 0.33
+Nodes (4): args, identity, list, revoke
 
 ### Community 33 - "compilerOptions"
 Cohesion: 0.17
 Nodes (11): vite.config.js, compilerOptions, allowJs, allowSyntheticDefaultImports, composite, module, moduleResolution, noEmit (+3 more)
 
 ### Community 35 - "ShowcaseApp.jsx"
-Cohesion: 0.29
-Nodes (9): AppServicesContext, AppServicesProvider(), createAppServices(), useAppTheme(), DEMO_DATASET, createShowcaseServices(), NO_ACTIONS, ShowcaseApp() (+1 more)
+Cohesion: 0.15
+Nodes (17): AppServicesContext, AppServicesProvider(), createAppServices(), FREE_SUBSCRIPTION, isPayPalApprovalUrl(), newIdempotencyKey(), useSubscription(), DEMO_DATASET (+9 more)
 
 ### Community 37 - "compilerOptions"
 Cohesion: 0.08
 Nodes (23): compilerOptions, allowJs, allowSyntheticDefaultImports, checkJs, esModuleInterop, forceConsistentCasingInFileNames, isolatedModules, jsx (+15 more)
 
-### Community 38 - "DashboardLayout.jsx"
-Cohesion: 0.07
-Nodes (31): useSessionBrokerAccounts(), useSessionWallet(), WalletTopUpDialog(), DashboardLayout(), Logo(), DropdownMenu(), DropdownMenuCheckboxItem(), DropdownMenuContent() (+23 more)
+### Community 38 - "demoData.js"
+Cohesion: 0.10
+Nodes (24): ANCHOR_UTC, buildTrade(), CONFLUENCE, CONVICTION, dateForDay(), DEMO_BROKER_ACCOUNTS, DEMO_JOURNALS, DEMO_NET_PNL (+16 more)
 
 ### Community 39 - "2. Wrappers — `src/components/app/*.jsx`"
 Cohesion: 0.08
 Nodes (24): 0.1 Fix `--win` / `--loss` (still the old, failing values), 0.2 Scope the heading rules, 0.3 Sanctioned primitive edits — the complete list, 0. Prerequisites — land these before the first wrapper, 1.1 Surfaces, 1.2 Type roles, 1.3 Spacing and density, 1.4 State encoding (+16 more)
 
-### Community 41 - "SectionCard.jsx"
-Cohesion: 0.21
-Nodes (11): DELTA_CLASS, DELTA_SIGN, TONE_CLASS, Card(), CardAction(), CardContent(), CardDescription(), CardFooter() (+3 more)
+### Community 40 - "client.ts"
+Cohesion: 0.11
+Nodes (24): AccessTokenProvider, ADMIN_API_BASE_URL, ADMIN_API_TIMEOUT_MS, AdminApiError, AdminApiErrorOptions, adminRequest(), AdminRequestOptions, AdminResponse (+16 more)
 
-### Community 42 - "EmptyState.jsx"
-Cohesion: 0.33
-Nodes (7): Empty(), EmptyContent(), EmptyDescription(), EmptyHeader(), EmptyMedia(), emptyMediaVariants, EmptyTitle()
+### Community 41 - "src/lib/utils.ts"
+Cohesion: 0.13
+Nodes (15): DELTA_CLASS, DELTA_SIGN, TONE_CLASS, Badge(), badgeVariants, Card(), CardAction(), CardContent() (+7 more)
+
+### Community 42 - "_paypal.ts"
+Cohesion: 0.21
+Nodes (16): accessToken(), apiBase(), createPayPalSubscription(), getPayPalClientId(), getPayPalEnvironment(), PayPalEnvironment, PayPalRequestOptions, PayPalWebhookHeaders (+8 more)
 
 ### Community 43 - "AnalyticsPage.tsx"
 Cohesion: 0.09
-Nodes (33): AnalyticsDateRange(), AnalyticsDateRangeProps, AnalyticsDateRangeValue, DateErrors, formatAnalyticsRange(), todayDateInputValue(), validateRange(), validDateInput() (+25 more)
+Nodes (35): AnalyticsDateRange(), AnalyticsDateRangeProps, AnalyticsDateRangeValue, DateErrors, formatAnalyticsRange(), todayDateInputValue(), validateRange(), validDateInput() (+27 more)
 
 ### Community 44 - "check-bundle-budget.mjs"
 Cohesion: 0.25
@@ -387,9 +416,9 @@ Nodes (7): CHART_VENDOR, __dirname, EAGER_FORBIDDEN, manualChunks(), normalizeId
 Cohesion: 0.17
 Nodes (8): AnimatedContainerProps, FooterLink, FooterLinkGroup, footerLinkGroups, socialLinks, StickyFooter(), StickyFooterProps, mocks
 
-### Community 47 - "demoData.js"
-Cohesion: 0.08
-Nodes (29): ANCHOR_UTC, buildTrade(), CONFLUENCE, CONVICTION, dateForDay(), DEMO_BROKER_ACCOUNTS, DEMO_DISPLAY_NAME, DEMO_EMAIL (+21 more)
+### Community 47 - "capture-shots.mjs"
+Cohesion: 0.14
+Nodes (19): BASE_URL, BROWSERS, captureRoute(), Cdp, debug(), encode(), freePort(), launchBrowser() (+11 more)
 
 ### Community 48 - "vercel.json"
 Cohesion: 0.40
@@ -401,35 +430,55 @@ Nodes (28): assertEmailVerified(), getUidFromContext(), isEmailVerificationEnfor
 
 ### Community 55 - "dependencies"
 Cohesion: 0.22
-Nodes (9): @base-ui/react, chart.js, dotenv, @firecms/neat, dependencies, @base-ui/react, chart.js, dotenv (+1 more)
+Nodes (9): @base-ui/react, @fontsource-variable/newsreader, dependencies, @base-ui/react, @fontsource-variable/newsreader, @radix-ui/react-slot, @vercel/kv, @radix-ui/react-slot (+1 more)
 
 ### Community 57 - "decoders.ts"
-Cohesion: 0.07
-Nodes (79): AccessTokenProvider, ADMIN_API_BASE_URL, ADMIN_API_TIMEOUT_MS, AdminApiError, AdminApiErrorCategory, AdminApiErrorOptions, adminRequest(), AdminRequestOptions (+71 more)
+Cohesion: 0.14
+Nodes (52): ANNOUNCEMENT_LEVELS, ANNOUNCEMENT_STATUSES, ANNOUNCEMENT_TARGETS, announcementTarget(), COUPON_TYPES, decodeAdminHealth(), decodeAnalytics(), decodeAnnouncement() (+44 more)
 
-### Community 58 - "_security.ts"
-Cohesion: 0.17
-Nodes (14): handleRemindExpiry(), assertCron(), assertRequiredConfig(), escapeHtml(), isRecaptchaConfigured(), isValidAccountId(), isValidUid(), RecaptchaResult (+6 more)
+### Community 58 - "api/[...route].ts"
+Cohesion: 0.09
+Nodes (32): getClientIp(), adminAllowedOrigins, allowedOrigins, DEFAULT_SCOPE, RATE_LIMIT_SCOPES, rateLimitMiddleware(), secureHeadersMiddleware, resend (+24 more)
 
 ### Community 59 - "App.jsx"
-Cohesion: 0.12
-Nodes (20): App(), AuthSyncFailure(), LinkPeek(), ScrollProgress(), clearUxState(), shouldSkip(), useRouteExperience(), isPublicNavbarPath() (+12 more)
+Cohesion: 0.11
+Nodes (21): App(), AuthSyncFailure(), LinkPeek(), ScrollProgress(), clearUxState(), shouldSkip(), useRouteExperience(), isPublicNavbarPath() (+13 more)
 
 ### Community 60 - "Production Operations & Maintenance Guide — xaujournal"
+Cohesion: 0.10
+Nodes (19): 1. Secrets Management & Rotation Plan, 2. Production Monitoring & Logging Setup, 3. Reliability & Downtime Mitigation, 4. Scaling Optimization, 5. Emergency Manual Deployments, A. Firebase Admin SDK / Service Account Rotation, 🔔 Alerting Thresholds, B. MetaApi Cloud Token Rotation (+11 more)
+
+### Community 62 - "SettingsPage.tsx"
+Cohesion: 0.10
+Nodes (20): AlertDialog(), AlertDialogAction(), AlertDialogCancel(), AlertDialogContent(), AlertDialogDescription(), AlertDialogFooter(), AlertDialogHeader(), AlertDialogMedia() (+12 more)
+
+### Community 63 - "UserDetailPage.tsx"
+Cohesion: 0.16
+Nodes (22): AdminErrorDescription, canonicalUserId(), describeAdminError(), displayUserName(), BreakdownTable(), percent(), pointWinRate(), UserAnalyticsSection() (+14 more)
+
+### Community 64 - "overrides"
 Cohesion: 0.11
-Nodes (18): 1. Secrets Management & Rotation Plan, 2. Production Monitoring & Logging Setup, 3. Reliability & Downtime Mitigation, 4. Scaling Optimization, 5. Emergency Manual Deployments, A. Firebase Admin SDK / Service Account Rotation, 🔔 Alerting Thresholds, B. MetaApi Cloud Token Rotation (+10 more)
+Nodes (18): overrides, axios, braces, cross-spawn, crypto-js, elliptic, esbuild, fast-xml-parser (+10 more)
 
 ### Community 65 - "XAU Journal × MetaApi — Architecture"
 Cohesion: 0.17
 Nodes (11): Backend (Firebase Cloud Functions), Code map, Deploy checklist, Environment variables, Firestore schema, Overview, Security rule, UI flow (Sync page) (+3 more)
 
-### Community 66 - "useUsers.ts"
-Cohesion: 0.17
-Nodes (14): AccessDraft, AccessField, initialDraft(), toIsoDateTime(), toLocalDateTime(), UserAccessEditor(), UserAccessEditorProps, UserRepository (+6 more)
+### Community 66 - "_tradeService.ts"
+Cohesion: 0.31
+Nodes (10): now(), requeuePausedAccounts(), handleRevokeExpired(), handleTradeWebhook(), handleCloseTradeSync(), handleOpenTradeSync(), invalidateApiKeyCache(), invalidateUserCache() (+2 more)
+
+### Community 71 - "dependencies"
+Cohesion: 0.12
+Nodes (17): dependencies, class-variance-authority, clsx, next-themes, radix-ui, react, react-router-dom, sonner (+9 more)
+
+### Community 74 - "admin-dashboard/components.json"
+Cohesion: 0.09
+Nodes (21): aliases, components, hooks, lib, ui, utils, iconLibrary, menuAccent (+13 more)
 
 ### Community 83 - "hooks/index.ts"
-Cohesion: 0.08
-Nodes (36): AnalyticsRepository, PaymentRepository, ReportRepository, AdminApiAvailability, AdminHealthCheck, AdminHealthCheckStatus, CouponCreate, CouponUpdate (+28 more)
+Cohesion: 0.07
+Nodes (43): AdminHealthRepository, AnalyticsRepository, CouponRepository, OverviewRepository, PaymentRepository, ReportRepository, SettingsRepository, SubscriptionRepository (+35 more)
 
 ### Community 84 - "HIGH"
 Cohesion: 0.18
@@ -439,13 +488,13 @@ Nodes (11): Attack scenario, Attack scenario, Fix, Fix, Fix, Fix, H-02 — Cloud
 Cohesion: 0.11
 Nodes (18): compilerOptions, allowImportingTsExtensions, lib, module, moduleDetection, moduleResolution, noEmit, noUnusedLocals (+10 more)
 
-### Community 86 - "migrate-broker-credential-privacy.mjs"
-Cohesion: 0.35
-Nodes (9): ACCOUNT_CREDENTIAL_FIELDS, USER_CREDENTIAL_FIELDS, initAdmin(), apply, deletionPatch(), main(), ownsAny(), scrubBrokerAccounts() (+1 more)
+### Community 86 - "_firebase.js"
+Cohesion: 0.21
+Nodes (13): ACCOUNT_CREDENTIAL_FIELDS, USER_CREDENTIAL_FIELDS, db, initAdmin(), isDbReady(), app, mockKvStore, apply (+5 more)
 
-### Community 87 - "DashboardRightSidebar.jsx"
-Cohesion: 0.09
-Nodes (23): CurrencyConverter(), ratesCache, CONFIDENCE_SCALE, CONFLUENCE, EMPTY_SETUPS, GRADES, MOODS, SESSION_OPTIONS (+15 more)
+### Community 87 - "marketData.test.js"
+Cohesion: 0.17
+Nodes (11): getMarketDataHealth(), subscribeMarketDataHealth(), useMarketDataHealth(), driveProxyDown(), httpStatus(), isProxyUrl(), NOW, route() (+3 more)
 
 ### Community 88 - "SECURITY-AUDIT-2026-08.md"
 Cohesion: 0.22
@@ -472,24 +521,24 @@ Cohesion: 0.22
 Nodes (8): Backend structure, Dependency rule, Extension rules, Frontend structure, Internal admin console, Product map, Safe migration path, XAU Journal Architecture
 
 ### Community 94 - "_adminAnalytics.ts"
-Cohesion: 0.16
-Nodes (30): addBreakdownValue(), AdminDateRange, aggregateSummary(), analyticsTrade(), boundedRangeDocs(), cursorFingerprint(), decodeTradeCursor(), encodeTradeCursor() (+22 more)
+Cohesion: 0.18
+Nodes (26): addBreakdownValue(), AdminDateRange, aggregateSummary(), analyticsTrade(), cursorFingerprint(), decodeTradeCursor(), encodeTradeCursor(), finishBreakdown() (+18 more)
 
 ### Community 95 - "useBrokerAccounts.js"
 Cohesion: 0.32
 Nodes (15): dropLocalAccount(), hasServerLogin(), useBrokerAccounts(), addAccount(), hasSessionCredential(), removeAccount(), syncAccount(), accountsKey() (+7 more)
 
 ### Community 96 - "marketData.js"
-Cohesion: 0.05
-Nodes (54): AppProviders(), applyRealPrice(), applyTick(), baselineOf(), LiveMarketWidget(), percentChange(), readYahooQuote(), SPOT_SYMBOLS (+46 more)
+Cohesion: 0.15
+Nodes (25): ABORTED, beginShared(), chartQuery(), directJson(), fetchSpotPrice(), fetchYahooChart(), health, inFlight (+17 more)
 
-### Community 97 - "EditTradeModal.jsx"
-Cohesion: 0.11
-Nodes (21): EditTradeModal(), ImageViewerModal(), DashboardRightSidebar(), legacySessionPrefill(), TRADE, CustomSelect(), DatePicker(), storage (+13 more)
+### Community 97 - "DashboardRightSidebar.jsx"
+Cohesion: 0.09
+Nodes (29): EditTradeModal(), ImageViewerModal(), CONFIDENCE_SCALE, CONFLUENCE, DashboardRightSidebar(), EMPTY_SETUPS, GRADES, legacySessionPrefill() (+21 more)
 
-### Community 98 - "AnalyticsPage.disciplineLock.test.jsx"
-Cohesion: 0.47
-Nodes (4): dayKeyAgo(), h, renderPage(), trade()
+### Community 98 - "migrate-performance-data.mjs"
+Cohesion: 0.22
+Nodes (9): apply, args, main(), maxUsers, migrateBrokerJobs(), mode, startAfterBrokerPath, startAfterUser (+1 more)
 
 ### Community 101 - "C-01 — Broker MT4/MT5 passwords stored in plaintext `localStorage`, never cleared at sign-out"
 Cohesion: 0.50
@@ -499,9 +548,9 @@ Nodes (4): Attack scenarios, C-01 — Broker MT4/MT5 passwords stored in plainte
 Cohesion: 0.67
 Nodes (3): Attack scenario, Fix, H-01 — Cron routes authenticate successfully against `"Bearer undefined"` when `CRON_SECRET` is unset
 
-### Community 103 - "_tradeService.ts"
-Cohesion: 0.12
-Nodes (27): addSessionDelta(), persistBrokerTrades(), now(), chunkedDbGetAll(), handleTradeWebhook(), hashToken(), handleCloseTradeSync(), handleOpenTradeSync() (+19 more)
+### Community 103 - "FirebaseTradeRepository.js"
+Cohesion: 0.11
+Nodes (26): addSessionDelta(), persistBrokerTrades(), chunkedDbGetAll(), migrateAnalytics(), dateContradicts(), ENTRY_TIERS, entryInstant(), FirebaseTradeRepository (+18 more)
 
 ### Community 105 - "H-04 — Unauthenticated `/api/contact` writes to Firestore, sends email, and injects raw HTML into the ops inbox"
 Cohesion: 0.67
@@ -519,13 +568,17 @@ Nodes (3): Attack scenario, Fix, M-03 — Lemon Squeezy webhook: non-constant-ti
 Cohesion: 0.22
 Nodes (8): AuthenticatedApp(), AuthenticatedAppContent(), PUBLIC_LEGAL_PATHS, AuthenticatedApp, AuthenticatedRoutes(), PageLoader(), VerifyEmailBanner(), useOnboarding()
 
-### Community 117 - "package.json"
-Cohesion: 0.29
-Nodes (6): author, description, name, private, type, version
+### Community 111 - "admin-dashboard/src/components/ui/dropdown-menu.tsx"
+Cohesion: 0.12
+Nodes (9): DropdownMenuCheckboxItem(), DropdownMenuContent(), DropdownMenuItem(), DropdownMenuLabel(), DropdownMenuRadioItem(), DropdownMenuSeparator(), DropdownMenuShortcut(), DropdownMenuSubContent() (+1 more)
 
-### Community 118 - "sidebar.tsx"
-Cohesion: 0.07
-Nodes (30): Sheet(), SheetContent(), SheetDescription(), SheetFooter(), SheetHeader(), SheetOverlay(), SheetTitle(), Sidebar() (+22 more)
+### Community 115 - "useMutationConfirmation.ts"
+Cohesion: 0.36
+Nodes (8): reasonedBody(), AdminMutationConfirmation, assertMutationReason(), mutationReasonError(), ConfirmationAction, MutationConfirmationState, PendingConfirmation, useMutationConfirmation()
+
+### Community 118 - "DashboardLayout.jsx"
+Cohesion: 0.05
+Nodes (51): Logo(), DropdownMenu(), DropdownMenuCheckboxItem(), DropdownMenuContent(), DropdownMenuGroup(), DropdownMenuItem(), DropdownMenuLabel(), DropdownMenuRadioItem() (+43 more)
 
 ### Community 119 - "LogTradePage.discipline.test.jsx"
 Cohesion: 0.40
@@ -543,61 +596,69 @@ Nodes (8): cardStyle, detailStyle, ErrorBoundary, eyebrowStyle, iconStyle, prima
 Cohesion: 0.33
 Nodes (4): archiveSetup, createSetup, SETUPS, TRADE
 
-### Community 123 - "useMutationConfirmation.ts"
-Cohesion: 0.43
-Nodes (7): AdminMutationConfirmation, assertMutationReason(), mutationReasonError(), ConfirmationAction, MutationConfirmationState, PendingConfirmation, useMutationConfirmation()
+### Community 123 - "models/index.ts"
+Cohesion: 0.12
+Nodes (15): buildAdminQuery(), requestCollection(), requestData(), requestDataWithMetadata(), reportPatch(), reportStatus(), Announcement, Paginated (+7 more)
 
 ### Community 124 - "DashboardLayout.sidebarWiring.test.js"
 Cohesion: 0.83
 Nodes (3): declaredProps(), passedProps(), withoutComments()
 
-### Community 125 - "models/index.ts"
-Cohesion: 0.05
-Nodes (56): reasonedBody(), requestData(), AdminHealthRepository, CouponRepository, OverviewRepository, reportPatch(), reportStatus(), SettingsRepository (+48 more)
-
-### Community 128 - "admin-dashboard/package.json"
+### Community 125 - "IsoDateString"
 Cohesion: 0.06
-Nodes (34): dependencies, firebase, lucide-react, react, react-dom, react-router-dom, devDependencies, @types/node (+26 more)
+Nodes (46): AdminHealth, AdminHealthCheck, AdminHealthCheckStatus, Analytics, AnalyticsDateRange, AnalyticsParams, AnalyticsTimeSeriesPoint, AnnouncementLevel (+38 more)
+
+### Community 126 - "devDependencies"
+Cohesion: 0.12
+Nodes (17): devDependencies, tailwindcss, @tailwindcss/vite, @types/node, @types/react, @types/react-dom, typescript, vite (+9 more)
+
+### Community 128 - "scripts"
+Cohesion: 0.33
+Nodes (6): scripts, build, dev, preview, smoke:local, typecheck
 
 ### Community 129 - "AuthContext.tsx"
 Cohesion: 0.12
 Nodes (25): AuthenticatedLayout(), ADMIN_EMAIL, ADMIN_UID, AdminAdmissionError, AdminAdmissionFailure, admissionErrorMessage(), verifyAdminAdmission(), AdminLogin() (+17 more)
 
-### Community 130 - "capture-shots.mjs"
-Cohesion: 0.14
-Nodes (19): BASE_URL, BROWSERS, captureRoute(), Cdp, debug(), encode(), freePort(), launchBrowser() (+11 more)
+### Community 130 - "getPlatformAnalytics"
+Cohesion: 0.39
+Nodes (7): boundedRangeDocs(), getPlatformAnalytics(), platformSeries(), isSettledPaymentStatus(), normalizedPaymentStatus(), SETTLED_PAYMENT_STATUS_SET, SETTLED_PAYMENT_STATUSES
 
 ### Community 131 - "compilerOptions"
 Cohesion: 0.12
 Nodes (15): compilerOptions, allowJs, checkJs, lib, noEmit, paths, strict, types (+7 more)
 
-### Community 132 - "inMemoryRepositories.js"
-Cohesion: 0.13
-Nodes (6): SubscriptionRepository, WalletRepository, channel(), createInMemoryRepositories(), createShowcaseStore(), InMemoryWalletRepository
+### Community 132 - "createAppServices.js"
+Cohesion: 0.16
+Nodes (3): SubscriptionRepository, ResetTradesUseCase, FirebaseSubscriptionRepository
 
 ### Community 133 - "useAppServices"
 Cohesion: 0.24
 Nodes (9): useAppServices(), AuthenticatedSessionProvider(), BrokerAccountsContext, WalletContext, useJournals(), byDateDesc(), mergeTrades(), useTrades() (+1 more)
 
 ### Community 134 - "BlogArticlePage.jsx"
-Cohesion: 0.19
-Nodes (14): getArticle(), applyArticleSEO(), BlogArticlePage(), escapeRegExp(), formatUpdated(), Headline(), NOTES, readRail() (+6 more)
+Cohesion: 0.15
+Nodes (16): BlogArticlePage, NotFoundPage, getArticle(), BlogArticlePage(), escapeRegExp(), formatUpdated(), Headline(), NOTES (+8 more)
 
 ### Community 135 - "smoke-local.mjs"
 Cohesion: 0.30
 Nodes (10): checkApi(), checkUi(), fetchChecked(), LOOPBACK_HOSTS, main(), parseApiPath(), parseLocalUiUrl(), pass() (+2 more)
 
-### Community 136 - "api/[...route].ts"
-Cohesion: 0.11
-Nodes (28): deletionPatch(), resend, AccountLockResult, cachedJson(), inflight, sleep(), withAccountLock(), withRetryBudget() (+20 more)
+### Community 136 - "consolidateBrokerConnect"
+Cohesion: 0.22
+Nodes (13): deletionPatch(), AccountLockResult, cachedJson(), inflight, sleep(), withAccountLock(), withRetryBudget(), consolidateBrokerConnect() (+5 more)
 
-### Community 137 - "_middleware.ts"
-Cohesion: 0.28
-Nodes (7): getClientIp(), adminAllowedOrigins, allowedOrigins, DEFAULT_SCOPE, RATE_LIMIT_SCOPES, rateLimitMiddleware(), secureHeadersMiddleware
+### Community 137 - "PayPalSubscriptionStatus.jsx"
+Cohesion: 0.39
+Nodes (7): PayPalStatus, copyFor(), FINAL_STATUSES, normalizeStatus(), PayPalSubscriptionStatus(), planLabel(), recordFrom()
 
 ### Community 138 - "pages/index.ts"
-Cohesion: 0.24
-Nodes (12): AnalyticsPage, AnnouncementsPage, App(), CouponsPage, OverviewPage, PaymentsPage, ReportsPage, SettingsPage (+4 more)
+Cohesion: 0.21
+Nodes (13): AnalyticsPage, AnnouncementsPage, App(), CouponsPage, OverviewPage, PaymentsPage, ReportsPage, SettingsPage (+5 more)
+
+### Community 140 - "_admin.security.test.js"
+Cohesion: 0.21
+Nodes (9): AUTH_HEADERS, comparable(), createFirestore(), createHarness(), VALID_CLAIMS, AdminRateLimitResult, LimitWindow, localAdminRateLimitFallbackAllowed() (+1 more)
 
 ### Community 141 - "build-og.mjs"
 Cohesion: 0.40
@@ -612,20 +673,20 @@ Cohesion: 0.22
 Nodes (6): APPLIED_PATCH, harness, LATER_TRADE, OLD_TRADE, RECENT_TRADE, USER
 
 ### Community 146 - "SetupCombobox.jsx"
-Cohesion: 0.31
-Nodes (7): EMPTY_SETUPS, Popover(), PopoverContent(), PopoverDescription(), PopoverHeader(), PopoverTitle(), PopoverTrigger()
+Cohesion: 0.18
+Nodes (11): effectiveSlug(), EMPTY_SETUPS, SetupCombobox(), CATALOG, DatePicker(), Popover(), PopoverContent(), PopoverDescription() (+3 more)
 
 ### Community 147 - "useAnnouncements.ts"
-Cohesion: 0.21
-Nodes (11): AnnouncementRepository, Announcement, AnnouncementCreate, AnnouncementLevel, AnnouncementListParams, AnnouncementStatus, AnnouncementTarget, AnnouncementUpdate (+3 more)
+Cohesion: 0.38
+Nodes (6): AnnouncementRepository, AnnouncementCreate, AnnouncementUpdate, CreateAnnouncementInput, DeleteAnnouncementInput, UpdateAnnouncementInput
 
 ### Community 149 - "useSetups.js"
-Cohesion: 0.10
-Nodes (28): effectiveSlug(), findSlugOwner(), legacyTag(), ManageSetupsDialog(), trimmed(), effectiveSlug(), SetupCombobox(), actionIn() (+20 more)
+Cohesion: 0.18
+Nodes (20): effectiveSlug(), findSlugOwner(), legacyTag(), ManageSetupsDialog(), trimmed(), compareSetups(), effectiveSlug(), findSlugOwner() (+12 more)
 
-### Community 150 - "PricingPage.test.jsx"
-Cohesion: 0.25
-Nodes (4): authState, navigate, recordProAcceptance, startCheckout
+### Community 150 - "_paypalSubscriptions.ts"
+Cohesion: 0.12
+Nodes (40): cancelPayPalSubscription(), getPayPalSubscription(), approvalUrl(), billingCycles(), cancelOwnedPayPalSubscription(), canonicalIdentity(), canonicalPayment(), cents() (+32 more)
 
 ### Community 153 - "EditTradeModal.submit.test.jsx"
 Cohesion: 0.21
@@ -639,6 +700,10 @@ Nodes (3): environmentPath, rootDirectory, vercelEntry
 Cohesion: 0.25
 Nodes (7): Admin API and CORS, Admission policy, Integration barrels, Local development, Proxy overrides and diagnostics, Repository commands, Vercel project settings
 
+### Community 158 - "package.json"
+Cohesion: 0.29
+Nodes (6): author, description, name, private, type, version
+
 ### Community 159 - "admin-dashboard/vercel.json"
 Cohesion: 0.29
 Nodes (6): cleanUrls, framework, headers, rewrites, $schema, trailingSlash
@@ -651,25 +716,81 @@ Nodes (6): Admin console operations, Deployment order, Grant or revoke access, R
 Cohesion: 0.29
 Nodes (3): adminDir, args, rootDir
 
+### Community 162 - "admin-dashboard/package.json"
+Cohesion: 0.40
+Nodes (4): name, private, type, version
+
+### Community 163 - "LiveMarketWidget.jsx"
+Cohesion: 0.26
+Nodes (12): applyRealPrice(), applyTick(), baselineOf(), LiveMarketWidget(), percentChange(), readYahooQuote(), SPOT_SYMBOLS, tickPollMs() (+4 more)
+
+### Community 165 - "compilerOptions"
+Cohesion: 0.29
+Nodes (6): compilerOptions, baseUrl, ignoreDeprecations, paths, files, references
+
+### Community 167 - "cn"
+Cohesion: 0.13
+Nodes (23): Avatar(), AvatarBadge(), AvatarFallback(), AvatarGroup(), AvatarGroupCount(), AvatarImage(), SelectContent(), SelectGroup() (+15 more)
+
+### Community 172 - "_adminUsers.ts"
+Cohesion: 0.25
+Nodes (9): AdminDependencies, AdminHttpError, decodeCursor(), DirectoryCursor, encodeCursor(), listAdminUsers(), matchesFilters(), normalizedText() (+1 more)
+
+### Community 173 - "couponPatch"
+Cohesion: 0.42
+Nodes (11): announcementPatch(), assertOnlyFields(), booleanValue(), boundedString(), couponPatch(), enumValue(), finiteNumber(), nullableIso() (+3 more)
+
+### Community 175 - "admin-dashboard/src/components/ui/sheet.tsx"
+Cohesion: 0.16
+Nodes (9): Button(), buttonVariants, Sheet(), SheetContent(), SheetDescription(), SheetFooter(), SheetHeader(), SheetOverlay() (+1 more)
+
+### Community 176 - "LiveMarketWidget.test.jsx"
+Cohesion: 0.24
+Nodes (3): mountWidget(), selectTimeframe(), settle()
+
+### Community 178 - "_adminErrors.ts"
+Cohesion: 0.31
+Nodes (7): requireAdmin(), AdminErrorCategory, adminErrorResponse(), categoryForStatus(), ensureRequestId(), requestIdMiddleware(), validRequestId()
+
+### Community 179 - "_admin.test.js"
+Cohesion: 0.32
+Nodes (6): authHeaders, corsApp(), createHarness(), createStore(), VALID_CLAIMS, corsMiddleware()
+
+### Community 181 - "useAppTheme"
+Cohesion: 0.32
+Nodes (5): AppProviders(), ToastProvider(), ThemeContext, ThemeProvider(), useAppTheme()
+
+### Community 183 - "ManageSetupsDialog.test.jsx"
+Cohesion: 0.33
+Nodes (5): actionIn(), BY_ID, CATALOG, rowFor(), TRADES
+
+### Community 184 - "useChartTheme"
+Cohesion: 0.29
+Nodes (6): useChartTheme(), readTokens(), resolveChartTheme(), seriesColor(), TOKEN_NAMES, LogTradePage()
+
+### Community 185 - "admin-dashboard/src/lib/utils.ts"
+Cohesion: 0.20
+Nodes (8): Badge(), badgeVariants, Input(), Tabs(), TabsContent(), TabsList(), tabsListVariants, TabsTrigger()
+
 ## Knowledge Gaps
-- **805 isolated node(s):** `Repository commands`, `Proxy overrides and diagnostics`, `Admission policy`, `Admin API and CORS`, `Vercel project settings` (+800 more)
+- **843 isolated node(s):** `checks`, `checks`, `$schema`, `style`, `rsc` (+838 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **56 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **57 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `cn()` connect `cn` to `EditTradeModal.jsx`, `button.tsx`, `DashboardLayout.jsx`, `PublicSite.jsx`, `SectionCard.jsx`, `EmptyState.jsx`, `HistoryPage.jsx`, `sticky-footer.tsx`, `FooterNav.jsx`, `SetupCombobox.jsx`, `DataTable.jsx`, `useSetups.js`, `AnalyticsPage.jsx`, `DashboardRightSidebar.jsx`, `sidebar.tsx`, `lib/utils.ts`?**
-  _High betweenness centrality (0.054) - this node is a cross-community bridge._
-- **Why does `resolveSessionAt()` connect `_tradeService.ts` to `EditTradeModal.jsx`, `_metaapi-broker.js`, `demoData.js`, `tradeAnalytics.js`, `goldContract.js`, `DashboardRightSidebar.jsx`, `sessionEngine.js`?**
+- **Why does `cn()` connect `cn` to `DashboardRightSidebar.jsx`, `src/components/ui/button.tsx`, `PublicSite.jsx`, `src/lib/utils.ts`, `HistoryPage.jsx`, `sticky-footer.tsx`, `goldSessions.js`, `tradeAnalytics.js`, `SetupCombobox.jsx`, `DataTable.jsx`, `DashboardLayout.jsx`, `AnalyticsPage.jsx`, `LogTradePage.jsx`?**
+  _High betweenness centrality (0.033) - this node is a cross-community bridge._
+- **Why does `auth` connect `firebase.js` to `BrokerSync.jsx`, `DashboardRightSidebar.jsx`, `createAppServices.js`, `PayPalSubscriptionStatus.jsx`, `PricingPage.jsx`, `HistoryPage.jsx`, `DashboardLayout.jsx`, `FirebaseBrokerRepository.js`, `App.jsx`?**
   _High betweenness centrality (0.012) - this node is a cross-community bridge._
-- **Why does `createAdminApi()` connect `_admin.ts` to `api/[...route].ts`, `_adminAnalytics.ts`?**
-  _High betweenness centrality (0.012) - this node is a cross-community bridge._
+- **Why does `resolveSessionAt()` connect `sessionEngine.js` to `DashboardRightSidebar.jsx`, `_tradeService.ts`, `demoData.js`, `FirebaseTradeRepository.js`, `_metaapi-broker.js`, `goldSessions.js`, `tradeAnalytics.js`?**
+  _High betweenness centrality (0.010) - this node is a cross-community bridge._
 - **Are the 2 inferred relationships involving `createAdminApi()` (e.g. with `publicAuthUser()` and `requestIdMiddleware()`) actually correct?**
   _`createAdminApi()` has 2 INFERRED edges - model-reasoned connections that need verification._
-- **What connects `Repository commands`, `Proxy overrides and diagnostics`, `Admission policy` to the rest of the system?**
-  _805 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **What connects `checks`, `checks`, `$schema` to the rest of the system?**
+  _843 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `disciplineRules.js` be split into smaller, more focused modules?**
-  _Cohesion score 0.0873015873015873 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.08250355618776671 - nodes in this community are weakly interconnected._
 - **Should `BrokerSync.jsx` be split into smaller, more focused modules?**
-  _Cohesion score 0.08478513356562137 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.08780487804878048 - nodes in this community are weakly interconnected._

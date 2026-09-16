@@ -2508,6 +2508,23 @@ a[href*="neat.firecms.co"] {
   background-color: rgb(104, 151, 246);
 }
 
+/* The active public footer uses shadcn buttons. Keep every social glyph legible
+   before hover, including filled brand marks and stroked mail glyphs. */
+.xj-sticky-social-buttons a,
+.xj-sticky-social-buttons a svg {
+  color: #fff !important;
+  fill: currentColor;
+  stroke: currentColor;
+  opacity: 1;
+}
+
+.xj-sticky-social-buttons a:hover,
+.xj-sticky-social-buttons a:hover svg,
+.xj-sticky-social-buttons a:focus-visible,
+.xj-sticky-social-buttons a:focus-visible svg {
+  color: #000 !important;
+}
+
 /* Custom CTA Button Style */
 .btn-cta-underline {
   border: none;

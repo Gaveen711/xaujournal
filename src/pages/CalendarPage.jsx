@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { useMonthTrades } from '../hooks/useMonthTrades';
-import { pad2, formatNumber, formatSigned, pnlToneClass } from '../lib/tradeUtils';
+import { pad2, formatNumber, formatSigned, formatSignedCompact, pnlToneClass } from '../lib/tradeUtils';
 import { DirectionCell } from '../components/app/DirectionCell';
 import {
   getTradeOutcome,
@@ -223,7 +223,7 @@ export function CalendarPage() {
           }`}
           onClick={() => setSelectedCalDay(d)}
           className={cn(
-            'flex min-h-[76px] sm:min-h-[104px] flex-col justify-between rounded-md border p-2 text-left transition-colors',
+            'flex min-w-0 min-h-[76px] sm:min-h-[104px] flex-col justify-between rounded-md border px-1 py-2 sm:px-2 text-left transition-colors',
             isToday ? 'border-primary' : 'border-border',
             isSelected ? 'bg-muted' : 'bg-card hover:bg-muted'
           )}
@@ -237,11 +237,12 @@ export function CalendarPage() {
           {hasTrades && (
             <span
               className={cn(
-                'figure text-xs sm:text-sm',
+                'figure max-w-full truncate text-[10px] sm:text-sm',
                 isWin ? 'text-win' : isLoss ? 'text-loss' : 'text-foreground'
               )}
             >
-              {formatSigned(pnl, 0)}
+              <span className="sm:hidden">{formatSignedCompact(pnl)}</span>
+              <span className="hidden sm:inline">{formatSigned(pnl, 0)}</span>
             </span>
           )}
         </button>

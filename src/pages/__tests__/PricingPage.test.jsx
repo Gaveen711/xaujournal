@@ -75,7 +75,7 @@ function liveProPrice() {
 }
 
 async function moveToPro(user) {
-  await user.click(screen.getByRole('button', { name: /move to pro/i }));
+  await user.click(screen.getByRole('button', { name: /paypal/i }));
 }
 
 beforeEach(() => {
@@ -198,6 +198,14 @@ describe('PricingPage — moving to Pro', () => {
 });
 
 describe('PricingPage — page shape', () => {
+  it('presents PayPal auto-renewal without legacy crypto checkout language', () => {
+    renderPage();
+
+    expect(screen.getAllByText(/paypal/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/auto-renew|renews automatically/i).length).toBeGreaterThan(0);
+    expect(screen.queryByText(/cryptomus|usdt|tron\/trc20/i)).not.toBeInTheDocument();
+  });
+
   it('has exactly one h1 and both plates named', () => {
     renderPage();
     expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);

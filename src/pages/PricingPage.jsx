@@ -78,11 +78,11 @@ const FAQ = [
   ['Does Free include MT4 or MT5 sync?', 'No. Broker sync is a Pro feature. Free traders enter trades by hand; Pro imports closed trades from a connected MT4 or MT5 account automatically.'],
   ['Which brokers work with sync?', 'Any broker that runs MT4 or MT5. Pick a server preset or enter your broker’s server name, then sign in with the account login and its investor or trading password.'],
   ['When should I move to Pro?', 'Move when copying trades is slowing down your review, or when your sample is large enough that session, setup and execution analytics become useful.'],
-  ['Monthly or yearly?', `Monthly is ${PRO_MONTHLY_DISPLAY} a month. Yearly is ${PRO_YEARLY_DISPLAY} billed once — ${PRO_YEARLY_MONTHLY_DISPLAY} a month, $${PRO_YEARLY_SAVINGS} less than twelve monthly payments. Both renew automatically until you cancel.`],
-  ['Can I cancel at any time?', 'Yes. Cancel from the billing portal in your account settings. Pro stays active until the end of the paid billing period, then the account returns to Free.'],
-  ['Is there a refund if Pro is not for me?', 'Yes, on the first payment: a 7-day money-back guarantee. Email info@xaujournal.com within 7 days of your first Pro charge and it is refunded in full. Renewal charges are non-refundable.'],
+  ['Monthly or yearly?', `Monthly is ${PRO_MONTHLY_DISPLAY} a month. Yearly is ${PRO_YEARLY_DISPLAY} billed once — ${PRO_YEARLY_MONTHLY_DISPLAY} a month, $${PRO_YEARLY_SAVINGS} less than twelve monthly payments. Prices are in USD and each plan renews automatically through PayPal.`],
+  ['Can I renew or cancel at any time?', 'PayPal renews Pro automatically on your monthly or yearly billing date. Cancel the recurring payment before the next billing date to stop the next charge; access continues through the period already paid for.'],
+  ['Is there a refund if Pro is not for me?', 'Refund eligibility follows the xaujournal payment policy. Cancelling stops future renewals; it does not automatically reverse a completed PayPal payment.'],
   ['Is my trading data private?', 'Yes. Journals are account-scoped. A broker account is only connected after you explicitly authorise it.'],
-  ['How is payment handled?', 'Checkout is handled by Lemon Squeezy and supports major credit and debit cards. Prices are in USD. xaujournal does not store your card details.'],
+  ['How is payment handled?', 'Checkout and recurring billing are handled by PayPal in USD. You approve the subscription on PayPal, then xaujournal verifies it with PayPal before activating Pro.'],
 ];
 
 const FAQ_SCHEMA = FAQ.map(([q, a]) => ({ q, a }));
@@ -153,6 +153,7 @@ function PricingPageContent() {
   const location = useLocation();
   const [showTerms, setShowTerms] = useState(false);
   const [billing, setBilling] = useState('monthly');
+  const [checkoutStarting, setCheckoutStarting] = useState(false);
   const user = auth.currentUser;
   const { startCheckout, recordProAcceptance } = useSubscription(user);
   useDeskReveal();
@@ -175,11 +176,14 @@ function PricingPageContent() {
   };
 
   const handleAcceptTerms = async () => {
+    if (checkoutStarting) return;
+    setCheckoutStarting(true);
     const accepted = await recordProAcceptance();
     if (accepted) {
-      setShowTerms(false);
-      startCheckout(billing === 'yearly' ? 'pro_yearly' : 'pro_monthly');
+      const started = await startCheckout(billing === 'yearly' ? 'pro_yearly' : 'pro_monthly');
+      if (started) setShowTerms(false);
     }
+    setCheckoutStarting(false);
   };
 
   return (
@@ -212,7 +216,7 @@ function PricingPageContent() {
                   <div className='xpr-plate-head'>
                     <h2 id='plan-free'>Free</h2>
                     <div className='xpr-price'>
-                      <PriceLayer on amount='$0' unit='/ mo' bill='No card. No trial clock.' billing='always' />
+                      <PriceLayer on amount='$0' unit='/ mo' bill='No subscription. No trial clock.' billing='always' />
                     </div>
                   </div>
                   <p className='xpr-plate-desc'>
@@ -223,7 +227,7 @@ function PricingPageContent() {
                   <div className='xpr-plate-cta'>
                     <CTALink ghost to='/login?mode=signup'>Start free</CTALink>
                   </div>
-                  <p className='xpr-plate-foot'>No card · Manual entries stay unlimited</p>
+                  <p className='xpr-plate-foot'>No subscription · Manual entries stay unlimited</p>
                 </article>
 
                 <article className='xpr-plate xpr-plate--lead xj-glass' aria-labelledby='plan-pro' data-billing={billing}>
@@ -256,10 +260,13 @@ function PricingPageContent() {
                   </p>
                   <div className='xpr-plate-ledger'><FeatureLedger plan='pro' /></div>
                   <div className='xpr-plate-cta'>
-                    <CTAButton onClick={handleUpgradeClick}>Move to Pro</CTAButton>
+                    <CTAButton onClick={handleUpgradeClick}>Continue with PayPal</CTAButton>
                   </div>
                   <p className='xpr-plate-foot'>
-                    Checkout by Lemon Squeezy · USD · Cancel any time · 7-day money-back on the first payment
+                    PayPal only · USD billing · Renews automatically · Cancel anytime
+                  </p>
+                  <p className='xpr-plate-foot'>
+                    Approval happens on PayPal. Pro activates only after server verification.
                   </p>
                 </article>
               </div>
@@ -333,7 +340,7 @@ function PricingPageContent() {
                   <p className='xj-eyebrow'>Before you choose</p>
                   <h2 id='pricing-faq-heading' className='xj-h2'>Straight answers. No plan <em>fog.</em></h2>
                   <p className='xpr-faq-aside'>
-                    <TextLink to='/refund-policy'>Read the refund policy</TextLink>
+                    <TextLink to='/refund-policy'>Read the payment policy</TextLink>
                   </p>
                 </div>
                 <div className='xj-faq-list'>
@@ -366,10 +373,18 @@ function PricingPageContent() {
       {showTerms ? (
         <ProTermsModal
           onAccept={handleAcceptTerms}
-          onClose={() => setShowTerms(false)}
+          onClose={() => {
+            if (!checkoutStarting) setShowTerms(false);
+          }}
+          busy={checkoutStarting}
           renderAcceptAction={(onAccept) => (
             <div className='xj xpr-terms-action'>
-              <CTAButton onClick={onAccept}>Accept and continue</CTAButton>
+              <CTAButton onClick={onAccept} disabled={checkoutStarting} aria-busy={checkoutStarting}>
+                {checkoutStarting ? 'Opening PayPal…' : 'Accept and continue to PayPal'}
+              </CTAButton>
+              <span className='xpr-checkout-status' role='status' aria-live='polite'>
+                {checkoutStarting ? 'Preparing your secure PayPal checkout.' : ''}
+              </span>
             </div>
           )}
         />

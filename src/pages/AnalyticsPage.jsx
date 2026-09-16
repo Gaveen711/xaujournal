@@ -17,12 +17,12 @@ import {
   tradePnlValue,
 } from '../lib/tradeAnalytics.js';
 import { PRIMARY_SESSIONS, SESSION_LABELS, primarySessionForCode } from '../lib/sessionEngine.js';
-import { resolveChartTheme, seriesColor } from '../lib/chartTheme.js';
+import { seriesColor } from '../lib/chartTheme.js';
 import { cn } from '../lib/utils';
 import { costOfBrokenRules } from '../lib/disciplineRules.js';
 import { DirectionCell } from '../components/app/DirectionCell';
 import { Share } from 'react-bootstrap-icons';
-import { useAppTheme } from '../hooks/useAppTheme';
+import { useChartTheme } from '../hooks/useChartTheme';
 import { StatCard } from '../components/app/StatCard';
 import { SectionCard } from '../components/app/SectionCard';
 import { SessionRail } from '../components/app/SessionRail';
@@ -295,7 +295,6 @@ export function AnalyticsPage() {
   } = useOutletContext();
   const isFree = (plan === 'basic' || plan === 'free') && !isTrial;
   const navigate = useNavigate();
-  const { isLightMode, currentTemplate } = useAppTheme();
 
   const [showExact, setShowExact] = useState({});
   const [sharingTrade, setSharingTrade] = useState(null);
@@ -602,13 +601,8 @@ export function AnalyticsPage() {
     winRatePercent
   } = stats;
 
-  // The theme values are reactivity keys, not arguments: the tokens change
-  // when the .dark or theme-* class flips on <html>, which React cannot see.
-  const chartColors = useMemo(
-    () => resolveChartTheme(),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [isLightMode, currentTemplate]
-  );
+  // Read canvas colors after theme classes are committed.
+  const chartColors = useChartTheme();
 
   const chartOptions = useMemo(() => ({
     responsive: true,

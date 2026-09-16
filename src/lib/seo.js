@@ -61,8 +61,8 @@ export const ROUTE_SEO = {
     description: 'Terms of use for the xaujournal XAU gold trading journal platform.',
   },
   '/refund-policy': {
-    title: `Refund Policy — ${SITE_NAME}`,
-    description: 'Refund and cancellation policy for xaujournal Pro subscriptions.',
+    title: `Payment & Cancellation Policy — ${SITE_NAME}`,
+    description: 'PayPal subscription billing, automatic renewal, cancellation, and refund policy for xaujournal Pro.',
   },
   '/blogs': {
     title: `Trading Study Materials & Blog — ${SITE_NAME}`,

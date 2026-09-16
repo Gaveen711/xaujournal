@@ -372,9 +372,10 @@ body:has(.dashboard-shell) {
   --chart-3: 220 16% 38%;
   --chart-4: 220 14% 54%;
   --chart-5: 220 14% 70%;
-  --win: 143 72% 31%;
+  --win: 143 72% 26%;
   --loss: 350 72% 44%;
   min-height: 100dvh;
+  color: hsl(var(--foreground));
   background: transparent;
   font-family: 'Geist Variable', 'Geist', system-ui, -apple-system, 'Segoe UI', sans-serif;
 }
@@ -417,7 +418,14 @@ body:has(.dashboard-shell) {
   --loss: 350 90% 66%;
 }
 
+/* The public starfield has a fixed dark ground. The terminal follows its mode. */
+.app-starfield--terminal {
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+
 .dashboard-main-shell {
+  min-width: 0;
   background:
     linear-gradient(90deg, hsl(var(--foreground) / 0.022) 1px, transparent 1px),
     linear-gradient(180deg, hsl(var(--foreground) / 0.022) 1px, transparent 1px),
@@ -453,22 +461,22 @@ body:has(.dashboard-shell) {
 
 .theme-obsidian-teal .dashboard-shell,
 .theme-obsidian-teal body:has(.dashboard-shell) {
-  --primary: 181 88% 27%;
+  --primary: 181 88% 25%;
   --primary-to: 194 84% 38%;
-  --ring: 181 88% 27%;
-  --sidebar-primary: 181 88% 27%;
-  --sidebar-ring: 181 88% 27%;
-  --chart-1: 181 88% 27%;
+  --ring: 181 88% 25%;
+  --sidebar-primary: 181 88% 25%;
+  --sidebar-ring: 181 88% 25%;
+  --chart-1: 181 88% 25%;
 }
 
 .theme-nordic-slate .dashboard-shell,
 .theme-nordic-slate body:has(.dashboard-shell) {
-  --primary: 204 84% 40%;
+  --primary: 204 84% 37%;
   --primary-to: 181 84% 32%;
-  --ring: 204 84% 40%;
-  --sidebar-primary: 204 84% 40%;
-  --sidebar-ring: 204 84% 40%;
-  --chart-1: 204 84% 40%;
+  --ring: 204 84% 37%;
+  --sidebar-primary: 204 84% 37%;
+  --sidebar-ring: 204 84% 37%;
+  --chart-1: 204 84% 37%;
 }
 
 .theme-crimson-rust .dashboard-shell,
@@ -483,14 +491,14 @@ body:has(.dashboard-shell) {
 
 .theme-royal-gold .dashboard-shell,
 .theme-royal-gold body:has(.dashboard-shell) {
-  --primary: 42 92% 40%;
-  --primary-to: 29 92% 43%;
-  --primary-foreground: 222 38% 3%;
-  --ring: 42 92% 40%;
-  --sidebar-primary: 42 92% 40%;
-  --sidebar-primary-foreground: 222 38% 3%;
-  --sidebar-ring: 42 92% 40%;
-  --chart-1: 42 92% 40%;
+  --primary: 42 92% 28%;
+  --primary-to: 29 92% 32%;
+  --primary-foreground: 0 0% 100%;
+  --ring: 42 92% 28%;
+  --sidebar-primary: 42 92% 28%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-ring: 42 92% 28%;
+  --chart-1: 42 92% 28%;
 }
 
 .dark.theme-obsidian-teal .dashboard-shell,
@@ -527,6 +535,8 @@ body:has(.dashboard-shell) {
 .dark.theme-royal-gold body:has(.dashboard-shell) {
   --primary: 44 100% 64%;
   --primary-to: 29 100% 61%;
+  --primary-foreground: 222 38% 3%;
+  --sidebar-primary-foreground: 222 38% 3%;
   --ring: 44 100% 64%;
   --sidebar-primary: 44 100% 64%;
   --sidebar-ring: 44 100% 64%;
@@ -651,7 +661,7 @@ body:has(.dashboard-shell) {
 .dashboard-trade-direction {
   border-color: currentColor;
   background: transparent;
-  opacity: 0.72;
+  opacity: 1;
   transition: color 180ms ease, background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease, opacity 180ms ease !important;
 }
 
@@ -699,13 +709,13 @@ body:has(.dashboard-shell) {
   text-overflow: ellipsis;
 }
 
-.dashboard-trade-card :is([data-slot="input"], [data-slot="select-trigger"]) {
+.dashboard-trade-card :is([data-slot="input"], [data-slot="select-trigger"], [data-slot="setup-combobox-trigger"]) {
   width: 100%;
   min-height: 2.625rem;
 }
 
 .dashboard-trade-fields [data-slot="field-label"] {
-  min-height: 1rem;
+  min-height: 1.125rem;
   align-items: center;
 }
 
@@ -723,11 +733,28 @@ body:has(.dashboard-shell) {
   background: hsl(var(--card) / 0.9);
   -webkit-backdrop-filter: blur(22px) saturate(150%);
   backdrop-filter: blur(22px) saturate(150%);
-  box-shadow: 0 18px 52px hsl(222 50% 1% / 0.72), 0 0 26px hsl(var(--primary) / 0.08);
+  box-shadow: 0 18px 52px hsl(var(--foreground) / 0.16), 0 0 26px hsl(var(--primary) / 0.08);
 }
 
 .dashboard-floating-dock-item[aria-current="page"] {
   box-shadow: inset 0 0 0 1px hsl(var(--primary) / 0.2), 0 0 18px hsl(var(--primary) / 0.08);
+}
+
+/* Magnification is a pointer affordance; touch and keyboard targets stay put. */
+@media (hover: hover) and (pointer: fine) {
+  .dashboard-floating-dock-item {
+    transform: scale(var(--dock-scale, 1));
+  }
+}
+
+.dashboard-floating-dock-item:focus-visible {
+  transform: none;
+}
+
+.dashboard-mobile-header:focus-within,
+.dashboard-shell nav:focus-within {
+  translate: none;
+  transform: none;
 }
 
 @media (prefers-reduced-motion: reduce) {

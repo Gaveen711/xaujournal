@@ -1,4 +1,5 @@
 import type { IsoDateString, PaginationParams } from './common';
+import type { PayPalBillingCycle } from './User';
 
 export type PaymentStatus = 'SUCCESS' | 'FAILED' | 'REFUNDED' | 'PENDING';
 
@@ -11,11 +12,15 @@ export interface Payment {
   currency: string;
   status: PaymentStatus;
   date: IsoDateString;
-  stripeInvoiceId?: string;
-  providerPaymentId?: string;
-  provider?: string;
   subscriptionId?: string;
-  orderId?: string;
+  planId?: string;
+  payerEmail?: string;
+  customerId?: string;
+  billingCycles: PayPalBillingCycle[];
+  nextBillingAt?: IsoDateString;
+  latestCaptureId?: string;
+  latestOrderId?: string;
+  paymentStatus?: string;
   refundedAmount?: number;
   type?: string;
   createdAt?: IsoDateString;

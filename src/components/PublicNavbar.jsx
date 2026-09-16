@@ -21,18 +21,28 @@ export function PublicNavbar() {
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [navHidden, setNavHidden] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const burgerRef = useRef(null);
   const menuRef = useRef(null);
+  const lastScrollYRef = useRef(0);
 
   useEffect(() => {
     let frameId = 0;
     const update = () => {
       frameId = 0;
-      const nextScrolled = window.scrollY > 16;
-      const nextTop = window.scrollY > 620;
+      const nextY = Math.max(0, window.scrollY);
+      const nextScrolled = nextY > 16;
+      const nextTop = nextY > 620;
+      const movingDown = nextY > lastScrollYRef.current + 4;
+      const movingUp = nextY < lastScrollYRef.current - 4;
       setIsScrolled((current) => (current === nextScrolled ? current : nextScrolled));
       setShowScrollTop((current) => (current === nextTop ? current : nextTop));
+      setNavHidden((current) => {
+        const nextHidden = menuOpen ? false : movingDown && nextY > 96 ? true : movingUp ? false : current;
+        return current === nextHidden ? current : nextHidden;
+      });
+      lastScrollYRef.current = nextY;
     };
     const onScroll = () => {
       if (!frameId) frameId = window.requestAnimationFrame(update);
@@ -43,7 +53,7 @@ export function PublicNavbar() {
       window.removeEventListener('scroll', onScroll);
       if (frameId) window.cancelAnimationFrame(frameId);
     };
-  }, []);
+  }, [menuOpen]);
 
   useEffect(() => {
     if (!menuOpen) return undefined;
@@ -123,7 +133,7 @@ export function PublicNavbar() {
   return (
     <div className='xj' data-ux-skip='true'>
       <header>
-        <nav className={isScrolled ? 'xj-nav is-scrolled' : 'xj-nav'} aria-label='Site'>
+        <nav className={`xj-nav${isScrolled ? ' is-scrolled' : ''}${navHidden ? ' is-hidden' : ''}`} aria-label='Site'>
           <div className='xj-nav-inner'>
             <NavLink to='/' aria-label='xaujournal — home' onClick={handleSamePath('/')}>
               <Wordmark />

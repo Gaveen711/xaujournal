@@ -39,6 +39,17 @@ import { createAdminApi } from './_admin.js'
 import { localAdminRateLimitFallbackAllowed, ProcessLocalAdminRateLimiter } from './_adminRateLimit.js'
 import { emptyTradeAnalytics, emptySessionAnalytics } from '../src/lib/tradeAnalytics.js'
 import { USER_CREDENTIAL_FIELDS, ACCOUNT_CREDENTIAL_FIELDS, deletionPatch } from './_credentialFields.js'
+import { verifyPayPalWebhook } from './_paypal.js'
+import {
+  cancelOwnedPayPalSubscription,
+  confirmPayPalSubscription,
+  createHostedPayPalSubscription,
+  getPayPalSubscriptionStatus,
+  isPayPalPlanId,
+  isPayPalSubscriptionId,
+  payPalHostedConfig,
+  processPayPalWebhook,
+} from './_paypalSubscriptions.js'
 
 // Ensure Firebase is initialized before any routes execute
 initAdmin()
@@ -777,140 +788,93 @@ app.post('/init-user', async (c) => {
   }
 })
 
-// ── 6. Lemon Squeezy Webhook Integration ─────────────────────────────────────
-app.post('/lemon-squeezy-webhook', async (c) => {
-  const secret = process.env.LEMON_SQUEEZY_WEBHOOK_SECRET
-  if (!secret) {
-    console.error('[lemon-squeezy-webhook] Webhook secret missing on server')
-    return c.text('Webhook secret not configured', 500)
+// ── 6. PayPal subscriptions ────────────────────────────────────────────────
+app.get('/paypal/subscriptions/config', requireAuth, withUserDoc, async (c) => {
+  return c.json(payPalHostedConfig())
+})
+
+app.post('/paypal/subscriptions/create', requireAuth, withUserDoc, requireEmailVerified, async (c) => {
+  const body = await c.req.json().catch(() => null) as any
+  const uid = String(c.get('uid'))
+  if (!body || !isPayPalPlanId(body.planId) || typeof body.idempotencyKey !== 'string' || body.idempotencyKey.length < 16 || body.idempotencyKey.length > 128) {
+    return c.json({ error: 'Invalid PayPal checkout request' }, 400)
   }
-
-  const signature = c.req.header('x-signature')
-  if (!signature) {
-    return c.text('Missing x-signature header', 400)
-  }
-
-  const rawBody = await c.req.text()
-  const hmac = crypto.createHmac('sha256', secret)
-  const digest = hmac.update(rawBody).digest('hex')
-
-  if (!timingSafeHexEqual(digest, signature)) {
-    console.error('[lemon-squeezy-webhook] Signature verification failed')
-    return c.text('Invalid signature', 401)
-  }
-
   try {
-    const body = JSON.parse(rawBody)
-    const eventName = body.meta?.event_name
-    const userId = body.meta?.custom_data?.user_id
-
-    if (!userId) {
-      console.warn(`[lemon-squeezy-webhook] Event ${eventName} received without user_id`)
-      return c.json({ ok: true, message: 'No user_id found in custom_data' })
-    }
-
-    // The signature covers the body only — no timestamp, no nonce — so a single
-    // captured request stays valid forever. Dedupe on event id so a replayed
-    // subscription_created cannot re-grant Pro after a cancellation.
-    const eventId = String(c.req.header('x-event-id') || body.meta?.event_id || digest)
-    const eventRef = db.collection('webhookEvents').doc(hashToken(eventId))
-    const seen = await Promise.resolve(eventRef.get()).catch(() => null)
-    if (seen?.exists) {
-      console.warn('[lemon-squeezy-webhook] Duplicate event ignored:', eventName)
-      return c.json({ ok: true, deduped: true })
-    }
-    await Promise.resolve(eventRef.set({ event: eventName, processedAt: now() })).catch(() => undefined)
-
-    // userId becomes a Firestore document path, and it arrives from an external
-    // system. A slash would build a deeper path than intended.
-    if (!isValidUid(userId)) {
-      console.error('[lemon-squeezy-webhook] Rejected malformed user_id')
-      return c.json({ ok: true, message: 'Invalid user_id' })
-    }
-
-    const attributes = body.data?.attributes
-    const subscriptionId = body.data?.id
-    const status = attributes?.status
-
-    // Process subscription events
-    if (
-      eventName === 'subscription_created' ||
-      eventName === 'subscription_updated' ||
-      eventName === 'subscription_cancelled' ||
-      eventName === 'subscription_expired'
-    ) {
-      const userDocRef = db.collection('users').doc(userId)
-      let plan = 'free'
-      let planExpiry: string | null = null
-      let graceUntil: string | null = null
-
-      const endsAt = attributes?.ends_at
-      const renewsAt = attributes?.renews_at
-
-      if (status === 'active' || status === 'on_trial' || status === 'cancelled') {
-        const expiryDate = endsAt ? new Date(endsAt) : null
-        if (status === 'cancelled' && expiryDate && expiryDate.getTime() < Date.now()) {
-          plan = 'free'
-          planExpiry = null
-        } else {
-          plan = 'pro'
-          planExpiry = endsAt || renewsAt || null
-        }
-      }
-
-      // Server-authored post-lapse grace. This replaces the 4-day window the
-      // client used to synthesize on its own — which the API never honored,
-      // so lapsed users saw Pro UI whose broker calls 403'd. Trials get no
-      // grace (same rule the client applied). The revoke-expired cron already
-      // queries plan=='grace' and downgrades once graceUntil passes.
-      const GRACE_DAYS = 4
-      if (plan === 'free') {
-        const existingSnap = await Promise.resolve(userDocRef.get()).catch(() => null)
-        const existing = existingSnap?.exists ? existingSnap.data() : null
-        const hadPaidPlan = existing?.plan === 'pro' || existing?.plan === 'grace'
-        if (hadPaidPlan && existing?.isTrial !== true) {
-          plan = 'grace'
-          graceUntil = new Date(Date.now() + GRACE_DAYS * 24 * 60 * 60 * 1000).toISOString()
-        }
-      }
-
-      await userDocRef.set({
-        plan,
-        planExpiry,
-        // Cleared on every non-grace transition so a stale window can never
-        // extend access after a later lapse.
-        graceUntil,
-        lemonSqueezySubscriptionId: String(subscriptionId),
-        lemonSqueezyStatus: status,
-        updatedAt: now(),
-      }, { merge: true })
-
-      if (plan === 'pro') {
-        const pausedAccounts = await userDocRef.collection('brokerAccounts')
-          .where('syncJobState', '==', 'paused')
-          .get()
-        if (!pausedAccounts.empty) {
-          const batch = db.batch()
-          let requeued = 0
-          pausedAccounts.docs.forEach((accountDoc: any) => {
-            if (accountDoc.get('isActive') === true) {
-              batch.update(accountDoc.ref, {
-                syncJobState: 'queued', retryCount: 0,
-                nextSyncAt: new Date().toISOString(), updatedAt: now(),
-              })
-              requeued += 1
-            }
-          })
-          if (requeued > 0) await batch.commit()
-        }
-      }
-
-      console.log(`[lemon-squeezy-webhook] User ${userId} plan set to ${plan} (status: ${status}, expiry: ${planExpiry})`)
-    }
-
-    return c.json({ ok: true })
+    // The response intentionally contains only PayPal's hosted approval URL.
+    return c.json(await createHostedPayPalSubscription({
+      uid,
+      planId: body.planId,
+      idempotencyKey: body.idempotencyKey,
+      requestUrl: c.req.url,
+    }))
   } catch (err: any) {
-    return handleRouteError('lemon-squeezy-webhook', err, c)
+    return handleRouteError('paypal-create', err, c, 'PayPal checkout unavailable')
+  }
+})
+
+app.post('/paypal/subscriptions/confirm', requireAuth, withUserDoc, requireEmailVerified, async (c) => {
+  const body = await c.req.json().catch(() => null) as any
+  const subscriptionId = body?.subscriptionId
+  if (!isPayPalSubscriptionId(subscriptionId)) return c.json({ error: 'Invalid PayPal subscription' }, 400)
+  try {
+    const result = await confirmPayPalSubscription(String(c.get('uid')), subscriptionId)
+    if (result.uid) await invalidateUserCache(result.uid)
+    return c.json({ subscription: result.subscription })
+  } catch (err: any) {
+    return handleRouteError('paypal-confirm', err, c, 'PayPal confirmation unavailable')
+  }
+})
+
+app.get('/paypal/subscriptions/status', requireAuth, withUserDoc, async (c) => {
+  const subscriptionId = c.req.query('subscription_id') || undefined
+  if (subscriptionId && !isPayPalSubscriptionId(subscriptionId)) return c.json({ error: 'Invalid PayPal subscription' }, 400)
+  try {
+    const result = await getPayPalSubscriptionStatus(String(c.get('uid')), subscriptionId)
+    if (result.uid) await invalidateUserCache(result.uid)
+    return c.json({ subscription: result.subscription })
+  } catch (err: any) {
+    return handleRouteError('paypal-status', err, c, 'PayPal subscription status unavailable')
+  }
+})
+
+app.post('/paypal/subscriptions/cancel', requireAuth, withUserDoc, async (c) => {
+  const body = await c.req.json().catch(() => ({})) as any
+  const subscriptionId = body?.subscriptionId
+  if (subscriptionId && !isPayPalSubscriptionId(subscriptionId)) return c.json({ error: 'Invalid PayPal subscription' }, 400)
+  if (body?.reason !== undefined && (typeof body.reason !== 'string' || body.reason.length > 128)) {
+    return c.json({ error: 'Invalid cancellation reason' }, 400)
+  }
+  try {
+    const result = await cancelOwnedPayPalSubscription(String(c.get('uid')), subscriptionId, body?.reason)
+    if (result.uid) await invalidateUserCache(result.uid)
+    return c.json({ subscription: result.subscription })
+  } catch (err: any) {
+    return handleRouteError('paypal-cancel', err, c, 'PayPal cancellation unavailable')
+  }
+})
+
+app.post('/webhooks/paypal', async (c) => {
+  const rawBody = await c.req.text()
+  let body: any
+  try {
+    body = JSON.parse(rawBody)
+  } catch {
+    return c.text('Invalid JSON', 400)
+  }
+  try {
+    const verified = await verifyPayPalWebhook({
+      authAlgo: c.req.header('paypal-auth-algo') || '',
+      certUrl: c.req.header('paypal-cert-url') || '',
+      transmissionId: c.req.header('paypal-transmission-id') || '',
+      transmissionSig: c.req.header('paypal-transmission-sig') || '',
+      transmissionTime: c.req.header('paypal-transmission-time') || '',
+    }, body)
+    if (!verified) return c.text('Invalid signature', 401)
+    const result = await processPayPalWebhook(body)
+    if (result.uid) await invalidateUserCache(result.uid)
+    return c.json({ ok: true, ignored: Boolean((result as any).ignored), deduped: Boolean(result.deduped) })
+  } catch (err: any) {
+    return handleRouteError('paypal-webhook', err, c)
   }
 })
 

@@ -30,7 +30,7 @@ describe('FloatingDockNavigation', () => {
     expect(screen.getByRole('link', { name: 'Settings' })).toHaveAttribute('href', '/app/settings');
   });
 
-  it('magnifies the hovered item and its neighbours', () => {
+  it('supplies pointer magnification without forcing an inline transform', () => {
     renderDock();
 
     const home = screen.getByRole('link', { name: 'Home' });
@@ -39,9 +39,10 @@ describe('FloatingDockNavigation', () => {
 
     fireEvent.mouseEnter(search);
 
-    expect(search).toHaveStyle({ transform: 'scale(1.4)' });
-    expect(home).toHaveStyle({ transform: 'scale(1.2)' });
-    expect(profile).toHaveStyle({ transform: 'scale(1.2)' });
+    expect(search).toHaveStyle({ '--dock-scale': '1.4' });
+    expect(home).toHaveStyle({ '--dock-scale': '1.2' });
+    expect(profile).toHaveStyle({ '--dock-scale': '1.2' });
+    expect(search.style.transform).toBe('');
     expect(screen.getByRole('tooltip')).toHaveTextContent('Search');
   });
 

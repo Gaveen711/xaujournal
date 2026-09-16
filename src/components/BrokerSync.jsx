@@ -82,7 +82,7 @@ function PlatformMark({ platform, className = 'h-4 w-4' }) {
 }
 function FieldError({ id, children }) {
   return (
-    <div id={id} className="flex items-start gap-2 text-[11px] font-bold leading-relaxed text-red-500">
+    <div id={id} className="flex items-start gap-2 text-[11px] font-bold leading-relaxed text-loss">
       <ExclamationCircleFill className="mt-0.5 h-3.5 w-3.5 shrink-0" />
       <span>{children}</span>
     </div>
@@ -230,7 +230,7 @@ export default function BrokerSync() {
       return {
         status: 'reconnect',
         label: 'Reconnect required',
-        color: 'text-amber-500',
+        color: 'text-primary',
         dotBg: 'bg-amber-500',
         badgeBg: 'bg-amber-500/15 border-amber-500/20'
       };
@@ -239,7 +239,7 @@ export default function BrokerSync() {
       return {
         status: 'failed',
         label: 'Disconnected',
-        color: 'text-rose-500',
+        color: 'text-loss',
         dotBg: 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]',
         badgeBg: 'bg-rose-500/15 border-rose-500/20'
       };
@@ -251,7 +251,7 @@ export default function BrokerSync() {
         return {
           status: 'delayed',
           label: 'Sync Delayed',
-          color: 'text-amber-500',
+          color: 'text-primary',
           dotBg: 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]',
           badgeBg: 'bg-amber-500/15 border-amber-500/20'
         };
@@ -261,7 +261,7 @@ export default function BrokerSync() {
     return {
       status: 'active',
       label: 'Connected',
-      color: 'text-emerald-500',
+      color: 'text-win',
       dotBg: 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]',
       badgeBg: 'bg-emerald-500/15 border-emerald-500/20'
     };
@@ -436,7 +436,7 @@ export default function BrokerSync() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          <div className="min-h-9 flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-[10px] font-black uppercase tracking-wider">
+          <div className="min-h-9 flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-win text-[10px] font-black uppercase tracking-wider">
             <ShieldLockFill className="w-3.5 h-3.5" />
             Vault Secured
           </div>
@@ -456,14 +456,14 @@ export default function BrokerSync() {
       {/* Grace period warning */}
       {isGrace && (
         <div className="flex items-start gap-3 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 max-w-none animate-in slide-in-from-top-2 duration-500">
-          <ExclamationTriangleFill className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+          <ExclamationTriangleFill className="w-4 h-4 text-primary shrink-0 mt-0.5" />
           <div>
-            <p className="text-[11px] font-black uppercase tracking-wide text-amber-500">Grace Period Active</p>
-            <p className="text-[10px] text-amber-500/70 mt-0.5 leading-relaxed">
+            <p className="text-[11px] font-black uppercase tracking-wide text-primary">Grace Period Active</p>
+            <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">
               Your Pro subscription has lapsed. Broker sync still works during the grace period. Renew to keep syncing.
             </p>
             {onUpgrade && (
-              <button onClick={onUpgrade} className="mt-2 min-h-11 rounded-lg pr-3 text-[10px] font-black uppercase tracking-widest text-amber-500 underline underline-offset-2 hover:text-amber-400 transition-colors">
+              <button onClick={onUpgrade} className="mt-2 min-h-11 rounded-lg pr-3 text-[10px] font-black uppercase tracking-widest text-primary underline underline-offset-2 hover:text-foreground transition-colors">
                 Renew Pro →
               </button>
             )}
@@ -475,7 +475,7 @@ export default function BrokerSync() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Active Connections */}
         <div className="card-premium p-4 flex items-center gap-4 bg-card/20 backdrop-blur-md border border-border/20">
-          <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500 shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-win shrink-0">
             <Wifi className="w-5 h-5" />
           </div>
           <div>
@@ -488,7 +488,7 @@ export default function BrokerSync() {
 
         {/* Total Balance */}
         <div className="card-premium p-4 flex items-center gap-4 bg-card/20 backdrop-blur-md border border-border/20">
-          <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-primary shrink-0">
             <Database className="w-5 h-5" />
           </div>
           <div className="min-w-0">
@@ -519,7 +519,7 @@ export default function BrokerSync() {
           </div>
           <div className="min-w-0">
             <div className="text-[10px] font-black uppercase text-muted-foreground tracking-wider leading-tight break-words">Security</div>
-            <div className="text-lg font-black text-emerald-400 mt-0.5 flex items-center gap-1.5">
+            <div className="text-lg font-black text-win mt-0.5 flex items-center gap-1.5">
               Encrypted
             </div>
           </div>
@@ -652,24 +652,24 @@ export default function BrokerSync() {
                 {/* Status Badge */}
                 <div className="flex flex-wrap justify-end items-center gap-2 shrink-0 max-w-[45%]">
                   {isCurrentActive && !activeAccount?.requiresReconnect && activeAccount?.lastSyncStatus === 'success' && (
-                    <span className="text-[10px] text-emerald-400/90 font-bold bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full flex items-center gap-1">
+                    <span className="text-[10px] text-win font-bold bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full flex items-center gap-1">
                       <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                       Connected
                     </span>
                   )}
                   {isCurrentActive && activeAccount?.requiresReconnect && (
-                    <span className="text-[10px] text-amber-400 font-bold bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">
+                    <span className="text-[10px] text-primary font-bold bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">
                       Reconnect required
                     </span>
                   )}
                   {isCurrentActive && activeAccount?.lastSyncStatus === 'failed' && (
-                    <span className="text-[10px] text-rose-400 font-bold bg-rose-500/10 border border-rose-500/20 px-2 py-0.5 rounded-full flex items-center gap-1">
+                    <span className="text-[10px] text-loss font-bold bg-rose-500/10 border border-rose-500/20 px-2 py-0.5 rounded-full flex items-center gap-1">
                       <div className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
                       Error
                     </span>
                   )}
                   {preset.comingSoon && (
-                    <span className="text-[9px] text-amber-500 font-bold bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">
+                    <span className="text-[9px] text-primary font-bold bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">
                       Soon
                     </span>
                   )}
@@ -747,7 +747,7 @@ export default function BrokerSync() {
                 {isCurrentActive ? (
                   <button
                     onClick={() => setIsManageModalOpen(true)}
-                    className="min-h-11 flex items-center gap-1 px-3 py-1.5 rounded-full border border-emerald-500/30 text-emerald-400 text-[10px] font-black uppercase tracking-wider hover:bg-emerald-500/10 active:scale-95 transition-all"
+                    className="min-h-11 flex items-center gap-1 px-3 py-1.5 rounded-full border border-emerald-500/30 text-win text-[10px] font-black uppercase tracking-wider hover:bg-emerald-500/10 active:scale-95 transition-all"
                   >
                     <GearFill className="w-3 h-3" />
                     Manage
@@ -757,7 +757,7 @@ export default function BrokerSync() {
                     onClick={() => handleOpenConnect(preset)}
                     className={`min-h-11 flex items-center gap-1 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider active:scale-95 transition-all ${
                       preset.comingSoon
-                        ? 'border border-amber-500/30 bg-amber-500/10 text-amber-400 hover:bg-amber-500/15'
+                        ? 'border border-amber-500/30 bg-amber-500/10 text-primary hover:bg-amber-500/15'
                         : 'bg-amber-500 hover:bg-amber-600 text-black'
                     }`}
                   >
@@ -783,7 +783,7 @@ export default function BrokerSync() {
           <LockFill className="w-4 h-4 text-primary" />
           <span>AES-256 encrypted · Read-only API access · No fund withdrawal permissions</span>
         </div>
-        <div className="flex items-center gap-1.5 text-emerald-400">
+        <div className="flex items-center gap-1.5 text-win">
           <ShieldLockFill className="w-4 h-4" />
           Vault Secured
         </div>
@@ -832,7 +832,7 @@ export default function BrokerSync() {
 
                 {/* Account Overwrite Warning */}
                 {isAccountConnected && (
-                  <div className="flex items-start gap-2.5 p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-500 text-[10px] font-semibold leading-relaxed">
+                  <div className="flex items-start gap-2.5 p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-primary text-[10px] font-semibold leading-relaxed">
                     <ExclamationTriangleFill className="w-5 h-5 shrink-0 mt-0.5" />
                     <div>
                       <p className="font-bold uppercase tracking-wider">Active connection will be replaced</p>
@@ -860,7 +860,7 @@ export default function BrokerSync() {
                               setDropdownOpen(false);
                             }}
                             className={`min-h-11 px-2 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider ${
-                              selectedPlatform === platform ? 'bg-primary text-white shadow' : 'text-muted-foreground hover:text-foreground'
+                              selectedPlatform === platform ? 'bg-primary text-primary-foreground shadow' : 'text-muted-foreground hover:text-foreground'
                             }`}
                           >
                             <span className="flex items-center justify-center gap-2">
@@ -1000,7 +1000,7 @@ export default function BrokerSync() {
                   </div>
 
                   {Object.keys(connectErrors).length > 0 && (
-                    <div className="flex items-start gap-3 rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm font-semibold leading-relaxed text-red-500" role="alert">
+                    <div className="flex items-start gap-3 rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm font-semibold leading-relaxed text-loss" role="alert">
                       <ExclamationCircleFill className="mt-0.5 h-4 w-4 shrink-0" />
                       <span>Please complete the highlighted fields before connecting.</span>
                     </div>
@@ -1164,7 +1164,7 @@ export default function BrokerSync() {
                         type="button"
                         onClick={() => setSyncInterval(interval)}
                         className={`flex-1 py-1 rounded-lg text-[10px] font-bold text-center ${
-                          syncInterval === interval ? 'bg-primary text-white shadow' : 'text-muted-foreground hover:text-foreground'
+                          syncInterval === interval ? 'bg-primary text-primary-foreground shadow' : 'text-muted-foreground hover:text-foreground'
                         } border-none bg-transparent`}
                       >
                         {interval}

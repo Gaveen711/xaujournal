@@ -241,7 +241,7 @@ export function JournalPage() {
                           <XLg aria-hidden="true" />
                         </Button>
                       </div>
-                      <p className="mt-3 border-l-2 border-border pl-4 text-sm leading-relaxed whitespace-pre-wrap text-foreground/90 line-clamp-4">
+                      <p className="mt-3 break-words border-l-2 border-border pl-4 text-sm leading-relaxed whitespace-pre-wrap text-foreground/90">
                         {entry.text}
                       </p>
                     </li>

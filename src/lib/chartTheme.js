@@ -44,9 +44,8 @@ const TOKEN_NAMES = [
 /**
  * Resolves the dashboard chart palette from the live CSS tokens.
  *
- * Call it inside a `useMemo` keyed on the theme mode and accent template:
- * those values are not read here, but the token values change when the
- * corresponding class flips on `<html>`, and React cannot observe that.
+ * Use `useChartTheme` in React consumers so colors are refreshed after the
+ * provider commits theme classes. Reading during render sees the old palette.
  *
  * @returns {object} Ready-to-use CSS color strings.
  */
