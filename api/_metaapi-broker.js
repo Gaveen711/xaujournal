@@ -6,13 +6,38 @@ import { computePips, outcomeForPnl, isGoldSymbol } from '../src/lib/goldContrac
 import { SESSION_ENGINE_VERSION, resolveSessionAt } from '../src/lib/sessionEngine.js';
 
 let apiClient = null;
+let apiToken = null;
+const HISTORY_PAGE_SIZE = 1000;
+const MAX_HISTORY_PAGES = 100;
+const SYNC_BUDGET_MS = 180_000;
+
+export class BrokerSyncError extends Error {
+  constructor(code, message) {
+    super(message);
+    this.name = 'BrokerSyncError';
+    this.code = code;
+  }
+}
+
+function remainingSeconds(deadline) {
+  const seconds = Math.floor((deadline - Date.now()) / 1000);
+  if (seconds <= 0) throw new BrokerSyncError('broker-timeout', 'Broker synchronization took too long. Please retry.');
+  return seconds;
+}
 
 function getApi() {
   const token = process.env.METAAPI_TOKEN;
   if (!token) {
-    throw new Error('Broker sync is not configured (METAAPI_TOKEN missing on server).');
+    throw new BrokerSyncError('broker-config', 'Broker sync is not configured. Please contact support.');
   }
-  if (!apiClient) apiClient = new MetaApi(token);
+  if (!apiClient || apiToken !== token) {
+    apiClient = new MetaApi(token, {
+      requestTimeout: 20,
+      connectTimeout: 20,
+      retryOpts: { retries: 0, longRunningRequestTimeoutInMinutes: 1 },
+    });
+    apiToken = token;
+  }
   return apiClient;
 }
 
@@ -36,7 +61,9 @@ function normalizeDeal(deal, ctx, entryDeal = null) {
   const price = finiteNumber(deal.price ?? deal.closePrice);
   const volume = finiteNumber(deal.volume ?? deal.lots);
   const profit = finiteNumber(deal.profit ?? deal.pnl);
-  const commission = finiteNumber(deal.commission);
+  const entryFraction = entryDeal && finiteNumber(entryDeal.volume) > 0
+    ? Math.min(1, volume / finiteNumber(entryDeal.volume)) : 0;
+  const commission = finiteNumber(deal.commission) + finiteNumber(entryDeal?.commission) * entryFraction;
   const swap = finiteNumber(deal.swap);
   const netPnl = profit + commission + swap;
   const positionId = String(deal.positionId ?? deal.position ?? deal.id ?? deal.ticket ?? closeTime.getTime());
@@ -80,7 +107,7 @@ function normalizeDeal(deal, ctx, entryDeal = null) {
     source: 'BROKER_METAAPI',
     brokerType: ctx.brokerType,
     brokerServer: ctx.server,
-    market: 'GOLD',
+    market: isGoldSymbol(deal.symbol || 'XAUUSD') ? 'GOLD' : 'OTHER',
     outcome: outcomeForPnl(netPnl),
     entryTimestampUtc,
     sessionCode,
@@ -99,17 +126,22 @@ const combineEntryDeals = (previous, next) => {
     ...next,
     price: ((finiteNumber(previous.price) * previousVolume) + (finiteNumber(next.price) * nextVolume)) / totalVolume,
     volume: totalVolume,
+    commission: finiteNumber(previous.commission) + finiteNumber(next.commission),
     time: previous.time || next.time,
   };
 };
 
 export function normalizeMetaApiDeals(deals, ctx) {
   const entries = new Map();
+  const seen = new Set();
   const normalized = [];
   const sortedDeals = [...(Array.isArray(deals) ? deals : [])]
     .sort((a, b) => validDate(a.time, new Date(0)) - validDate(b.time, new Date(0)));
 
   for (const deal of sortedDeals) {
+    const ticket = deal.id ?? deal.ticket ?? deal.dealId;
+    if (ticket != null && seen.has(String(ticket))) continue;
+    if (ticket != null) seen.add(String(ticket));
     if (!isTradeDeal(deal)) continue;
     const entryType = String(deal.entryType || '').toUpperCase();
     const positionKey = String(deal.positionId ?? deal.position ?? deal.id ?? deal.ticket ?? '');
@@ -117,6 +149,19 @@ export function normalizeMetaApiDeals(deals, ctx) {
 
     if (entryType === 'DEAL_ENTRY_IN') {
       entries.set(positionKey, combineEntryDeals(previousEntry, deal));
+      continue;
+    }
+
+    if (entryType === 'DEAL_ENTRY_INOUT' && previousEntry) {
+      const volume = finiteNumber(deal.volume);
+      const closedVolume = Math.min(volume, finiteNumber(previousEntry.volume));
+      const closeFraction = volume > 0 ? closedVolume / volume : 0;
+      normalized.push(normalizeDeal({ ...deal, volume: closedVolume,
+        commission: finiteNumber(deal.commission) * closeFraction }, ctx, previousEntry));
+      const openedVolume = volume - closedVolume;
+      if (openedVolume > 0.0000001) entries.set(positionKey, { ...deal, volume: openedVolume,
+        commission: finiteNumber(deal.commission) * (1 - closeFraction) });
+      else entries.delete(positionKey);
       continue;
     }
 
@@ -130,7 +175,8 @@ export function normalizeMetaApiDeals(deals, ctx) {
       entries.set(positionKey, deal);
     } else if (previousEntry) {
       const remainingVolume = finiteNumber(previousEntry.volume) - finiteNumber(deal.volume);
-      if (remainingVolume > 0.0000001) entries.set(positionKey, { ...previousEntry, volume: remainingVolume });
+      if (remainingVolume > 0.0000001) entries.set(positionKey, { ...previousEntry, volume: remainingVolume,
+        commission: finiteNumber(previousEntry.commission) * remainingVolume / finiteNumber(previousEntry.volume) });
       else entries.delete(positionKey);
     }
   }
@@ -144,52 +190,81 @@ export function normalizeMetaApiDeals(deals, ctx) {
  * Never reuse an existing provider account here: doing so would turn a transient
  * credential exchange into persistent provider-side access.
  */
-export async function provisionMetaApiAccount({ login, password, server, brokerType }) {
+export async function provisionMetaApiAccount({ login, password, server, brokerType }, options = {}) {
   const api = getApi();
   const platform = brokerType === 'mt4' ? 'mt4' : 'mt5';
   const loginStr = String(login);
 
   const account = await api.metatraderAccountApi.createAccount({
     name: 'xaujournal-transient-' + Date.now(),
-    type: 'cloud',
+    type: 'cloud-g2',
     login: loginStr,
     password,
     server,
     platform,
     magic: 0,
     application: 'MetaApi',
-    reliability: 'regular',
+    reliability: 'high',
+    tags: ['xaujournal-transient'],
   });
-
-  await account.deploy();
-  await account.waitConnected(300);
-  return account.id;
+  // Ownership transfers immediately, BEFORE tracking/deploy/wait can throw.
+  options.onAccount?.(account);
+  await options.onCreated?.(account.id);
+  return account;
 }
 
 /**
  * Fetch closed deals since optional fromDate.
  */
-export async function fetchMetaApiDeals(metaApiAccountId, fromDate = null) {
-  const api = getApi();
-  const account = await api.metatraderAccountApi.getAccount(metaApiAccountId);
-  await account.waitConnected(300);
-
+export async function fetchMetaApiDeals(accountOrId, fromDate = null, deadline = Date.now() + SYNC_BUDGET_MS) {
+  const account = typeof accountOrId === 'string'
+    ? await getApi().metatraderAccountApi.getAccount(accountOrId) : accountOrId;
   const connection = account.getRPCConnection();
-  await connection.connect();
   try {
-    await connection.waitSynchronized();
+    await connection.connect();
+    await connection.waitSynchronized(remainingSeconds(deadline));
 
     const start = fromDate || new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
     const end = new Date();
-    const deals = await connection.getDealsByTimeRange(start, end);
+    const rawDeals = [];
+    for (let page = 0; page < MAX_HISTORY_PAGES; page++) {
+      remainingSeconds(deadline);
+      const result = await connection.getDealsByTimeRange(start, end, page * HISTORY_PAGE_SIZE, HISTORY_PAGE_SIZE);
+      if (result?.synchronizing) {
+        throw new BrokerSyncError('broker-history-incomplete', 'Broker history is still synchronizing. Please retry.');
+      }
+      const deals = Array.isArray(result) ? result : result?.deals;
+      if (!Array.isArray(deals)) throw new BrokerSyncError('broker-history-incomplete', 'Broker returned incomplete history. Please retry.');
+      rawDeals.push(...deals);
+      if (deals.length < HISTORY_PAGE_SIZE) break;
+      if (page === MAX_HISTORY_PAGES - 1) throw new BrokerSyncError('broker-history-limit', 'Broker history is too large for one import. Please contact support.');
+    }
+
+    // The rolling history window may omit an entry for a still-open position.
+    // Fetch full lifecycles for the positions being normalized, so fees and
+    // reversals are calculated consistently on subsequent imports.
+    const positions = new Set(rawDeals.filter(isTradeDeal).map(d => d.positionId ?? d.position).filter(Boolean));
+    for (const positionId of positions) {
+      const positionDeals = rawDeals.filter(d => String(d.positionId ?? d.position) === String(positionId));
+      const earliest = positionDeals.reduce((a, b) => validDate(a.time) < validDate(b.time) ? a : b);
+      if (String(earliest.entryType || '').toUpperCase() === 'DEAL_ENTRY_IN') continue;
+      // MT4 history can lack entryType and is already a closed-trade record.
+      if (!earliest.entryType) continue;
+      remainingSeconds(deadline);
+      const result = await connection.getDealsByPosition(String(positionId));
+      if (result?.synchronizing || !Array.isArray(result?.deals)) {
+        throw new BrokerSyncError('broker-history-incomplete', 'Broker position history is incomplete. Please retry.');
+      }
+      rawDeals.push(...result.deals);
+    }
 
     const ctx = {
       brokerType: account.platform,
       server: account.server,
     };
 
-    const rawDeals = Array.isArray(deals) ? deals : deals?.deals ?? [];
-    return normalizeMetaApiDeals(rawDeals, ctx);
+    remainingSeconds(deadline);
+    return normalizeMetaApiDeals(rawDeals, ctx).filter(trade => new Date(trade.closeTime) >= start && new Date(trade.closeTime) < end);
   } finally {
     try {
       await connection.close();
@@ -199,26 +274,52 @@ export async function fetchMetaApiDeals(metaApiAccountId, fromDate = null) {
   }
 }
 
-export async function fetchBrokerTrades(credentials, fromDate = null) {
-  const metaApiAccountId = await provisionMetaApiAccount(credentials);
+export async function fetchBrokerTrades(credentials, fromDate = null, options = {}) {
+  const deadline = Date.now() + SYNC_BUDGET_MS;
+  let account;
+  let primaryError;
+  let cleanupError;
+  let result;
   try {
-    return await fetchMetaApiDeals(metaApiAccountId, fromDate);
+    await provisionMetaApiAccount(credentials, { ...options, onAccount: value => { account = value; } });
+    remainingSeconds(deadline);
+    await account.deploy();
+    await account.waitConnected(remainingSeconds(deadline));
+    result = await fetchMetaApiDeals(account, fromDate, deadline);
+  } catch (error) {
+    primaryError = error;
   } finally {
-    // Removing the temporary provider account destroys its stored broker secret.
-    // Cleanup failures are surfaced because silent failure would violate the
-    // client-managed credential policy.
-    await deleteMetaApiAccount(metaApiAccountId);
+    if (account) {
+      try {
+        await deleteMetaApiAccount(account);
+        await options.onRemoved?.(account.id);
+      } catch {
+        // The durable cleanup record survives; never mask the original error.
+        console.error('[metaapi-cleanup] Temporary account cleanup requires retry');
+        cleanupError = new BrokerSyncError('broker-cleanup', 'Broker cleanup is pending. Please retry later.');
+      }
+    }
   }
+  if (primaryError) throw primaryError;
+  if (cleanupError) throw cleanupError;
+  return result;
 }
 
-export async function deleteMetaApiAccount(metaApiAccountId) {
-  const api = getApi();
+export async function deleteMetaApiAccount(accountOrId) {
   let lastError;
-  for (let attempt = 1; attempt <= 3; attempt += 1) {
+  for (let attempt = 1; attempt <= 2; attempt += 1) {
     try {
-      await api.metatraderAccountApi.removeAccount(metaApiAccountId);
+      const account = typeof accountOrId === 'string'
+        ? await getApi().metatraderAccountApi.getAccount(accountOrId) : accountOrId;
+      if (typeof account.remove === 'function') await account.remove();
+      else if (typeof getApi().metatraderAccountApi.removeAccount === 'function') {
+        // Compatibility for test doubles and older SDK wrappers; the current
+        // SDK path above is account.remove().
+        await getApi().metatraderAccountApi.removeAccount(account.id);
+      } else throw new Error('MetaApi account removal is unavailable');
       return;
     } catch (err) {
+      if (err?.name === 'NotFoundError' || err?.status === 404) return;
       lastError = err;
     }
   }

@@ -7,6 +7,7 @@ import { useOutletContext } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { useSessionBrokerAccounts } from '../app/di/AuthenticatedSessionContext.jsx';
 import { auth } from '../firebase';
+import { AppDialog } from './app/AppDialog';
 // connectBrokerCallable and syncBrokerTradesCallable removed in favor of Hono useBrokerAccounts hook
 import { getFriendlyErrorMessage } from '../lib/errorUtils';
 import { isPaidPlan } from '../lib/entitlements.js';
@@ -98,7 +99,7 @@ export default function BrokerSync() {
   } = useOutletContext();
   
   const toast = useToast();
-  const { accounts, addAccount, syncAccount, removeAccount } = useSessionBrokerAccounts();
+  const { accounts, addAccount, syncAccount, removeAccount, hasSessionCredential } = useSessionBrokerAccounts();
 
   // Platform selection (used in modals)
   const [selectedPlatform, setSelectedPlatform] = useState('mt4'); 
@@ -106,6 +107,9 @@ export default function BrokerSync() {
   // Modals state
   const [isConnectModalOpen, setIsConnectModalOpen] = useState(false);
   const [isManageModalOpen, setIsManageModalOpen] = useState(false);
+  const [isSyncPasswordOpen, setIsSyncPasswordOpen] = useState(false);
+  const [syncPassword, setSyncPassword] = useState('');
+  const [syncPasswordError, setSyncPasswordError] = useState('');
   const [connectingPreset, setConnectingPreset] = useState(null);
 
   // Form state
@@ -306,8 +310,10 @@ export default function BrokerSync() {
     if (!validateConnectForm()) return;
     setConnecting(true);
     try {
-      // Disconnect existing if any
-      if (activeAccount) {
+      // A password refresh for the same account must retain its history ID.
+      const sameAccount = activeAccount && activeAccount.login === login.trim()
+        && activeAccount.server === serverName.trim() && activeAccount.platform === selectedPlatform;
+      if (activeAccount && !sameAccount) {
         await removeAccount(activeAccount.id);
       }
 
@@ -349,14 +355,30 @@ export default function BrokerSync() {
     }
   }
 
-  async function handleManualSync() {
-    if (!activeAccount) return;
+  async function handleManualSync(passwordOverride) {
+    if (!activeAccount || globalSyncing) return;
+    const secret = typeof passwordOverride === 'string' ? passwordOverride : undefined;
+    if (!secret && !hasSessionCredential(activeAccount.id)) {
+      setIsManageModalOpen(false);
+      setSyncPasswordError('');
+      setIsSyncPasswordOpen(true);
+      return;
+    }
     setGlobalSyncing(true);
     try {
-      const result = await syncAccount(activeAccount.id);
+      const result = await syncAccount(activeAccount.id, secret);
       toast(result.message || 'Broker synchronization completed.', 'success');
+      setSyncPassword('');
+      setIsSyncPasswordOpen(false);
+      setIsManageModalOpen(false);
     } catch (err) {
-      toast(getFriendlyErrorMessage(err), 'error');
+      const message = getFriendlyErrorMessage(err);
+      if (secret || err.code === 'broker-password-required' || err.code === 'broker-credentials') {
+        setSyncPassword('');
+        setSyncPasswordError(message);
+        setIsManageModalOpen(false);
+        setIsSyncPasswordOpen(true);
+      } else toast(message, 'error');
     } finally {
       setGlobalSyncing(false);
     }
@@ -425,6 +447,23 @@ export default function BrokerSync() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-12">
+      <AppDialog open={isSyncPasswordOpen} onOpenChange={(open) => {
+        setIsSyncPasswordOpen(open);
+        if (!open) { setSyncPassword(''); setSyncPasswordError(''); }
+      }} title="Sync broker history" description="Enter your broker or investor password. It is remembered for this tab only. Initial synchronization can take a few minutes." dismissible={!globalSyncing} size="sm">
+        <form onSubmit={(event) => { event.preventDefault(); handleManualSync(syncPassword); }} className="space-y-4">
+          <label htmlFor="sync-broker-password" className="block text-sm font-medium">Broker password</label>
+          <input id="sync-broker-password" type="password" autoComplete="current-password" required
+            value={syncPassword} disabled={globalSyncing}
+            onChange={(event) => setSyncPassword(event.target.value)}
+            aria-invalid={Boolean(syncPasswordError)} aria-describedby={syncPasswordError ? 'sync-password-error' : undefined}
+            className="input-premium w-full h-11" />
+          {syncPasswordError && <div id="sync-password-error" role="alert"><FieldError>{syncPasswordError}</FieldError></div>}
+          <button type="submit" disabled={globalSyncing || !syncPassword} className="h-11 px-4 rounded-lg bg-primary text-primary-foreground disabled:opacity-50">
+            {globalSyncing ? 'Syncing…' : 'Sync history'}
+          </button>
+        </form>
+      </AppDialog>
       {/* Header Section */}
       <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="space-y-1 min-w-0">
@@ -1177,11 +1216,8 @@ export default function BrokerSync() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-4 border-t border-border/20">
                   <button
                     type="button"
-                    onClick={() => {
-                      syncAccount(activeAccount.id);
-                      toast('Manual sync triggered.', 'success');
-                      setIsManageModalOpen(false);
-                    }}
+                    disabled={globalSyncing}
+                    onClick={() => handleManualSync()}
                     className="h-11 rounded-xl border border-border/40 hover:border-primary/50 text-[10px] font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all active:scale-[0.98] bg-transparent text-foreground"
                   >
                     <ArrowClockwise className="w-3.5 h-3.5" />

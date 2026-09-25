@@ -28,18 +28,19 @@ export function useUserAnalytics(userId: string, params: UserAnalyticsParams = {
   }, [activePaging.pageToken, from, loadKey, pageSize, to, userId]);
   const query = useAdminQuery(loader);
   const data = query.data?.key === loadKey ? query.data.value : undefined;
+  const nextPageToken = data?.nextPageToken;
 
   const nextPage = useCallback(() => {
-    if (!data?.nextPageToken) return;
+    if (!nextPageToken) return;
     setPaging((current) => {
       const active = current.key === key ? current : { key, pageToken, previousTokens: [] };
       return {
         key,
-        pageToken: data.nextPageToken,
+        pageToken: nextPageToken,
         previousTokens: [...active.previousTokens, active.pageToken],
       };
     });
-  }, [data?.nextPageToken, key, pageToken]);
+  }, [key, nextPageToken, pageToken]);
 
   const previousPage = useCallback(() => {
     setPaging((current) => {

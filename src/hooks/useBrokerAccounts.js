@@ -37,9 +37,8 @@ export function useBrokerAccounts() {
   // A ref, not state: the guard must be read and written synchronously between
   // two listener events in the same tick, which a re-render cannot promise.
   const adoptedRef = useRef(new Set());
-  // Accounts this session has disconnected, keyed `uid:accountId`. When the
-  // backend call fails (offline) the doc is left active, so without this the
-  // very next snapshot would resurrect an account the user just removed.
+  const syncingRef = useRef(new Set());
+  // Successful disconnects stay hidden while the server snapshot catches up.
   const removedRef = useRef(new Set());
 
   useEffect(() => {
@@ -248,6 +247,11 @@ export function useBrokerAccounts() {
     setError(null);
     const user = auth.currentUser;
     if (!user) throw new Error('Not authenticated');
+    const syncKey = `${user.uid}:${accountId}`;
+    if (syncingRef.current.has(syncKey)) {
+      throw Object.assign(new Error('A broker operation is already running.'), { code: 'broker-busy' });
+    }
+    syncingRef.current.add(syncKey);
     try {
       const account = accounts.find((item) => item.id === accountId);
       if (!account) throw new Error('Broker account not found.');
@@ -258,20 +262,24 @@ export function useBrokerAccounts() {
         throw new Error('Reconnect this broker account on this device to sync securely.');
       }
       if (!secret) {
-        throw new Error('Enter your broker password to sync. Credentials are held for this browser session only.');
+        throw Object.assign(new Error('Enter your broker password to sync. Credentials are held for this browser session only.'), { code: 'broker-password-required' });
       }
-      if (password) writeSessionPassword(user.uid, accountId, password);
 
-      return await repository.syncBrokerTrades({
+      const result = await repository.syncBrokerTrades({
         accountId: account.id,
         login: account.login,
         password: secret,
         server: account.server,
         brokerType: account.platform,
       });
+      if (password) writeSessionPassword(user.uid, accountId, password);
+      return result;
     } catch (operationError) {
+      if (operationError.code === 'broker-credentials') sessionStorage.removeItem(secretKey(user.uid));
       setError(operationError.message);
       throw operationError;
+    } finally {
+      syncingRef.current.delete(syncKey);
     }
   }
 
@@ -293,9 +301,6 @@ export function useBrokerAccounts() {
         try {
           result = await repository.disconnectBroker(accountId);
         } catch {
-          // The backend being unreachable must not trap the user in a
-          // connected state — remove locally; the worker-side record is
-          // cleaned up on the next successful backend contact.
           result = { message: 'Broker removed from this device. Server cleanup will finish when the connection is restored.' };
         }
       } else {

@@ -54,7 +54,9 @@ export type AccountLockResult<T> = { acquired: true; value: T } | { acquired: fa
 export async function withAccountLock<T>(accountId: string, operation: () => Promise<T>): Promise<AccountLockResult<T>> {
   const key = 'lock:broker:' + accountId
   const token = crypto.randomUUID()
-  const acquired = await kv.set(key, token, { nx: true, ex: 240 }).catch(() => null)
+  const acquired = await kv.set(key, token, { nx: true, ex: 360 }).catch(() => {
+    throw Object.assign(new Error('Broker locking is temporarily unavailable'), { code: 'broker-unavailable' })
+  })
   if (!acquired) return { acquired: false }
   try {
     return { acquired: true, value: await operation() }

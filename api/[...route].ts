@@ -24,7 +24,8 @@ import {
   verifyRecaptcha,
 } from './_security.js'
 // @ts-ignore
-import { fetchBrokerTrades } from './_metaapi-broker.js'
+import { fetchTrackedBrokerTrades, retryBrokerCleanup } from './_brokerLifecycle.js'
+import { brokerErrorDetails, brokerOperationError } from './_brokerErrors.js'
 import {
   resolveKey,
   invalidateUserCache,
@@ -328,18 +329,23 @@ async function consolidateBrokerConnect({
   brokerType
 }: any) {
   await scrubLegacyBrokerCredentials(uid)
-  // Random ids avoid persisting a credential-derived fingerprint.
-  const accountId = 'broker_' + crypto.randomUUID().replaceAll('-', '')
-  const brokerRef = db.collection('users').doc(uid).collection('brokerAccounts').doc(accountId)
   // Server-owned labels never reuse credential-shaped user input.
   const name = String(server)
   
   const lockResult = await withAccountLock(uid + ':connect', async () => {
-    const activeAccounts = await db.collection('users').doc(uid).collection('brokerAccounts')
-      .where('isActive', '==', true)
-      .limit(2)
-      .get()
-    if (activeAccounts.docs.some((accountDoc: any) => accountDoc.id !== accountId)) {
+    const accountsRef = db.collection('users').doc(uid).collection('brokerAccounts')
+    const accounts = await accountsRef.get()
+    // Keep the existing random identity (and therefore history keys) when the
+    // same trading account reconnects. No password-derived fingerprint.
+    const matches = (doc: any) => {
+      const data = doc.data()
+      return String(data.login) === String(login) && data.server === server && data.brokerType === brokerType
+    }
+    const existing = accounts.docs.find((doc: any) => doc.data().isActive === true && matches(doc))
+      || accounts.docs.find(matches)
+    const accountId = existing?.id || 'broker_' + crypto.randomUUID().replaceAll('-', '')
+    const brokerRef = accountsRef.doc(accountId)
+    if (accounts.docs.some((doc: any) => doc.data().isActive === true && doc.id !== accountId)) {
       throw new Error('Only one broker account can be connected at a time')
     }
     const existingAccount = await brokerRef.get()
@@ -372,11 +378,9 @@ async function consolidateBrokerConnect({
     }, { merge: true })
 
     try {
-      const deals = await withRetryBudget(
-        'metaapi',
-        () => fetchBrokerTrades({ login, password, server, brokerType }),
-        { timeoutMs: 25_000, retries: 0 },
-      )
+      // The SDK owns bounded requests and cleanup. Racing this promise against
+      // an unrelated 25s timer returned early while provisioning kept running.
+      const deals = await fetchTrackedBrokerTrades(db, { login, password, server, brokerType })
       await persistBrokerTrades({
         db,
         userId: uid,
@@ -394,7 +398,9 @@ async function consolidateBrokerConnect({
       return { accountId, tradeCount: deals.length }
     } catch (error: any) {
       await brokerRef.update({
-        lastSyncStatus: 'failed', lastSyncError: 'Broker sync failed',
+        isActive: existingAccount.exists && existingAccount.get('isActive') === true,
+        lastSyncStatus: 'failed', lastSyncError: brokerErrorDetails(error).message,
+        lastSyncErrorCode: brokerErrorDetails(error).code,
         syncJobState: 'client-managed', retryCount: 0,
         nextSyncAt: null,
         updatedAt: now(),
@@ -402,7 +408,7 @@ async function consolidateBrokerConnect({
       throw error
     }
   })
-  if (!lockResult.acquired) throw new Error('Broker connection is already in progress')
+  if (!lockResult.acquired) throw brokerOperationError('broker-busy')
   return lockResult.value
 }
 
@@ -437,7 +443,7 @@ async function handleBrokerAdd(
       tradeCount: result.tradeCount,
     })
   } catch (error: any) {
-    console.error('[broker-connect-add] Add account error:', error.message)
+    console.error('[broker-connect-add] Failed', { code: brokerErrorDetails(error).code })
     const msg = error.message || 'Failed to connect to broker'
     if (/already in progress/i.test(msg)) {
       return c.json({ error: 'Broker connection is already in progress. Try again shortly.' }, 409)
@@ -445,15 +451,8 @@ async function handleBrokerAdd(
     if (/only one broker account/i.test(msg)) {
       return c.json({ error: 'Remove the current broker account before connecting another.' }, 409)
     }
-    if (/invalid|auth|credential|password|login/i.test(msg)) {
-      return c.json({ error: 'Invalid broker credentials. Check login, password, and server name.' }, 401)
-    }
-    return handleRouteError(
-      legacyResponse ? 'connect-broker' : 'broker-login-sync:add',
-      error,
-      c,
-      'Failed to connect to broker'
-    )
+    const safe = brokerErrorDetails(error)
+    return c.json({ error: safe.message, message: safe.message, code: safe.code }, safe.status)
   }
 }
 
@@ -520,16 +519,20 @@ app.post('/broker-login-sync', requireAuth, withUserDoc, requireEmailVerified, a
       return c.json({ error: 'Missing local broker credentials for transient sync' }, 400)
     }
 
+    const accountRef = db.collection('users').doc(uid).collection('brokerAccounts').doc(accountId)
     try {
-      const accountRef = db.collection('users').doc(uid).collection('brokerAccounts').doc(accountId)
+      const locked = await withAccountLock(uid + ':connect', async () => {
       const accountSnap = await accountRef.get()
       if (!accountSnap.exists) return c.json({ error: 'Broker account not found' }, 404)
+      const stored = accountSnap.data()
+      if (stored.isActive !== true) return c.json({ error: 'Reconnect this account before syncing.', code: 'broker-inactive' }, 409)
+      if (String(stored.login) !== String(login) || stored.server !== server || stored.brokerType !== brokerType) {
+        return c.json({ error: 'Account details changed. Reload and retry.', code: 'broker-identity-mismatch' }, 409)
+      }
+      await accountRef.update({ lastSyncStatus: 'running', lastSyncError: null, lastSyncErrorCode: null, updatedAt: now() })
+      try {
       await scrubLegacyBrokerCredentials(uid)
-      const deals = await withRetryBudget(
-        'metaapi',
-        () => fetchBrokerTrades({ login, password, server, brokerType }),
-        { timeoutMs: 25_000, retries: 0 },
-      )
+      const deals = await fetchTrackedBrokerTrades(db, { login: stored.login, password, server: stored.server, brokerType: stored.brokerType })
       const syncResult = await persistBrokerTrades({
         db,
         userId: uid,
@@ -542,6 +545,7 @@ app.post('/broker-login-sync', requireAuth, withUserDoc, requireEmailVerified, a
         lastSyncTime: now(),
         lastSyncStatus: 'success',
         lastSyncError: null,
+        lastSyncErrorCode: null,
         tradeCount: syncResult.totalFetched,
         syncJobState: 'client-managed',
         nextSyncAt: null,
@@ -549,8 +553,19 @@ app.post('/broker-login-sync', requireAuth, withUserDoc, requireEmailVerified, a
         updatedAt: now(),
       })
       return c.json({ ok: true, ...syncResult, message: 'Broker sync completed' })
+      } catch (error) {
+        const safe = brokerErrorDetails(error)
+        await accountRef.update({ lastSyncStatus: 'failed', lastSyncError: safe.message,
+          lastSyncErrorCode: safe.code, updatedAt: now() }).catch(() => undefined)
+        throw error
+      }
+      })
+      if (!locked.acquired) throw brokerOperationError('broker-busy')
+      return locked.value
     } catch (error: any) {
-      return handleRouteError('broker-login-sync:sync', error, c, 'Failed to sync broker')
+      const safe = brokerErrorDetails(error)
+      console.error('[broker-login-sync:sync] Failed', { code: safe.code })
+      return c.json({ error: safe.message, message: safe.message, code: safe.code }, safe.status as any)
     }
   }
   if (action === 'adopt') {
@@ -603,6 +618,7 @@ app.post('/broker-login-sync', requireAuth, withUserDoc, requireEmailVerified, a
     const { accountId } = body
     if (!isValidAccountId(accountId)) return c.json({ error: 'Missing or invalid accountId' }, 400)
     try {
+      const locked = await withAccountLock(uid + ':connect', async () => {
       const accountRef = db.collection('users').doc(uid).collection('brokerAccounts').doc(accountId)
       await scrubLegacyBrokerCredentials(uid)
       await accountRef.update({
@@ -610,8 +626,12 @@ app.post('/broker-login-sync', requireAuth, withUserDoc, requireEmailVerified, a
         updatedAt: now(),
       })
       return c.json({ ok: true, message: 'Broker account removed' })
+      })
+      if (!locked.acquired) throw brokerOperationError('broker-busy')
+      return locked.value
     } catch (error) {
-      return c.json({ error: 'Failed to remove account' }, 500)
+      const safe = brokerErrorDetails(error)
+      return c.json({ error: safe.message, message: safe.message, code: safe.code }, safe.status as any)
     }
   }
 
@@ -632,6 +652,9 @@ app.post('/connect-broker', ...requireProUser({ message: 'Broker connect is a Pr
   const { server, accountId, password, platform = 'mt5' } = body
   if (!server || !accountId || !password) {
     return c.json({ error: 'Missing server, accountId, or password' }, 400)
+  }
+  if (!['mt4', 'mt5'].includes(platform) || typeof server !== 'string' || typeof password !== 'string') {
+    return c.json({ error: 'Invalid broker platform, server, or password' }, 400)
   }
   // accountId is the MT login this legacy route persists (spec §2.1) — same
   // shape gate as the 'add' action, before anything reaches Firestore.
@@ -1002,6 +1025,7 @@ const handleBrokerSyncPoller = async (c: any) => {
   let failedSyncs = 0
 
   try {
+    await retryBrokerCleanup(db)
     // 1. Fetch all active broker accounts across the database in one collection group query
     const accountsSnapshot = await db
       .collectionGroup('brokerAccounts')

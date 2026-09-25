@@ -1,8 +1,8 @@
-import { chunkedDbGetAll } from './_firestoreUtils.js'
 import {
   analyticsDeltaForTrades, analyticsUpdate, subtractTradeAnalytics, tradeAnalyticsDelta,
   sessionAnalyticsDelta, sessionAnalyticsDeltaForTrades, sessionAnalyticsUpdate, subtractSessionAnalytics,
 } from '../src/lib/tradeAnalytics.js'
+import { chunkedDbGetAll } from './_firestoreUtils.js'
 
 const FIRESTORE_BATCH_WRITE_LIMIT = 450
 
@@ -31,18 +31,19 @@ export async function persistBrokerTrades({
   incrementFactory?: (value: number) => any
 }) {
   const tradesRef = db.collection('users').doc(userId).collection('trades')
-  const refs = brokerTrades.map((trade: any) => tradesRef.doc('broker_' + accountId + '_' + trade.closeDealTicket))
-  const snapshots = await chunkedDbGetAll(db, refs)
-  const existingTrades = new Map<string, any>()
-  snapshots.forEach((snap: any) => { if (snap.exists) existingTrades.set(snap.id, snap.data()) })
+  const uniqueTrades = [...new Map(brokerTrades.map((trade: any) => [String(trade.closeDealTicket), trade])).values()]
 
   let newTrades = 0
   let updatedTrades = 0
-  const commitPromises = []
-
-  for (let i = 0; i < brokerTrades.length; i += FIRESTORE_BATCH_WRITE_LIMIT) {
-    const chunk = brokerTrades.slice(i, i + FIRESTORE_BATCH_WRITE_LIMIT)
-    const batch = db.batch()
+  for (let i = 0; i < uniqueTrades.length; i += FIRESTORE_BATCH_WRITE_LIMIT) {
+    const chunk = uniqueTrades.slice(i, i + FIRESTORE_BATCH_WRITE_LIMIT)
+    const processChunk = async (batch: any, snapshots: any[]) => {
+    // Reads and aggregate deltas share the transaction. On conflict Firestore
+    // retries against the committed documents instead of counting them twice.
+    const existingTrades = new Map<string, any>()
+    snapshots.forEach((snap: any) => { if (snap.exists) existingTrades.set(snap.id, snap.data()) })
+    let added = 0
+    let updated = 0
     const aggregateDelta = analyticsDeltaForTrades([])
     const sessionAggregateDelta = sessionAnalyticsDeltaForTrades([])
 
@@ -55,10 +56,10 @@ export async function persistBrokerTrades({
       // accompanies actual session fields — a doc without them gets none invented.
       if (tradeData.sessionEngineVersion !== undefined) tradeData.sessionResolvedAt = timestampFactory()
       if (exists) {
-        updatedTrades++
+        updated++
       } else {
         tradeData.createdAt = timestampFactory()
-        newTrades++
+        added++
       }
       batch.set(tradesRef.doc(tradeDocId), tradeData, { merge: true })
       const nextTrade = exists ? { ...previous, ...tradeData } : tradeData
@@ -85,9 +86,34 @@ export async function persistBrokerTrades({
         batch.update(db.collection('users').doc(userId), userUpdate)
       }
     }
-    if (chunk.length) commitPromises.push(batch.commit())
+    return { added, updated }
+    }
+    const refs = chunk.map((trade: any) => tradesRef.doc('broker_' + accountId + '_' + trade.closeDealTicket))
+    const counts = db.runTransaction
+      ? await db.runTransaction(async (tx: any) => {
+        const snapshots = []
+        for (const ref of refs) snapshots.push(await tx.get(ref))
+        const result = await processChunk({
+          set: (ref: any, data: any, opts: any) => tx.set(ref, data, opts),
+          update: (ref: any, data: any) => tx.update(ref, data),
+        }, snapshots)
+        return result
+      })
+      : await (async () => {
+        const snapshots = await chunkedDbGetAll(db, refs)
+        const batch = db.batch()
+        const writes: any[] = []
+        const result = await processChunk({
+          set: (ref: any, data: any, opts: any) => writes.push(() => batch.set(ref, data, opts)),
+          update: (ref: any, data: any) => writes.push(() => batch.update(ref, data)),
+        }, snapshots)
+        for (const write of writes) write()
+        await batch.commit()
+        return result
+      })()
+    newTrades += counts.added
+    updatedTrades += counts.updated
   }
 
-  await Promise.all(commitPromises)
-  return { newTrades, updatedTrades, totalFetched: brokerTrades.length }
+  return { newTrades, updatedTrades, totalFetched: uniqueTrades.length }
 }

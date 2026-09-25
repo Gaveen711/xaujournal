@@ -5,6 +5,24 @@
 export const getFriendlyErrorMessage = (error) => {
   if (!error) return "";
   const code = typeof error === 'object' && error?.code ? String(error.code) : '';
+  // Safe, actionable integration messages. Never pass raw provider text through.
+  const brokerMessages = {
+    'broker-password-required': 'Enter your broker password to sync. It is remembered for this tab only.',
+    'broker-credentials': 'Broker login failed. Check the account, password, server and platform.',
+    'broker-provider-auth': 'Broker service authorization failed. Please contact support.',
+    'broker-config': 'Broker sync is not configured. Please contact support.',
+    'broker-timeout': 'Broker synchronization took too long. Please retry.',
+    'broker-history-incomplete': 'Broker history is still synchronizing. Please retry.',
+    'broker-history-limit': 'Broker history is too large for one import. Please contact support.',
+    'broker-cleanup': 'Broker cleanup is pending. Please retry later.',
+    'broker-quota': 'Broker service capacity is temporarily unavailable. Please retry later.',
+    'broker-busy': 'A broker operation is already running. Please wait and try again.',
+    'broker-unavailable': 'Broker service is temporarily unavailable. Please retry later.',
+    'broker-failed': 'Broker sync failed. Please retry or contact support.',
+    'broker-inactive': 'Reconnect this account before syncing.',
+    'broker-identity-mismatch': 'Account details changed. Reload and retry.',
+  };
+  if (Object.hasOwn(brokerMessages, code)) return brokerMessages[code];
   const message = typeof error === 'string' ? error : error.message || String(error);
   const msg = `${code} ${message}`.trim();
   
